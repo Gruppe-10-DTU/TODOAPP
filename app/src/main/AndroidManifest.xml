@@ -11,6 +11,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TODOApp"
-        tools:targetApi="31" />
+        tools:targetApi="31">
+        <activity
+            android:name=".CreateTaskPage"
+            android:exported="false"
+            android:label="@string/title_activity_create_task_page"
+            android:theme="@style/Theme.TODOApp" />
+    </application>
 
 </manifest>
