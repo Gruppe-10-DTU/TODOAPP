@@ -48,17 +48,14 @@ fun EditTaskScreen(
     //currentTask: Task
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue("Test", TextRange(0, 7)))
+        mutableStateOf(TextFieldValue("Task name", TextRange(0, 7)))
     }
+    var priority by remember { mutableStateOf(2) }
+    var subTaskCount by remember { mutableStateOf(1)}
     var taskDate by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("01/01/2023", TextRange(10, 10)))
     }
-    var lowSelected by remember { mutableStateOf(true) }
-    var medSelected by remember { mutableStateOf(false) }
-    var highSelected by remember { mutableStateOf(false) }
 
-    var subTaskCount by remember { mutableStateOf(0)}
-    var i = 0
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
         topBar = {
@@ -92,9 +89,8 @@ fun EditTaskScreen(
                 Button(
                     enabled = false, // TODO implement button functionality
                     onClick = returnPage,
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.buttonColors(
-                        MaterialTheme.colorScheme.surface
+                        MaterialTheme.colorScheme.primary
                     ),
                     modifier = Modifier
                         .width(120.dp)
@@ -109,13 +105,18 @@ fun EditTaskScreen(
                 Button(
                     enabled = false, // TODO implement button functionality
                     onClick = saveTask,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.buttonColors(
                         MaterialTheme.colorScheme.primary
                     ),
                     modifier = Modifier
                         .width(120.dp)
                         .height(40.dp)
-                ) { Text(text = "SAVE") }
+                ) { Text(
+                    text = "Save",
+                    color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
         }
@@ -148,40 +149,32 @@ fun EditTaskScreen(
             ){
                 Spacer(modifier = Modifier.width(20.dp))
                 FilterChip(
-                    selected = lowSelected,
-                    onClick = { lowSelected = true
-                                medSelected = false
-                                highSelected = false
-                                },
+                    selected = priority == 1,
+                    onClick = { priority = 1 },
                     label = { Text("Low") },
                     enabled = true,
-                    leadingIcon = {if (lowSelected) Icon(
+                    leadingIcon = {if (priority == 1) Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = "Selected"
                     ) }
                 )
                 FilterChip(
-                    selected = medSelected,
-                    onClick = { lowSelected = false
-                        medSelected = true
-                        highSelected = false
-                    },
-                    label = {Text(text = "Medium")},
+                    selected = priority == 2,
+                    onClick = { priority = 2},
+                    label = {
+                        Text( text = "Medium" )},
                     enabled = true,
-                    leadingIcon = {if (medSelected) Icon(
+                    leadingIcon = {if (priority == 2) Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = "Selected"
                     ) }
                 )
                 FilterChip(
-                    selected = highSelected,
-                    onClick = { lowSelected = false
-                        medSelected = false
-                        highSelected = true
-                    },
+                    selected = priority == 3,
+                    onClick = { priority = 3 },
                     label = {Text(text = "High")},
                     enabled = true,
-                    leadingIcon = {if (highSelected)
+                    leadingIcon = {if (priority == 3)
                         Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = "Selected"
@@ -215,7 +208,7 @@ fun EditTaskScreen(
             Column(
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-                for (i in 0.rangeTo(subTaskCount)){
+                for (i in 1.rangeTo(subTaskCount)){
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -248,7 +241,6 @@ fun EditTaskScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-
                 OutlinedTextField(
                     //label = { Text(text = "Date") },
                     value = taskDate,
@@ -258,6 +250,7 @@ fun EditTaskScreen(
                         imeAction = ImeAction.Next
                     )
                 )
+                Spacer(modifier = Modifier.width(10.dp))
                 IconButton(
                     onClick = { /*TODO*/ },
                     content = {
