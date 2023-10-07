@@ -4,14 +4,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -33,10 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -55,10 +50,15 @@ fun EditTaskScreen(
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("Test", TextRange(0, 7)))
     }
+    var taskDate by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue("01/01/2023", TextRange(10, 10)))
+    }
     var lowSelected by remember { mutableStateOf(true) }
     var medSelected by remember { mutableStateOf(false) }
     var highSelected by remember { mutableStateOf(false) }
 
+    var subTaskCount by remember { mutableStateOf(0)}
+    var i = 0
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
         topBar = {
@@ -78,6 +78,46 @@ fun EditTaskScreen(
                     }
                 },
             )
+        },
+        bottomBar = {
+            HorizontalDivider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(60.dp, 15.dp)
+            )
+            {
+                Button(
+                    enabled = false, // TODO implement button functionality
+                    onClick = returnPage,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(
+                        MaterialTheme.colorScheme.surface
+                    ),
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(40.dp)
+                ) {
+                    Text(
+                        text = "Cancel",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                //Spacer(modifier = Modifier.width(30.dp))
+                Button(
+                    enabled = false, // TODO implement button functionality
+                    onClick = saveTask,
+                    colors = ButtonDefaults.buttonColors(
+                        MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(40.dp)
+                ) { Text(text = "SAVE") }
+            }
+
         }
     ) { padding ->
         Column(
@@ -162,57 +202,72 @@ fun EditTaskScreen(
                     //fontSize = ,
                 )
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { subTaskCount++ },
                     content = {Icon(
                         imageVector = Icons.Outlined.Cancel,
                         contentDescription = "Add subtask",
-                        modifier = Modifier.scale(0.7f).rotate(45f)
+                        modifier = Modifier
+                            .scale(0.7f)
+                            .rotate(45f)
                     )}
                 )
             }
+            Column(
+                modifier = Modifier.padding(10.dp, 10.dp)
+            ) {
+                for (i in 0.rangeTo(subTaskCount)){
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = { /*TODO*/ },
+                            content = {Icon(
+                                imageVector = Icons.Outlined.Cancel,
+                                contentDescription = "Remove Subtask",
+                                modifier = Modifier.scale(0.7f)
+                            )}
+                        )
+                        Text(
+                            text = "Subtask Name",
+                            //fontSize = ,
+                        )
+                    }
+                }
 
+            }
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(10.dp))
 
-            Column(
-                verticalArrangement = Arrangement.Bottom
+            Text(
+                text = "Select date",
+                fontWeight = FontWeight.Bold,
+                //fontSize = ,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(80.dp, 0.dp)
+
+                OutlinedTextField(
+                    //label = { Text(text = "Date") },
+                    value = taskDate,
+                    onValueChange = { taskDate = it },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    )
                 )
-                {
-                    Button(
-                        enabled = false, // TODO implement button functionality
-                        onClick = returnPage,
-                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                        colors = ButtonDefaults.buttonColors(
-                            MaterialTheme.colorScheme.surface
-                        ),
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(40.dp)
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            color = MaterialTheme.colorScheme.primary
+                IconButton(
+                    onClick = { /*TODO*/ },
+                    content = {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = "Pick a date",
+                            modifier = Modifier.scale(1.3f)
                         )
                     }
-                    Button(
-                        enabled = false, // TODO implement button functionality
-                        onClick = saveTask,
-                        colors = ButtonDefaults.buttonColors(
-                            MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(40.dp)
-                    ) { Text(text = "SAVE") }
-                }
+                )
             }
         }
     }
