@@ -4,8 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -28,6 +31,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
@@ -45,6 +50,7 @@ import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 fun EditTaskScreen(
     returnPage: () -> Unit,
     saveTask: () -> Unit,
+    //currentTask: Task
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("Test", TextRange(0, 7)))
@@ -114,7 +120,6 @@ fun EditTaskScreen(
                         contentDescription = "Selected"
                     ) }
                 )
-                //Spacer(modifier = Modifier.width(20.dp))
                 FilterChip(
                     selected = medSelected,
                     onClick = { lowSelected = false
@@ -128,7 +133,6 @@ fun EditTaskScreen(
                         contentDescription = "Selected"
                     ) }
                 )
-                //Spacer(modifier = Modifier.width(20.dp))
                 FilterChip(
                     selected = highSelected,
                     onClick = { lowSelected = false
@@ -149,8 +153,23 @@ fun EditTaskScreen(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(10.dp))
 
-
-
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Add Subtask",
+                    fontWeight = FontWeight.Bold,
+                    //fontSize = ,
+                )
+                IconButton(
+                    onClick = { /*TODO*/ },
+                    content = {Icon(
+                        imageVector = Icons.Outlined.Cancel,
+                        contentDescription = "Add subtask",
+                        modifier = Modifier.scale(0.7f).rotate(45f)
+                    )}
+                )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider()
