@@ -5,7 +5,7 @@ import com.gruppe11.todoApp.model.Task
 class TaskRepositoryImpl : ITaskRepository {
     private var id = 0
     private val tasks: MutableList<Task?> = ArrayList()
-    override fun createTask(task: Task?): Task {
+    override fun createTask(task: Task): Task {
         task!!.id = id++
         tasks.add(task)
         return task
