@@ -3,29 +3,33 @@ package com.gruppe11.todoApp.ui.screens
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.Typography
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 
 class CreateTaskPage : ComponentActivity() {
@@ -37,7 +41,7 @@ class CreateTaskPage : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CreateTaskContent()
+                    CreateTaskContent({}, {})
                 }
             }
         }
@@ -46,72 +50,97 @@ class CreateTaskPage : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateTaskContent() {
-    var taskTitle by remember { mutableStateOf("") }
+fun CreateTaskContent(
+    returnPage: () -> Unit,
+    saveTask: () -> Unit,
+) {
+    var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue("New task", TextRange(0, 8)))
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
+    Scaffold(
 
-            Text(
-                text = "Create task",
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+        modifier = Modifier.fillMaxHeight(),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Create Task",
+                        maxLines = 1
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = returnPage) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go back",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                },
             )
+        },
+        bottomBar = {
+            HorizontalDivider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(60.dp, 15.dp)
+            )
+            {
+                // Cancel Button
+                Button(
+                    enabled = false,
+                    onClick = returnPage,
+                    colors = ButtonDefaults.buttonColors(
+                        MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Cancel",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                }
+
+                // Create button
+                Button(
+                    enabled = false,
+                    onClick = saveTask,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(
+                        MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Create",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
         }
+    ) { padding ->
+        Column(modifier = Modifier.padding(16.dp)) {
+            Spacer(modifier = Modifier.height(60.dp))
+            // Main task Input
+            OutlinedTextField(
+                value = taskName,
+                onValueChange = { taskName = it },
+                label = { Text("Task name") },
+                textStyle = MaterialTheme.typography.bodyMedium,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
 
-        // Task Title Input
-        OutlinedTextField(
-            value = taskTitle,
-            onValueChange = { taskTitle = it },
-            label = { Text("New task") },
-            textStyle = TextStyle(fontSize = 30.sp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-        )
-
-        // Spacer to add some space between input and buttons
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Buttons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Cancel Button
-            Button(
-                onClick = {}, modifier = Modifier.weight(1f)
-            ) {
-                Text("Cancel")
-            }
-
-            // Create Button
-            Button(
-                onClick = {}, modifier = Modifier.weight(1f)
-            ) {
-                Text("Create")
-            }
         }
     }
 }
@@ -120,6 +149,6 @@ fun CreateTaskContent() {
 @Composable
 fun CreateTaskPreview() {
     TODOAPPTheme {
-        CreateTaskContent()
+        CreateTaskContent({}, {})
     }
 }
