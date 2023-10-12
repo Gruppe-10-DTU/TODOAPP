@@ -1,9 +1,13 @@
 package com.gruppe11.todoApp.model
 
-class Tasks(var id: Int, var name: String) {
+class Task(
+    var id: Int,
+    var name: String,
+    var date: Int
+)
+{
     @Override
     override fun toString(): String {
-        return "$id, $name"
+        return "$id, $name, $date"
     }
-
 }
