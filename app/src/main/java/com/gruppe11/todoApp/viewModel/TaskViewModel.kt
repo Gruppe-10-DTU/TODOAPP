@@ -1,15 +1,24 @@
 package com.gruppe11.todoApp.viewModel
 import androidx.lifecycle.ViewModel
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.model.fromString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.time.LocalDateTime
 
-
+enum class Priority{
+    HIGH,
+    MEDIUM,
+    LOW
+}
 data class TaskListUIState(
-    val id: Int? = null,
-    val name:String? = null,
-    val date:Int? = null
+    var id: Int? = null,
+    var title: String? = null,
+    var priority: Priority? = null,
+    var completion: LocalDateTime? = null,
+    var isCompleted: Boolean? = false,
 
 )
 class TaskViewModel : ViewModel() {
@@ -20,11 +29,19 @@ class TaskViewModel : ViewModel() {
     fun getTaskList() : MutableList<Task>{
         return taskList;
     }
-    fun getTaskListByDate(date: Int): List<Task>{
-        return taskList.filter{it.date == date};
+    fun getTaskListByDate(date: LocalDateTime): List<Task>{
+        return taskList.filter{it.completion == date};
     }
-    fun addTask(task:Task){
-        taskList.add(task);
+    fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
+        val Task = Task()
+        var tmpTask = Task
+        let {
+            tmpTask.id = id;
+            tmpTask.title=title;
+            tmpTask.completion = completion;
+            tmpTask.priority = fromString(Prio);
+            tmpTask.isCompleted = isCompleted;
+        }
+        taskList.add(tmpTask)
     }
-
 }

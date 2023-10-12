@@ -1,6 +1,8 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,19 +34,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import java.time.LocalDateTime
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
+    /*
+    MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
+    PREVIEW, CALLS TO TASK SHOULD NOT BE MADE DIRECTLY FROM MODEL!
+     */
     for(i in 1.. 5){
-      viewModel.addTask(Task(i,"task:$i",i%2))
+       var lt : LocalDateTime = LocalDateTime.now()
+        if(i%2 != 0)
+      viewModel.addTask(i,"Task: $i", LocalDateTime.now(),"HIGH",false);
+        else
+            viewModel.addTask(i,"Task: $i", LocalDateTime.now(),"LOW",false);
     }
-    var daySelected : Int = 1
     Scaffold(
         topBar = {
             TopAppBar(
@@ -160,7 +170,8 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
                     .align(Alignment.Center)
                 ) {
                     items(viewModel.getTaskList()) { Task ->
-                        Text(text = Task.name,modifier = Modifier
+                        Text(text = "" + Task.title.toString() + " " + Task.priority.toString(),
+                            modifier = Modifier
                             .clip(RoundedCornerShape(50.dp))
                             .background(MaterialTheme.colorScheme.primaryContainer))
                     }
@@ -179,7 +190,9 @@ fun ShowTaskListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            ShowTaskList()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ShowTaskList()
+            }
         }
     }
 }
