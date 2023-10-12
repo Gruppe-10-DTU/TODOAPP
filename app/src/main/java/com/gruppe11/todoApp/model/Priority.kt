@@ -1,8 +1,5 @@
-package com.gruppe11.todoApp.model;
+package com.gruppe11.todoApp.model
 
-public enum Priority {
-    LOW,
-    MEDIUM,
-    HIGH
-
+enum class Priority {
+    LOW, MEDIUM, HIGH;
 }
