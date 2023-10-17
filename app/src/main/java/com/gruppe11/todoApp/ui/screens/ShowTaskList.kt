@@ -36,6 +36,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,14 +51,14 @@ fun GenerateLazyRowForDays(
 ) {
     Box(
         modifier = Modifier
-            .background(Color(0xFFC1E5E7))
             .fillMaxSize()
     ) {
         Column(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            val formatBigDate = DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
             Text(
-                LocalDateTime.now().toLocalDate().toString(),
+                LocalDateTime.now().toLocalDate().format(formatBigDate).toString(),
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             LazyRow(
@@ -65,6 +67,7 @@ fun GenerateLazyRowForDays(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
+                val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
                 var lt = LocalDateTime.of(
                     selectedYear,
                     selectedMonth,
@@ -77,7 +80,7 @@ fun GenerateLazyRowForDays(
                         shape = MaterialTheme.shapes.small,
                         selected = selectedDay == day,
                         onClick = { onSelectedDay(day) },
-                        label = { Text("${lt.withDayOfMonth(day).dayOfWeek} ${day}.\n ${lt.month}") },
+                        label = { Text(lt.withDayOfMonth(day).format(formatFilterDate)) },
                         enabled = true,
                     )
                 }
@@ -126,6 +129,7 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
+    PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
      */
     for(i in 1.. 5) {
         if (i % 2 != 0) {
