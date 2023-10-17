@@ -1,4 +1,5 @@
 package com.gruppe11.todoApp.viewModel
+import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
+import java.time.YearMonth
 
 enum class Priority{
     HIGH,
@@ -26,11 +28,13 @@ class TaskViewModel : ViewModel() {
     private val _UIState = MutableStateFlow(TaskListUIState())
     val UIState : StateFlow<TaskListUIState> = _UIState.asStateFlow()
 
+
     fun getTaskList() : MutableList<Task>{
         return taskList;
     }
+    @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskList.filter{it.completion == date};
+        return taskList.filter{it.completion!!.dayOfMonth == date.dayOfMonth};
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
         val Task = Task()
@@ -43,5 +47,15 @@ class TaskViewModel : ViewModel() {
             tmpTask.isCompleted = isCompleted;
         }
         taskList.add(tmpTask)
+    }
+
+    @SuppressLint("NewApi")
+    fun generateListOfDaysLeftInMonth(Date: LocalDateTime): MutableList<Int>{
+        val daysInMonth = YearMonth.of(Date.year,Date.month).lengthOfMonth()
+        val daysList = mutableListOf<Int>()
+        for(i in 1..daysInMonth){
+            if(i - LocalDateTime.now().dayOfMonth >= 0) daysList.add(i)
+        }
+        return daysList
     }
 }

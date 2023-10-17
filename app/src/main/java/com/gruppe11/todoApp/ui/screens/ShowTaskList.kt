@@ -1,24 +1,20 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -26,6 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,151 +37,138 @@ import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import java.time.LocalDateTime
 
-@RequiresApi(Build.VERSION_CODES.O)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("NewApi")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GenerateLazyRowForDays(
+    viewModel: TaskViewModel,
+    selectedDay: Int,
+    selectedMonth: Int,
+    selectedYear: Int,
+    onSelectedDay: (Int) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .background(Color(0xFFC1E5E7))
+            .fillMaxSize()
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                LocalDateTime.now().toLocalDate().toString(),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            LazyRow(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                var lt = LocalDateTime.of(
+                    selectedYear,
+                    selectedMonth,
+                    selectedDay,
+                    LocalDateTime.now().hour,
+                    LocalDateTime.now().minute
+                )
+                items(viewModel.generateListOfDaysLeftInMonth(lt)) { day ->
+                    FilterChip(
+                        shape = MaterialTheme.shapes.small,
+                        selected = selectedDay == day,
+                        onClick = { onSelectedDay(day) },
+                        label = { Text("${lt.withDayOfMonth(day).dayOfWeek} ${day}.\n ${lt.month}") },
+                        enabled = true,
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@SuppressLint("NewApi")
+@Composable
+fun GenerateLazyColumnForTasks(
+    viewModel: TaskViewModel,
+    selectedDay: Int,
+    selectedMonth: Int,
+    selectedYear: Int,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(100.dp)
+    ) {
+        LazyColumn(modifier = Modifier
+            .align(Alignment.Center),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            items(viewModel.getTaskListByDate(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))) { Task ->
+                Text(text = Task.toString(),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer))
+            }
+        }
+    }
+}
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
+    //Change this variable when we want to display different months.
+    var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
+    var selectedDay by remember{ mutableStateOf(LocalDateTime.now().dayOfMonth) }
+    var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
-    PREVIEW, CALLS TO TASK SHOULD NOT BE MADE DIRECTLY FROM MODEL!
+    PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
      */
-    for(i in 1.. 5){
-       var lt : LocalDateTime = LocalDateTime.now()
-        if(i%2 != 0)
-      viewModel.addTask(i,"Task: $i", LocalDateTime.now(),"HIGH",false);
-        else
-            viewModel.addTask(i,"Task: $i", LocalDateTime.now(),"LOW",false);
+    for(i in 1.. 5) {
+        if (i % 2 != 0) {
+            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false);
+        } else {
+            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false);
+        }
     }
+    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.height(72.dp),
                 title = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceAround,
-                            modifier = Modifier
-                            .fillMaxSize()
-                        ){
-                            Button(
-                                shape = MaterialTheme.shapes.medium,
-                                enabled = false, // TODO implement button functionality
-                                onClick = { print("Do Nothing")},
-                                colors = ButtonDefaults.buttonColors(
-                                    MaterialTheme.colorScheme.primary
-                                ),
-                                modifier = Modifier
-                                    .width(80.dp)
-                                    .height(80.dp)
-                            ) {
-                                Text(
-                                    text = "DAY1",
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                            GenerateLazyRowForDays(
+                                viewModel = viewModel,
+                                selectedDay = selectedDay,
+                                selectedMonth = selectedMonth,
+                                selectedYear = selectedYear,
+                            ) { day ->
+                                selectedDay = day
                             }
-                            Button(
-                                shape = MaterialTheme.shapes.medium,
-                                enabled = false, // TODO implement button functionality
-                                onClick = { print("Do Nothing") },
-                                colors = ButtonDefaults.buttonColors(
-                                    MaterialTheme.colorScheme.primary
-                                ),
-                                modifier = Modifier
-                                    .width(80.dp)
-                                    .height(80.dp)
-                            ) {
-                                Text(
-                                    text = "DAY2",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        }
                         },
+
             )
         },bottomBar = {
             BottomAppBar {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-                {
-                    Button(
-                        enabled = false, // TODO implement button functionality
-                        onClick = { print("Eh") },
-                        colors = ButtonDefaults.buttonColors(
-                            MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(100.dp)
-                    ) {
-                        Text(
-                            text = "Calender",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    //Spacer(modifier = Modifier.width(30.dp))
-                    Button(
-                        enabled = false, // TODO implement button functionality
-                        onClick = { print("Do Nothing") },
-                        colors = ButtonDefaults.buttonColors(
-                            MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(100.dp)
-                    ) {
-                        Text(
-                            text = "Task",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Button(
-                        enabled = false, // TODO implement button functionality
-                        onClick = { print("Do Nothing") },
-                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                        colors = ButtonDefaults.buttonColors(
-                            MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(100.dp)
-                    ) {
-                        Text(
-                            text = "Label",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
             }
         },
         content = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-            ) {
-                LazyColumn(modifier = Modifier
-                    .align(Alignment.Center)
-                ) {
-                    items(viewModel.getTaskList()) { Task ->
-                        Text(text = "" + Task.title.toString() + " " + Task.priority.toString(),
-                            modifier = Modifier
-                            .clip(RoundedCornerShape(50.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer))
-                    }
-                }
-            }
+            GenerateLazyColumnForTasks(
+                viewModel = viewModel,
+                selectedDay = selectedDay,
+                selectedMonth = selectedMonth,
+                selectedYear = selectedYear,
+            )
         },
     )
 }
 
 
 @Preview
+@Suppress("NewApi")
 @Composable
 fun ShowTaskListPreview() {
     TODOAPPTheme {
@@ -190,9 +176,7 @@ fun ShowTaskListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ShowTaskList()
-            }
+            ShowTaskList()
         }
     }
 }
