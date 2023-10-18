@@ -5,14 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -109,14 +109,30 @@ fun GenerateLazyColumnForTasks(
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(viewModel.getTaskListByDate(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))) { Task ->
-                Text(text = Task.toString(),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer))
+                TaskItem(taskID = Task.id, viewModel = viewModel)
             }
         }
     }
 }
+
+@Composable
+fun TaskItem(taskID: Int, viewModel: TaskViewModel){
+    val task = viewModel.getTaskById(taskID)
+    val taskCompletionStatus by remember {
+        mutableStateOf(task!!.isCompleted)
+    }
+    Row(
+        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+    ){
+        Checkbox(checked = taskCompletionStatus, onCheckedChange ={
+            isChecked -> viewModel.changeTaskCompletion(taskID)
+        } )
+        Text(
+            text = task.toString(),
+            )
+    }
+}
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -166,6 +182,7 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
                 selectedMonth = selectedMonth,
                 selectedYear = selectedYear,
             )
+            uiState
         },
     )
 }

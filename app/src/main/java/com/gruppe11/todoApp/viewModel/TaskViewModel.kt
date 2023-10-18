@@ -58,4 +58,13 @@ class TaskViewModel : ViewModel() {
         }
         return daysList
     }
+
+    fun getTaskById(taskID: Int): Task? {
+        return taskList.find { it.id == taskID }
+    }
+
+    fun changeTaskCompletion(taskID: Int){
+        val task = getTaskById(taskID)
+        task!!.isCompleted = !task!!.isCompleted
+    }
 }
