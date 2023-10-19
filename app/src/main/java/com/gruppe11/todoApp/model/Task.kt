@@ -1,13 +1,13 @@
 package com.gruppe11.todoApp.model
 
-class Task(
-    var id: Int,
-    var name: String,
-    var date: Int
-)
-{
-    @Override
-    override fun toString(): String {
-        return "$id, $name, $date"
-    }
+import java.time.LocalDateTime
+
+class Task {
+    var id = 0
+    var title: String? = null
+    var priority: Priority? = null
+    var completion: LocalDateTime? = null
+    var isCompleted = false
+
+
 }
