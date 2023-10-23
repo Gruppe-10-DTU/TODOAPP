@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -37,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -135,7 +134,9 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         )
     }
     Row(
-        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer).then(longPressHandler)
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .then(longPressHandler)
     ){
         Checkbox(checked = taskCompletionStatus, onCheckedChange ={
             viewModel.changeTaskCompletion(task)
@@ -145,28 +146,14 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             )
     }
     if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Delete Task") },
-            text = { Text("Are you sure you want to delete this task?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.removeTask(task)
-                        showDialog.value = false
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog.value = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
+        task.title?.let {
+            EditTaskDialog(taskName = it,
+                editTask = { /*TODO*/ },
+                deleteTask = { viewModel.removeTask(task) },
+                dismissDialog = { showDialog.value = false }
+            )
+        }
+
     }
 }
 
@@ -186,9 +173,9 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
      */
     for(i in 1.. 20) {
         if (i % 2 != 0) {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false);
+            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
         } else {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false);
+            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
         }
     }
     viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
