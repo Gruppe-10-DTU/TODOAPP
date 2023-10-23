@@ -152,7 +152,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.removeTask(taskID)
+                        viewModel.removeTask(task)
                         showDialog.value = false
                     }
                 ) {

@@ -34,8 +34,8 @@ class TaskViewModel (
         taskRepository.createTask(tmpTask)
     }
 
-    fun removeTask(id: Int){
-        taskList.removeIf { it.id == id }
+    fun removeTask(task: Task){
+        taskRepository.delete(task)
     }
 
     @SuppressLint("NewApi")
