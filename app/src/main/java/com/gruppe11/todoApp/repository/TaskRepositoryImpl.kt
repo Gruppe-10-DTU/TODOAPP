@@ -4,9 +4,9 @@ import com.gruppe11.todoApp.model.Task
 
 class TaskRepositoryImpl : ITaskRepository {
     private var id = 0
-    private val tasks: MutableList<Task?> = ArrayList()
+    private val tasks: MutableList<Task> = ArrayList()
     override fun createTask(task: Task): Task {
-        task!!.id = id++
+        task.id = id++
         tasks.add(task)
         return task
     }
@@ -19,7 +19,7 @@ class TaskRepositoryImpl : ITaskRepository {
             .orElse(null)
     }
 
-    override fun readAll(): List<Task?> {
+    override fun readAll(): List<Task> {
         return tasks
     }
 
