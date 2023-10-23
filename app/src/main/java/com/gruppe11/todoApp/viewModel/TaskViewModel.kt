@@ -12,29 +12,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
 import java.time.YearMonth
 
-enum class Priority{
-    HIGH,
-    MEDIUM,
-    LOW
-}
-data class TaskListUIState(
-    var id: Int? = null,
-    var title: String? = null,
-    var priority: Priority? = null,
-    var completion: LocalDateTime? = null,
-    var isCompleted: Boolean? = false,
-
-)
-class TaskViewModel : ViewModel() {
-
+class TaskViewModel (
     private val taskRepository : ITaskRepository = TaskRepositoryImpl()
-    private val _UIState = MutableStateFlow(TaskListUIState())
-    val UIState : StateFlow<TaskListUIState> = _UIState.asStateFlow()
+) : ViewModel() {
+    private val _UIState = MutableStateFlow(Task())
+    val UIState : StateFlow<Task> = _UIState.asStateFlow()
 
-
-    fun getTaskList() : List<Task>{
-        return taskRepository.readAll();
-    }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth};
@@ -66,7 +49,7 @@ class TaskViewModel : ViewModel() {
     }
 
     fun changeTaskCompletion(task: Task){
-        task!!.isCompleted = !task!!.isCompleted
+        task.isCompleted = !task.isCompleted
         taskRepository.update(task)
     }
 }
