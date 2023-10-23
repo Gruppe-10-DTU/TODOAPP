@@ -25,17 +25,21 @@ class TaskViewModel (
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
         var tmpTask = Task()
         let {
-            tmpTask.id = id;
-            tmpTask.title=title;
-            tmpTask.completion = completion;
-            tmpTask.priority = fromString(Prio);
-            tmpTask.isCompleted = isCompleted;
+            tmpTask.id = id
+            tmpTask.title=title
+            tmpTask.completion = completion
+            tmpTask.priority = fromString(Prio)
+            tmpTask.isCompleted = isCompleted
         }
         taskRepository.createTask(tmpTask)
     }
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
+    }
+
+    fun getTaskList(): List<Task> {
+        return taskRepository.readAll()
     }
 
     @SuppressLint("NewApi")
