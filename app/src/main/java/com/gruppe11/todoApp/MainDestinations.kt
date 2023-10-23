@@ -27,5 +27,3 @@ object Calendar : MainDestination {
     override val title = "Calendar"
     override val icon = Icons.Default.CalendarMonth
 }
-
-val mainTabRowScreens = listOf(Task, Settings, Calendar)

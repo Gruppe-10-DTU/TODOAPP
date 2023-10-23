@@ -1,11 +1,8 @@
 package com.gruppe11.todoApp
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import android.view.View
-import androidx.activity.compose.setContent
-import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -23,14 +20,22 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
-import com.gruppe11.todoApp.ui.screens.ShowTaskList
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+/*        val addTask: View = findViewById(R.id.floatingActionButton)
+        addTask.setOnClickListener{
+        }*/
+
         setContent {
             MainApp()
         }
+    }
+
+    private fun onAddButtonClicked() {
+
     }
 }
 
@@ -100,16 +105,4 @@ fun RowScope.AddItem (
             }
         }
     )
-        val addTask: View = findViewById(R.id.floatingActionButton)
-        addTask.setOnClickListener{
-        }
-            //Navigate to create task page
-        setContent {
-            ShowTaskList()
-        }
-    }
-
-    private fun onAddButtonClicked() {
-
-    }
 }
