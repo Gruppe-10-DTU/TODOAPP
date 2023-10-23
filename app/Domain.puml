@@ -1,0 +1,48 @@
+@startuml
+
+' Pages
+class MainActivity
+class ShowList
+class "Create"
+class Edit
+class Delete
+
+' UI elements
+class CreateBtn
+class CalendarBar
+class NavBar
+
+'ViewModel classes
+class NavViewModel
+class TaskViewModel
+
+' Date
+class Task
+class TaskRep
+interface ITasRep
+
+
+
+ITasRep <|-- TaskRep
+TaskRep -- Task
+ITasRep -- TaskViewModel
+
+NavBar --> NavViewModel
+
+MainActivity --> ShowList
+
+ShowList -- TaskViewModel
+Create -- TaskViewModel
+Edit -- TaskViewModel
+Delete -- ShowList
+CalendarBar -- ShowList
+CreateBtn --> Create
+CreateBtn <-- ShowList
+CreateBtn -- NavViewModel
+
+
+NavViewModel --|> ViewModel
+TaskViewModel --|> ViewModel
+
+
+@enduml
