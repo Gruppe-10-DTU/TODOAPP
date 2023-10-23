@@ -146,13 +146,14 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             )
     }
     if (showDialog.value) {
-        viewModel.getTaskById(taskID)?.title?.let {
+        task.title?.let {
             EditTaskDialog(taskName = it,
                 editTask = { /*TODO*/ },
-                deleteTask = { viewModel.removeTask(taskID) },
-                dismissDialog = { showDialog.value = false}
+                deleteTask = { viewModel.removeTask(task) },
+                dismissDialog = { showDialog.value = false }
             )
         }
+
     }
 }
 
