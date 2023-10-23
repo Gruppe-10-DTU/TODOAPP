@@ -2,7 +2,6 @@ package com.gruppe11.todoApp
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.Scaffold
@@ -11,7 +10,8 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.*
-import com.google.android.material.bottomnavigation.BottomNavigationItemView
+import androidx.navigation.NavDestination.Companion.hierarchy
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -19,7 +19,9 @@ fun MainScreen() {
 
     val navController = rememberNavController()
     Scaffold(
-        bottomBar = {}
+        bottomBar = {
+            BottomBar(navController = navController)
+        }
     ) {
         BottomNavGraph(navController = navController)
     }
@@ -35,9 +37,15 @@ fun BottomBar(navController : NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    BottomAppBar {
+    NavigationBar {
         screens.forEach{ screen ->
-
+            if (currentDestination != null) {
+                AddItem(
+                    screen = screen,
+                    currentDestination = currentDestination,
+                    navController = navController
+                )
+            }
         }
     }
 }
@@ -48,6 +56,22 @@ fun RowScope.AddItem (
     currentDestination: NavDestination,
     navController: NavHostController
 ) {
-    //BottomNavigationItem()
+    NavigationBarItem(
+        label = {
+                Text(text = screen.title)
+        },
+        icon = {
+               Icon(
+                   imageVector = screen.icon,
+                   contentDescription = "Navigation icon"
+               )
+        },
+        selected = currentDestination?.hierarchy?.any() {
+            it.route == screen.route
+        } == true,
+        onClick = {
+            navController.navigate(screen.route)
+        }
+    )
 
 }
