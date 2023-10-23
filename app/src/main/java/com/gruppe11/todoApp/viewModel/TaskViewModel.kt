@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
+import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,21 +26,21 @@ data class TaskListUIState(
 
 )
 class TaskViewModel : ViewModel() {
-    private val taskList: MutableList<Task> = mutableListOf();
+
+    private val taskRepository : ITaskRepository = TaskRepositoryImpl()
     private val _UIState = MutableStateFlow(TaskListUIState())
     val UIState : StateFlow<TaskListUIState> = _UIState.asStateFlow()
 
 
-    fun getTaskList() : MutableList<Task>{
-        return taskList;
+    fun getTaskList() : List<Task>{
+        return taskRepository.readAll();
     }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskList.filter{it.completion!!.dayOfMonth == date.dayOfMonth};
+        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth};
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        val Task = Task()
-        var tmpTask = Task
+        var tmpTask = Task()
         let {
             tmpTask.id = id;
             tmpTask.title=title;
@@ -46,7 +48,7 @@ class TaskViewModel : ViewModel() {
             tmpTask.priority = fromString(Prio);
             tmpTask.isCompleted = isCompleted;
         }
-        taskList.add(tmpTask)
+        taskRepository.createTask(tmpTask)
     }
 
     @SuppressLint("NewApi")
@@ -60,11 +62,11 @@ class TaskViewModel : ViewModel() {
     }
 
     fun getTaskById(taskID: Int): Task? {
-        return taskList.find { it.id == taskID }
+        return taskRepository.read(taskID)
     }
 
-    fun changeTaskCompletion(taskID: Int){
-        val task = getTaskById(taskID)
+    fun changeTaskCompletion(task: Task){
         task!!.isCompleted = !task!!.isCompleted
+        taskRepository.update(task)
     }
 }

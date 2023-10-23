@@ -33,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import java.time.LocalDateTime
@@ -109,15 +110,14 @@ fun GenerateLazyColumnForTasks(
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(viewModel.getTaskListByDate(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))) { Task ->
-                TaskItem(taskID = Task.id, viewModel = viewModel)
+                TaskItem(task = Task, viewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-fun TaskItem(taskID: Int, viewModel: TaskViewModel){
-    val task = viewModel.getTaskById(taskID)
+fun TaskItem(task: Task, viewModel: TaskViewModel){
     val taskCompletionStatus by remember {
         mutableStateOf(task!!.isCompleted)
     }
@@ -125,7 +125,7 @@ fun TaskItem(taskID: Int, viewModel: TaskViewModel){
         modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
     ){
         Checkbox(checked = taskCompletionStatus, onCheckedChange ={
-            isChecked -> viewModel.changeTaskCompletion(taskID)
+            viewModel.changeTaskCompletion(task)
         } )
         Text(
             text = task.toString(),
