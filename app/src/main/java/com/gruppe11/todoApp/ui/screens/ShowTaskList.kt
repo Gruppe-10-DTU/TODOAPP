@@ -66,33 +66,40 @@ fun GenerateLazyRowForDays(
                 LocalDateTime.now().toLocalDate().format(formatBigDate).toString(),
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            LazyRow(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier
-                    .fillMaxSize()
+            Box(
+                modifier = Modifier.fillMaxSize(),
             ) {
-                val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
-                var lt = LocalDateTime.of(
-                    selectedYear,
-                    selectedMonth,
-                    selectedDay,
-                    LocalDateTime.now().hour,
-                    LocalDateTime.now().minute
-                )
-                items(viewModel.generateListOfDaysLeftInMonth(lt)) { day ->
-                    FilterChip(
-                        shape = MaterialTheme.shapes.small,
-                        selected = selectedDay == day,
-                        onClick = { onSelectedDay(day) },
-                        label = { Text(lt.withDayOfMonth(day).format(formatFilterDate)) },
-                        enabled = true,
+
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
+                    var lt = LocalDateTime.of(
+                        selectedYear,
+                        selectedMonth,
+                        selectedDay,
+                        LocalDateTime.now().hour,
+                        LocalDateTime.now().minute
                     )
+                    items(viewModel.generateListOfDaysLeftInMonth(lt)) { day ->
+                        FilterChip(
+                            shape = MaterialTheme.shapes.small,
+                            selected = selectedDay == day,
+                            onClick = { onSelectedDay(day) },
+                            label = { Text(lt.withDayOfMonth(day).format(formatFilterDate)) },
+                            enabled = true,
+                            modifier = Modifier.background(Color.White),
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 
 
 @SuppressLint("NewApi")
@@ -120,11 +127,10 @@ fun GenerateLazyColumnForTasks(
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel){
-    val taskCompletionStatus by remember {
-        mutableStateOf(task!!.isCompleted)
-    }
+    var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
 
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -139,10 +145,11 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
     ){
         Checkbox(checked = taskCompletionStatus, onCheckedChange ={
             viewModel.changeTaskCompletion(task)
+            taskCompletionStatus = !taskCompletionStatus
         } )
         Text(
             text = task.toString(),
-            )
+        )
     }
     if (showDialog.value) {
         AlertDialog(
@@ -219,7 +226,6 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
                 selectedMonth = selectedMonth,
                 selectedYear = selectedYear,
             )
-            uiState
         },
     )
 }

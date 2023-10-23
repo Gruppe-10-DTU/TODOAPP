@@ -1,7 +1,6 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
-import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ITaskRepository
@@ -15,9 +14,11 @@ import java.time.YearMonth
 class TaskViewModel (
     private val taskRepository : ITaskRepository = TaskRepositoryImpl()
 ) : ViewModel() {
-    private val _UIState = MutableStateFlow(Task())
-    val UIState : StateFlow<Task> = _UIState.asStateFlow()
-
+    private var _UIState = MutableStateFlow(listOf(Task()))
+    val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
+    fun getTaskList(): List<Task> {
+        return taskRepository.readAll();
+    }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth};
@@ -32,10 +33,12 @@ class TaskViewModel (
             tmpTask.isCompleted = isCompleted;
         }
         taskRepository.createTask(tmpTask)
+        _UIState.value = taskRepository.readAll()
     }
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
+        _UIState.value = taskRepository.readAll()
     }
 
     @SuppressLint("NewApi")
@@ -43,13 +46,13 @@ class TaskViewModel (
         val daysInMonth = YearMonth.of(Date.year,Date.month).lengthOfMonth()
         val daysList = mutableListOf<Int>()
         for(i in 1..daysInMonth){
-            if(i - LocalDateTime.now().dayOfMonth >= 0) daysList.add(i)
+            if(i - LocalDateTime.now().dayOfMonth+2 >= 0) daysList.add(i)
         }
         return daysList
     }
-
     fun changeTaskCompletion(task: Task){
         task.isCompleted = !task.isCompleted
         taskRepository.update(task)
+        _UIState.value = taskRepository.readAll()
     }
 }
