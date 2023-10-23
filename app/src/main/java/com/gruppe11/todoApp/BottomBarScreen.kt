@@ -13,11 +13,7 @@ sealed class BottomBarScreen (
     val icon: ImageVector
 ) {
 
-    object Calendar : BottomBarScreen(
-        route = "calendar",
-        title = "Calendar",
-        icon = Icons.Default.CalendarMonth
-    )
+
     object Task : BottomBarScreen(
         route = "task",
         title = "Task",
@@ -28,4 +24,10 @@ sealed class BottomBarScreen (
         title = "Settings",
         icon = Icons.Default.Settings
     )
+    object Calendar : BottomBarScreen(
+        route = "calendar",
+        title = "Calendar",
+        icon = Icons.Default.CalendarMonth
+    )
+
 }
