@@ -5,8 +5,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.gruppe11.todoApp.ui.screens.CreateTaskPreview
-import com.gruppe11.todoApp.ui.screens.EditTaskPaePreview
+import com.gruppe11.todoApp.ui.screens.test1
+import com.gruppe11.todoApp.ui.screens.test2
+import com.gruppe11.todoApp.ui.screens.test3
 
 @Composable
 fun MainNavHost(
@@ -15,15 +16,19 @@ fun MainNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = CreateTask.route, //TODO: Change CreateTask.route to actual main route
+        startDestination = Task.route,
         modifier = modifier
     ) {
-        composable(route = CreateTask.route) {
-            CreateTaskPreview()
+        composable(route = Task.route) {
+            test1()
         }
 
-        composable(route = EditTask.route) {
-            EditTaskPaePreview()
+        composable(route = Calendar.route) {
+            test2()
+        }
+
+        composable(route = Settings.route) {
+            test3()
         }
     }
 }
