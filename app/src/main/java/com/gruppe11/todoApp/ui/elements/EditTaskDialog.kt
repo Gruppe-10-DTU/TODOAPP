@@ -72,28 +72,28 @@ fun EditTaskDialog(
                     Icon(
                         imageVector = Icons.Outlined.Edit,
                         contentDescription = "Edit Task",
-                        //modifier = Modifier.scale(0.7F)
+                        modifier = Modifier.scale(0.75F)
                     )
                 }
-            }
-            HorizontalDivider()
-            TextButton(
-                onClick = deleteTask,
-                colors = ButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.error,
-                    disabledContentColor = MaterialTheme.colorScheme.error,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                modifier = Modifier.width(150.dp)
-            ) {
-                Text(text = "Delete Task", color = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.width(20.dp))
-                Icon(
-                    imageVector = Icons.Filled.DeleteOutline,
-                    contentDescription = "Delete Task",
-                    modifier = Modifier.scale(0.7F)
-                )
+                HorizontalDivider(modifier = Modifier.width(140.dp))
+                TextButton(
+                    onClick = deleteTask,
+                    colors = ButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.error,
+                        disabledContentColor = MaterialTheme.colorScheme.error,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    modifier = Modifier.width(150.dp),
+                ) {
+                    Text(text = "Delete Task", color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Icon(
+                        imageVector = Icons.Filled.DeleteOutline,
+                        contentDescription = "Delete Task",
+                        modifier = Modifier.scale(0.75F)
+                    )
+                }
             }
         }
     }
