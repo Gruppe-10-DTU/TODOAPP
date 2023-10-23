@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.compose.setContent
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
 
