@@ -4,41 +4,26 @@ import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
+import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
 import java.time.YearMonth
 
-enum class Priority{
-    HIGH,
-    MEDIUM,
-    LOW
-}
-data class TaskListUIState(
-    var id: Int? = null,
-    var title: String? = null,
-    var priority: Priority? = null,
-    var completion: LocalDateTime? = null,
-    var isCompleted: Boolean? = false,
+class TaskViewModel (
+    private val taskRepository : ITaskRepository = TaskRepositoryImpl()
+) : ViewModel() {
+    private val _UIState = MutableStateFlow(Task())
+    val UIState : StateFlow<Task> = _UIState.asStateFlow()
 
-)
-class TaskViewModel : ViewModel() {
-    private val taskList: MutableList<Task> = mutableListOf();
-    private val _UIState = MutableStateFlow(TaskListUIState())
-    val UIState : StateFlow<TaskListUIState> = _UIState.asStateFlow()
-
-
-    fun getTaskList() : MutableList<Task>{
-        return taskList;
-    }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskList.filter{it.completion!!.dayOfMonth == date.dayOfMonth};
+        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth};
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        val Task = Task()
-        var tmpTask = Task
+        var tmpTask = Task()
         let {
             tmpTask.id = id;
             tmpTask.title=title;
@@ -46,11 +31,11 @@ class TaskViewModel : ViewModel() {
             tmpTask.priority = fromString(Prio);
             tmpTask.isCompleted = isCompleted;
         }
-        taskList.add(tmpTask)
+        taskRepository.createTask(tmpTask)
     }
 
-    fun removeTask(id: Int){
-        taskList.removeIf { it.id == id }
+    fun removeTask(task: Task){
+        taskRepository.delete(task)
     }
 
     @SuppressLint("NewApi")
@@ -63,12 +48,8 @@ class TaskViewModel : ViewModel() {
         return daysList
     }
 
-    fun getTaskById(taskID: Int): Task? {
-        return taskList.find { it.id == taskID }
-    }
-
-    fun changeTaskCompletion(taskID: Int){
-        val task = getTaskById(taskID)
-        task!!.isCompleted = !task!!.isCompleted
+    fun changeTaskCompletion(task: Task){
+        task.isCompleted = !task.isCompleted
+        taskRepository.update(task)
     }
 }
