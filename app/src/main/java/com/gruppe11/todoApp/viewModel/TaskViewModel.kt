@@ -34,6 +34,10 @@ class TaskViewModel (
         taskRepository.createTask(tmpTask)
     }
 
+    fun removeTask(id: Int){
+        taskList.removeIf { it.id == id }
+    }
+
     @SuppressLint("NewApi")
     fun generateListOfDaysLeftInMonth(Date: LocalDateTime): MutableList<Int>{
         val daysInMonth = YearMonth.of(Date.year,Date.month).lengthOfMonth()
