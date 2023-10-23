@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -135,7 +136,7 @@ fun TaskItem(taskID: Int, viewModel: TaskViewModel){
         )
     }
     Row(
-        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer).then(longPressHandler)
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface).then(longPressHandler)
     ){
         Checkbox(checked = taskCompletionStatus, onCheckedChange ={
             isChecked -> viewModel.changeTaskCompletion(taskID)
@@ -196,6 +197,10 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
         topBar = {
             TopAppBar(
                 modifier = Modifier.height(72.dp),
+                colors = topAppBarColors(
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+
+                ),
                 title = {
                             GenerateLazyRowForDays(
                                 viewModel = viewModel,
