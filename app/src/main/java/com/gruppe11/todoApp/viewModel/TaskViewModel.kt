@@ -44,10 +44,6 @@ class TaskViewModel (
         return daysList
     }
 
-    fun getTaskById(taskID: Int): Task? {
-        return taskRepository.read(taskID)
-    }
-
     fun changeTaskCompletion(task: Task){
         task.isCompleted = !task.isCompleted
         taskRepository.update(task)

@@ -147,7 +147,7 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
      */
-    for(i in 1.. 5) {
+    for(i in 1.. 20) {
         if (i % 2 != 0) {
             viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false);
         } else {
