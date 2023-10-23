@@ -58,7 +58,10 @@ fun EditTaskDialog(
                     fontWeight = FontWeight.Bold
                 )
                 TextButton(
-                    onClick = editTask,
+                    onClick = {
+                        editTask()
+                        dismissDialog()
+                    },
                     colors = ButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onBackground,
@@ -77,7 +80,10 @@ fun EditTaskDialog(
                 }
                 HorizontalDivider(modifier = Modifier.width(140.dp))
                 TextButton(
-                    onClick = deleteTask,
+                    onClick = {
+                        deleteTask()
+                        dismissDialog()
+                    },
                     colors = ButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.error,
