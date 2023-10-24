@@ -16,9 +16,6 @@ class TaskViewModel (
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(listOf(Task()))
     val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
-    fun getTaskList(): List<Task> {
-        return taskRepository.readAll();
-    }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth};
@@ -50,7 +47,7 @@ class TaskViewModel (
         val daysInMonth = YearMonth.of(Date.year,Date.month).lengthOfMonth()
         val daysList = mutableListOf<Int>()
         for(i in 1..daysInMonth){
-            if(i - LocalDateTime.now().dayOfMonth+2 >= 0) daysList.add(i)
+            daysList.add(i)
         }
         return daysList
     }

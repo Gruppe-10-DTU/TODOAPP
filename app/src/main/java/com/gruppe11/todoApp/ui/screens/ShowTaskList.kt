@@ -2,22 +2,18 @@ package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -33,12 +29,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,11 +42,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@SuppressLint("NewApi")
+@SuppressLint("NewApi", "CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenerateLazyRowForDays(
@@ -61,6 +57,8 @@ fun GenerateLazyRowForDays(
     selectedYear: Int,
     onSelectedDay: (Int) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -74,14 +72,14 @@ fun GenerateLazyRowForDays(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize()
             ) {
-
                 LazyRow(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(17.dp),
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxSize(),
+                    state = listState,
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
                     var lt = LocalDateTime.of(
@@ -95,13 +93,14 @@ fun GenerateLazyRowForDays(
                         FilterChip(
                             shape = MaterialTheme.shapes.small,
                             selected = selectedDay == day,
-                            onClick = { onSelectedDay(day) },
+                            onClick = { onSelectedDay(day)},
                             label = { Text(lt.withDayOfMonth(day).format(formatFilterDate)) },
                             enabled = true,
                             modifier = Modifier.background(Color.White),
                         )
                     }
                 }
+                coroutineScope.launch{listState.scrollToItem(index = selectedDay-1)}
             }
         }
     }
@@ -147,7 +146,9 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         )
     }
     Row(
-        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer).then(longPressHandler)
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .then(longPressHandler)
     ){
         Checkbox(checked = taskCompletionStatus, onCheckedChange ={
             viewModel.changeTaskCompletion(task)
@@ -205,6 +206,8 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
         }
     }
     viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
     Scaffold(
         topBar = {
             TopAppBar(
