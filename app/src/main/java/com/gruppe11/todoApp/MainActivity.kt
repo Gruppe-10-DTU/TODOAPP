@@ -2,7 +2,6 @@ package com.gruppe11.todoApp
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -13,6 +12,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -24,18 +26,9 @@ import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-/*        val addTask: View = findViewById(R.id.floatingActionButton)
-        addTask.setOnClickListener{
-        }*/
-
         setContent {
             MainApp()
         }
-    }
-
-    private fun onAddButtonClicked() {
-
     }
 }
 
@@ -43,10 +36,22 @@ class MainActivity : AppCompatActivity() {
 fun MainApp() {
     TODOAPPTheme {
         val navController = rememberNavController()
+        val backStackEntry by navController.currentBackStackEntryAsState()
+
+        var isMainDestination by rememberSaveable { mutableStateOf(true) }
+
+        isMainDestination = when (backStackEntry?.destination?.route) {
+            Task.route -> true
+            Calendar.route -> true
+            Settings.route -> true
+            else -> false
+        }
 
         Scaffold(
             bottomBar = {
-                BottomBar(navController = navController)
+                if (isMainDestination) {
+                    BottomBar(navController = navController)
+                }
             }
         ) { innerPadding ->
             MainNavHost(
