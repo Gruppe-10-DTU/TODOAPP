@@ -2,6 +2,8 @@ package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
 import android.graphics.drawable.Icon
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -51,6 +54,7 @@ import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
@@ -132,7 +136,7 @@ fun GenerateLazyColumnForTasks(
             .padding(10.dp, 100.dp)
     ) {
         LazyColumn(modifier = Modifier
-            .align(Alignment.Center)
+            .align(Alignment.TopCenter)
             .fillMaxWidth()
             ,
             verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -149,6 +153,7 @@ fun GenerateLazyColumnForTasks(
 fun TaskItem(task: Task, viewModel: TaskViewModel){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(false) }
 
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
@@ -158,15 +163,17 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         )
     }
     Box(
-        modifier =
-        Modifier
+        modifier = Modifier
             .clip(shape = RoundedCornerShape(20.dp))
+            .animateContentSize()
             .background(MaterialTheme.colorScheme.primaryContainer)
             .then(longPressHandler)
             .fillMaxWidth()
+            .clipToBounds()
 
     ){
-        Row() {
+        Row(modifier = Modifier
+            .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
                 checked = taskCompletionStatus, onCheckedChange ={
                 viewModel.changeTaskCompletion(task);
@@ -181,31 +188,26 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
-                    val visible = {mutableStateOf(false)}
+                    visible = !visible
             }) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowDownward,
+                    imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "See subtasks",
                     modifier = Modifier.size(24.dp)
                 )
             }
         }
+        Box() {
+            Text(text = "test")
+            AnimatedVisibility(visible) {
 
-        LazyColumn(modifier = Modifier
-            .align(Alignment.Center)
-            .fillMaxWidth()
-            .fillMaxHeight()
-            ,
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            items(mutableListOf("one", "two")) { item : String ->
-                subTask(item)
+                subTask(visible, "test")
             }
         }
-        
-        
-
     }
+
+
+
     if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
@@ -233,8 +235,9 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
 }
 
 @Composable
-fun subTask(subtask : String) {
-    Text(text = subtask)
+fun subTask(visible: Boolean, subtask : String) {
+        Text(text = subtask)
+
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
