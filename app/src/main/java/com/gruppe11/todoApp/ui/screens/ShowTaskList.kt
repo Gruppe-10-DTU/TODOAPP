@@ -1,6 +1,8 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Icon
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -8,33 +10,45 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterEnd
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -47,6 +61,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.flow.asFlow
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -142,24 +157,54 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             }
         )
     }
-    Row(
+    Box(
         modifier =
         Modifier
             .clip(shape = RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer).then(longPressHandler)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .then(longPressHandler)
             .fillMaxWidth()
 
     ){
-        Checkbox(modifier = Modifier.padding(10.dp),
-            checked = taskCompletionStatus, onCheckedChange ={
-            viewModel.changeTaskCompletion(task);
-            taskCompletionStatus = task.isCompleted;
-        } )
-        Text(
-            modifier = Modifier
-                .align(alignment = Alignment.CenterVertically),
-            text = task.title
+        Row() {
+            Checkbox(modifier = Modifier.padding(10.dp),
+                checked = taskCompletionStatus, onCheckedChange ={
+                viewModel.changeTaskCompletion(task);
+                taskCompletionStatus = task.isCompleted;
+            } )
+            Text(
+                modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                ,
+                text = task.title
             )
+            Spacer(Modifier.weight(1f))
+            IconButton(modifier = Modifier
+                .align(Alignment.CenterVertically),
+                onClick = {
+                    val visible = {mutableStateOf(false)}
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowDownward,
+                    contentDescription = "See subtasks",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+
+        LazyColumn(modifier = Modifier
+            .align(Alignment.Center)
+            .fillMaxWidth()
+            .fillMaxHeight()
+            ,
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            items(mutableListOf("one", "two")) { item : String ->
+                subTask(item)
+            }
+        }
+        
+        
+
     }
     if (showDialog.value) {
         AlertDialog(
@@ -185,6 +230,11 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             }
         )
     }
+}
+
+@Composable
+fun subTask(subtask : String) {
+    Text(text = subtask)
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
