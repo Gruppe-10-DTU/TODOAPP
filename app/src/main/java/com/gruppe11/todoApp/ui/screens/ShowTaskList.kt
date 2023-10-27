@@ -7,9 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,12 +24,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +39,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +56,38 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @SuppressLint("NewApi", "CoroutineCreationDuringComposition")
+@Composable
+fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, progress: MutableState<Float>) {
+    var currentProgress by remember {progress}
+    val cirscope = rememberCoroutineScope()
+
+    cirscope.launch {
+        val completionCounts = viewModel.countTaskCompletionsByDay(date)
+        currentProgress = completionCounts[date.dayOfMonth].toFloat()
+    }
+    Column(
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .height(40.dp)
+            .width(55.dp)
+    ) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .wrapContentSize()
+                .height(5.dp)
+                .width(50.dp)
+                .rotate(-90f),
+            progress = currentProgress,
+            trackColor = MaterialTheme.colorScheme.primaryContainer,
+            )
+    }
+}
+
+
+
+
+@SuppressLint("NewApi", "CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenerateLazyRowForDays(
@@ -55,30 +95,23 @@ fun GenerateLazyRowForDays(
     selectedDay: Int,
     selectedMonth: Int,
     selectedYear: Int,
-    onSelectedDay: (Int) -> Unit
-) {
+    progress: MutableState<Float>,
+    onSelectedDay: (Int) -> Unit,
+    ) {
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    //val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .wrapContentSize()
     ) {
         Column(
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.SpaceAround,
         ) {
-            val formatBigDate = DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
-            Text(
-                LocalDateTime.now().toLocalDate().format(formatBigDate).toString(),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
                 LazyRow(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(17.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxWidth(),
                     state = listState,
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
@@ -89,22 +122,48 @@ fun GenerateLazyRowForDays(
                         LocalDateTime.now().hour,
                         LocalDateTime.now().minute
                     )
-                    items(viewModel.generateListOfDaysLeftInMonth(lt)) { day ->
-                        FilterChip(
-                            shape = MaterialTheme.shapes.small,
-                            selected = selectedDay == day,
-                            onClick = { onSelectedDay(day)},
-                            label = { Text(lt.withDayOfMonth(day).format(formatFilterDate)) },
-                            enabled = true,
-                            modifier = Modifier.background(Color.White),
-                        )
+                    items(viewModel.generateListOfDaysInMonth(lt)) { day ->
+                        Column(
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.wrapContentSize(),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                                LinearDeterminateIndicator(
+                                    viewModel = viewModel,
+                                    date = LocalDateTime.of(
+                                        lt.year,
+                                        lt.month,
+                                        day,
+                                        lt.hour,
+                                        lt.minute
+                                    ),
+                                    progress
+                                )
+                            Spacer(Modifier.height(2.dp))
+                                FilterChip(
+                                    shape = MaterialTheme.shapes.small,
+                                    selected = selectedDay == day,
+                                    onClick = { onSelectedDay(day) },
+                                    label = {
+                                        Text(
+                                            text = lt.withDayOfMonth(day).format(formatFilterDate),
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    },
+                                    enabled = true,
+                                    modifier = Modifier
+                                        .background(Color.White)
+                                        .width(65.dp),
+                                )
+                            }
+                        }
                     }
-                }
-                coroutineScope.launch{listState.scrollToItem(index = selectedDay-1)}
+
+                //coroutineScope.launch{listState.scrollToItem(index = selectedDay-3)}
             }
         }
-    }
 }
+
 
 
 @SuppressLint("NewApi")
@@ -119,10 +178,11 @@ fun GenerateLazyColumnForTasks(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(10.dp, 100.dp)
     ) {
         LazyColumn(modifier = Modifier
-            .align(Alignment.Center),
+            .align(Alignment.TopCenter)
+            .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(viewModel.getTaskListByDate(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))) { Task ->
@@ -137,7 +197,6 @@ fun GenerateLazyColumnForTasks(
 fun TaskItem(task: Task, viewModel: TaskViewModel){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
-
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
@@ -153,6 +212,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         Checkbox(checked = taskCompletionStatus, onCheckedChange ={
             viewModel.changeTaskCompletion(task)
             taskCompletionStatus = !taskCompletionStatus
+
         } )
         Text(
             text = task.toString(),
@@ -193,6 +253,7 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
+    val copyProgress: MutableState<Float> = remember { mutableStateOf(0.0f) }
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
@@ -213,15 +274,17 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
             TopAppBar(
                 modifier = Modifier.height(72.dp),
                 title = {
-                            GenerateLazyRowForDays(
-                                viewModel = viewModel,
-                                selectedDay = selectedDay,
-                                selectedMonth = selectedMonth,
-                                selectedYear = selectedYear,
-                            ) { day ->
-                                selectedDay = day
-                            }
+                    Box(modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter
+                        ) {
+                        val formatBigDate =
+                            DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
+                        Text(
+                            LocalDateTime.now().toLocalDate().format(formatBigDate).toString(),
+                        )
+                    }
                         },
+
 
             )
         },bottomBar = {
@@ -229,12 +292,41 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
             }
         },
         content = {
-            GenerateLazyColumnForTasks(
-                viewModel = viewModel,
-                selectedDay = selectedDay,
-                selectedMonth = selectedMonth,
-                selectedYear = selectedYear,
-            )
+            Surface(modifier = Modifier.padding(top = it.calculateTopPadding(),bottom=it.calculateBottomPadding())) {
+                Column(
+                    modifier = Modifier.wrapContentSize(),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier.wrapContentSize(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        GenerateLazyRowForDays(
+                            viewModel = viewModel,
+                            selectedDay = selectedDay,
+                            selectedMonth = selectedMonth,
+                            selectedYear = selectedYear,
+                            progress = copyProgress
+                        ) { day ->
+                            selectedDay = day
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.secondary),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        GenerateLazyColumnForTasks(
+                            viewModel = viewModel,
+                            selectedDay = selectedDay,
+                            selectedMonth = selectedMonth,
+                            selectedYear = selectedYear,
+                        )
+                    }
+                }
+            }
         },
     )
 }
