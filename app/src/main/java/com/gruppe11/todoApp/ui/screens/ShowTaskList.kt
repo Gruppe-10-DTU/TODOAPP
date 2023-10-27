@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
@@ -24,6 +27,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -47,6 +52,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.gruppe11.todoApp.CreateTask
+import com.gruppe11.todoApp.MainDestination
+import com.gruppe11.todoApp.TaskDestination
+import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -165,7 +175,6 @@ fun GenerateLazyRowForDays(
 }
 
 
-
 @SuppressLint("NewApi")
 @Composable
 fun GenerateLazyColumnForTasks(
@@ -219,35 +228,23 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         )
     }
     if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Delete Task") },
-            text = { Text("Are you sure you want to delete this task?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.removeTask(task)
-                        showDialog.value = false
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog.value = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
+        task.title?.let {
+            EditTaskDialog(taskName = it,
+                editTask = { /*TODO*/ },
+                deleteTask = { viewModel.removeTask(task) },
+                dismissDialog = { showDialog.value = false }
+            )
+        }
+
     }
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
+fun ShowTaskList(
+        viewModel : TaskViewModel = viewModel(),
+        onFloatingButtonClick: () -> Unit = {}) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
@@ -261,9 +258,9 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
      */
     for(i in 1.. 20) {
         if (i % 2 != 0) {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false);
+            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
         } else {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false);
+            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
         }
     }
     viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
@@ -328,6 +325,13 @@ fun ShowTaskList(viewModel : TaskViewModel = viewModel()) {
                 }
             }
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                shape = CircleShape,
+                onClick = onFloatingButtonClick) {
+                Icon(Icons.Filled.Add, "Add new Task")
+            }
+        }
     )
 }
 
