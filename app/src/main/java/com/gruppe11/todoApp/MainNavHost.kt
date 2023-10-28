@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
+import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
 import com.gruppe11.todoApp.ui.screens.test2
 import com.gruppe11.todoApp.ui.screens.test3
@@ -32,7 +33,7 @@ fun MainNavHost(
         }
 
         composable(route = Settings.route) {
-            test3()
+            SettingsPage()
         }
 
         // Task destinations
