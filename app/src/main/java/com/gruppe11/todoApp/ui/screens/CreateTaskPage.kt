@@ -162,7 +162,7 @@ fun CreateTaskContent(
                     .align(Alignment.Center)
                 ) {
                     items(viewModel.getTaskList()) { Task ->
-                        Text(text = "" + Task.title.toString() + " " + Task.priority.toString(),
+                        Text(text = "" + Task.title + " " + Task.priority.toString(),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(50.dp))
                                 .background(MaterialTheme.colorScheme.primaryContainer))

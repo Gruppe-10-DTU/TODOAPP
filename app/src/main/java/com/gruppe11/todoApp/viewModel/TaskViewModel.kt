@@ -1,7 +1,7 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
-import com.gruppe11.todoApp.model.Priority
+import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ITaskRepository
@@ -20,10 +20,10 @@ class TaskViewModel (
 
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth};
+        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        var tmpTask = Task()
+        val tmpTask = Task()
         let {
             tmpTask.id = id
             tmpTask.title=title
@@ -32,6 +32,14 @@ class TaskViewModel (
             tmpTask.isCompleted = isCompleted
         }
         taskRepository.createTask(tmpTask)
+    }
+
+    fun getStaticSubtasks() : List<SubTask> {
+        val test = ArrayList<SubTask>()
+        test.add(SubTask("Subtask 1"))
+        test.add(SubTask("Subtask 2"))
+
+        return test
     }
 
     fun removeTask(task: Task){
