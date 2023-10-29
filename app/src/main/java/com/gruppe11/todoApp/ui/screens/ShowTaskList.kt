@@ -89,7 +89,7 @@ fun GenerateLazyRowForDays(
                     .fillMaxSize()
             ) {
                 val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
-                var lt = LocalDateTime.of(
+                val lt = LocalDateTime.of(
                     selectedYear,
                     selectedMonth,
                     selectedDay,
@@ -123,11 +123,11 @@ fun GenerateLazyColumnForTasks(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(10.dp, 100.dp)
+            .padding(10.dp)
     ) {
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
-            .fillMaxWidth()
+            .fillMaxSize()
             ,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
@@ -168,8 +168,8 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
                 checked = taskCompletionStatus, onCheckedChange ={
-                viewModel.changeTaskCompletion(task);
-                taskCompletionStatus = task.isCompleted;
+                viewModel.changeTaskCompletion(task)
+                taskCompletionStatus = task.isCompleted
             } )
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically)
@@ -237,7 +237,7 @@ fun ShowTaskList(
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableStateOf(LocalDateTime.now().dayOfMonth) }
-    var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
+    val selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
@@ -268,23 +268,31 @@ fun ShowTaskList(
 
             )
         },
-        content = {
-            GenerateLazyColumnForTasks(
-                viewModel = viewModel,
-                selectedDay = selectedDay,
-                selectedMonth = selectedMonth,
-                selectedYear = selectedYear,
-            )
-            uiState
-        },
         floatingActionButton = {
             FloatingActionButton(
                 shape = CircleShape,
+                /*
+                TODO("Set the color")
+                containerColor = Color(0xF5838E),
+
+                 */
                 onClick = onFloatingButtonClick) {
                 Icon(Icons.Filled.Add, "Add new Task")
             }
-        }
-    )
+        },
+        /*
+        content = {
+
+        },*/
+
+    ) {
+        GenerateLazyColumnForTasks(
+            viewModel = viewModel,
+            selectedDay = selectedDay,
+            selectedMonth = selectedMonth,
+            selectedYear = selectedYear,
+        )
+    }
 }
 
 @SuppressLint("UnrememberedMutableState")
