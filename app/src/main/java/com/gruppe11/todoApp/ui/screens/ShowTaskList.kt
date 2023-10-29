@@ -213,7 +213,6 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
-
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
@@ -231,23 +230,15 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             .clipToBounds()
 
     ){
-        Checkbox(checked = taskCompletionStatus, onCheckedChange ={
-            viewModel.changeTaskCompletion(task)
-            taskCompletionStatus = !taskCompletionStatus
-
-        } )
-        Text(
-            text = task.toString(),
-        )
         Row(modifier = Modifier
             .padding(1.dp)
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
                 checked = taskCompletionStatus, onCheckedChange ={
-                viewModel.changeTaskCompletion(task)
-                taskCompletionStatus = task.isCompleted
-            } )
+                    viewModel.changeTaskCompletion(task)
+                    taskCompletionStatus = task.isCompleted
+                } )
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically)
                 ,
@@ -258,7 +249,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
                 .align(Alignment.CenterVertically),
                 onClick = {
                     visible = !visible
-            }) {
+                }) {
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "See subtasks",
@@ -303,7 +294,6 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         )
     }
 }
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
