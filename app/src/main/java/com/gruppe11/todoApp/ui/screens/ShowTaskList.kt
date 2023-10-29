@@ -41,6 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -334,6 +335,10 @@ fun ShowTaskList(
         topBar = {
             TopAppBar(
                 modifier = Modifier.height(72.dp),
+                colors = topAppBarColors(
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+
+                ),
                 title = {
                     Box(modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.TopCenter
