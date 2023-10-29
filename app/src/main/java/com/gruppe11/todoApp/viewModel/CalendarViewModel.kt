@@ -1,29 +1,42 @@
 package com.gruppe11.todoApp.viewModel
 
-import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
+import com.gruppe11.todoApp.model.CalendarScreenState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
 import java.time.Period
 
-class CalendarViewModel: ViewModel() {
-    val cal = Calendar.getInstance()
+class CalendarViewModel(
+) {
     private val dayPeriod = Period.of(0, 0, 1)
-    val currentDate = LocalDate.now()
+    val startDay = LocalDate.now().minusDays(30)
+    var currentDate = startDay
+    var dateList: List<LocalDate> = emptyList()
     var selectedDay: LocalDate = LocalDate.now()
     val dates: Flow<List<LocalDate>> = getCalendarFlow()
 
+    private val _uiState = MutableStateFlow(CalendarScreenState())
+    val uiState = _uiState.asStateFlow()
+
+
     fun getCalendarFlow():Flow<List<LocalDate>> {
+        loadDates()
         val dates = flow {
-            while (true) {
-                emit(listOf(currentDate.plus(dayPeriod)))
-            }
+            emit(dateList)
         }
         return dates
     }
-    fun selectDay(day: LocalDate){
+    fun chooseDay(day: LocalDate){
         selectedDay = day
+    }
+    fun loadDates() {
+        repeat(100) {
+            currentDate = currentDate.plus(dayPeriod)
+            dateList = dateList.plus(currentDate)
+        }
     }
 }
 
