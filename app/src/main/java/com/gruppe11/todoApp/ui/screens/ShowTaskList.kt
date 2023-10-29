@@ -1,6 +1,8 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -14,19 +16,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,6 +51,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -50,6 +61,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
@@ -201,6 +213,8 @@ fun GenerateLazyColumnForTasks(
 fun TaskItem(task: Task, viewModel: TaskViewModel){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(false) }
+
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
@@ -208,10 +222,15 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
             }
         )
     }
-    Row(
+    Column(
         modifier = Modifier
+            .clip(shape = RoundedCornerShape(20.dp))
+            .animateContentSize()
             .background(MaterialTheme.colorScheme.primaryContainer)
             .then(longPressHandler)
+            .fillMaxWidth()
+            .clipToBounds()
+
     ){
         Checkbox(checked = taskCompletionStatus, onCheckedChange ={
             viewModel.changeTaskCompletion(task)
@@ -221,16 +240,68 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         Text(
             text = task.toString(),
         )
+        Row(modifier = Modifier
+            .padding(1.dp)
+            .fillMaxWidth()
+            .clipToBounds()) {
+            Checkbox(modifier = Modifier.padding(10.dp),
+                checked = taskCompletionStatus, onCheckedChange ={
+                viewModel.changeTaskCompletion(task)
+                taskCompletionStatus = task.isCompleted
+            } )
+            Text(
+                modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                ,
+                text = task.title
+            )
+            Spacer(Modifier.weight(1f))
+            IconButton(modifier = Modifier
+                .align(Alignment.CenterVertically),
+                onClick = {
+                    visible = !visible
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = "See subtasks",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+        AnimatedVisibility(visible) {
+            Column(modifier = Modifier
+                .padding(2.dp)
+                .fillMaxWidth()
+            ) {
+                for (subtask in viewModel.getStaticSubtasks()){
+                    HorizontalDivider()
+                    showSubTask(subtask)
+                }
+            }
+        }
     }
     if (showDialog.value) {
-        task.title?.let {
-            EditTaskDialog(taskName = it,
-                editTask = { /*TODO*/ },
-                deleteTask = { viewModel.removeTask(task) },
-                dismissDialog = { showDialog.value = false }
-            )
-        }
-
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text("Delete Task") },
+            text = { Text("Are you sure you want to delete this task?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.removeTask(task)
+                        showDialog.value = false
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -279,8 +350,16 @@ fun ShowTaskList(
 
 
             )
-        },bottomBar = {
-            BottomAppBar {
+        },floatingActionButton = {
+            FloatingActionButton(
+                shape = CircleShape,
+                /*
+                TODO("Set the color")
+                containerColor = Color(0xF5838E),
+
+                 */
+                onClick = onFloatingButtonClick) {
+                Icon(Icons.Filled.Add, "Add new Task")
             }
         },
         content = {
@@ -329,8 +408,25 @@ fun ShowTaskList(
         }
     )
 }
-
-
+@SuppressLint("UnrememberedMutableState")
+@Composable
+fun showSubTask(subtask : SubTask) {
+    var checked by mutableStateOf(subtask.completed)
+    Row(modifier = Modifier
+        .fillMaxWidth()
+    ) {
+        Text(modifier = Modifier
+            .align(alignment = Alignment.CenterVertically)
+            .padding(10.dp),
+            text = subtask.title)
+        Spacer(modifier = Modifier.weight(1f))
+        Checkbox(modifier = Modifier.padding(10.dp),
+            checked = checked, onCheckedChange = {
+                subtask.completed = !subtask.completed
+                checked = subtask.completed
+            })
+    }
+}
 @Preview
 @Suppress("NewApi")
 @Composable
