@@ -161,8 +161,8 @@ fun CreateTaskContent(
                 LazyColumn(modifier = Modifier
                     .align(Alignment.Center)
                 ) {
-                    items(viewModel.getTaskListByDate(LocalDateTime.now())) { Task ->
-                        Text(text = "" + Task.title.toString() + " " + Task.priority.toString(),
+                    items(viewModel.getTaskList()) { Task ->
+                        Text(text = "" + Task.title + " " + Task.priority.toString(),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(50.dp))
                                 .background(MaterialTheme.colorScheme.primaryContainer))
