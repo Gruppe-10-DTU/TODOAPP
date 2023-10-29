@@ -1,28 +1,113 @@
 package com.gruppe11.todoApp
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import androidx.activity.compose.setContent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import com.gruppe11.todoApp.ui.screens.ShowTaskList
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        val addTask: View = findViewById(R.id.floatingActionButton)
-        addTask.setOnClickListener{
-        }
-            //Navigate to create task page
         setContent {
-            ShowTaskList()
+            MainApp()
         }
     }
+}
 
-    private fun onAddButtonClicked() {
+@Composable
+fun MainApp() {
+    TODOAPPTheme {
+        val navController = rememberNavController()
+        val backStackEntry by navController.currentBackStackEntryAsState()
 
+        var isMainDestination by rememberSaveable { mutableStateOf(true) }
+
+        isMainDestination = when (backStackEntry?.destination?.route) {
+            Task.route -> true
+            Calendar.route -> true
+            Settings.route -> true
+            else -> false
+        }
+
+        Scaffold(
+            bottomBar = {
+                if (isMainDestination) {
+                    BottomBar(navController = navController)
+                }
+            }
+        ) { innerPadding ->
+            MainNavHost(
+                navController = navController,
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
     }
+}
+
+@Composable
+fun BottomBar(navController : NavHostController) {
+    val screens = listOf(
+        Calendar,
+        Task,
+        Settings
+    )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    NavigationBar {
+        screens.forEach{ screen ->
+            if (currentDestination != null) {
+                AddItem(
+                    screen = screen,
+                    currentDestination = currentDestination,
+                    navController = navController
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RowScope.AddItem (
+    screen: MainDestination,
+    currentDestination: NavDestination,
+    navController: NavHostController
+) {
+    NavigationBarItem(
+        label = {
+            Text(text = screen.title)
+        },
+        icon = {
+            Icon(
+                imageVector = screen.icon,
+                contentDescription = "Navigation icon"
+            )
+        },
+        selected = currentDestination.hierarchy.any() {
+            it.route == screen.route
+        },
+        onClick = {
+            if (currentDestination.route != screen.route) {
+                navController.navigate(screen.route)
+            }
+        }
+    )
 }
