@@ -5,15 +5,17 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ITaskRepository
-import com.gruppe11.todoApp.repository.TaskRepositoryImpl
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
 import java.time.YearMonth
+import javax.inject.Inject
 
-class TaskViewModel (
-    private val taskRepository : ITaskRepository = TaskRepositoryImpl()
+@HiltViewModel
+class TaskViewModel @Inject constructor (
+    private val taskRepository : ITaskRepository
 ) : ViewModel() {
     private val _UIState = MutableStateFlow(Task())
     val UIState : StateFlow<Task> = _UIState.asStateFlow()
