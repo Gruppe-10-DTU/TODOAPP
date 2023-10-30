@@ -1,4 +1,4 @@
-package com.gruppe11.todoApp.model
+package com.gruppe11.todoApp.ui.screenStates
 
 import java.time.LocalDate
 

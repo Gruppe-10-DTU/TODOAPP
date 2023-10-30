@@ -1,6 +1,6 @@
 package com.gruppe11.todoApp.viewModel
 
-import com.gruppe11.todoApp.model.CalendarScreenState
+import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

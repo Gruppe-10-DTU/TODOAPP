@@ -1,7 +1,5 @@
 package com.gruppe11.todoApp.ui.elements
 
-import android.app.PictureInPictureUiState
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -14,22 +12,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.text.util.LocalePreferences.FirstDayOfWeek.Days
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gruppe11.todoApp.model.CalendarScreenState
 import com.gruppe11.todoApp.viewModel.CalendarViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.Period
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,8 +82,9 @@ fun DateSideScroller(
 
             )
             CoroutineScope(Dispatchers.Main).launch {
-                listState.scrollToItem(viewModel.startDay.datesUntil(uiState.value.selectedDay,
-                    Period.ofDays(1)).count().toInt(), -300)
+                listState.scrollToItem(
+                    index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
+                    scrollOffset = -300)
             }
 
         }
