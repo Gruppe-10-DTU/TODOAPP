@@ -3,8 +3,11 @@ package com.gruppe11.todoApp.ui.screens
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -12,6 +15,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.ui.elements.DateSideScroller
 import com.gruppe11.todoApp.ui.elements.HourCalendarItem
 import com.gruppe11.todoApp.viewModel.CalendarViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -19,27 +25,28 @@ import java.time.format.DateTimeFormatter
 fun CalendarScreen(
     viewModel: CalendarViewModel
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
+    val uiState = viewModel.uiState.collectAsState()
     val timeIntervals = viewModel.time.collectAsStateWithLifecycle(initialValue = emptyList())
-
+    val columnState = rememberLazyListState()
     Scaffold(
         topBar = {
             DateSideScroller(
-                today = uiState.currentDay,
-                selection = uiState.selectedDay,
-                onClick = {
-                    day -> viewModel.chooseDay(day)
-                },
-                dates = dates
+                viewModel = viewModel
             )
         }
     ) { padding ->
         LazyColumn(modifier = Modifier.padding(padding)) {
-            items(items = timeIntervals.value, itemContent = { it: LocalDateTime ->
-                //Text(text = it.hour.toString())
-                HourCalendarItem(time = it.format(DateTimeFormatter.ISO_LOCAL_TIME).substring(0,5))
-            })
+            items(items = timeIntervals.value, itemContent = {
+                HourCalendarItem(time = it.format(DateTimeFormatter.ISO_LOCAL_TIME).substring(0, 5))
+            }
+            )
+            CoroutineScope(Dispatchers.Main).launch {
+                columnState.scrollToItem(
+                    index = 10,
+                    scrollOffset = 10
+                )
+
+            }
         }
 
     }
