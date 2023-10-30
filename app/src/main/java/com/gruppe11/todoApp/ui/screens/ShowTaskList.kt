@@ -23,8 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -54,6 +52,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.repository.TaskRepositoryImpl
+import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import java.time.LocalDateTime
@@ -118,6 +118,7 @@ fun GenerateLazyColumnForTasks(
     selectedDay: Int,
     selectedMonth: Int,
     selectedYear: Int,
+    editTask: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -132,7 +133,7 @@ fun GenerateLazyColumnForTasks(
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(viewModel.getTaskListByDate(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))) { Task ->
-                TaskItem(task = Task, viewModel = viewModel)
+                TaskItem(task = Task, viewModel = viewModel, editTask )
             }
         }
     }
@@ -140,7 +141,7 @@ fun GenerateLazyColumnForTasks(
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun TaskItem(task: Task, viewModel: TaskViewModel){
+fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
@@ -202,27 +203,13 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         }
     }
     if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Delete Task") },
-            text = { Text("Are you sure you want to delete this task?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.removeTask(task)
-                        showDialog.value = false
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog.value = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
+        EditTaskDialog(taskName = task.title,
+            editTask = editTask,
+            deleteTask = {
+                showDialog.value = false
+                viewModel.removeTask(task)
+                         },
+            dismissDialog = { showDialog.value = false }
         )
     }
 }
@@ -232,7 +219,8 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
 @Composable
 fun ShowTaskList(
         viewModel : TaskViewModel = viewModel(),
-        onFloatingButtonClick: () -> Unit = {}) {
+        onFloatingButtonClick: () -> Unit = {},
+        onEditTask: () -> Unit) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
@@ -280,10 +268,6 @@ fun ShowTaskList(
                 Icon(Icons.Filled.Add, "Add new Task")
             }
         },
-        /*
-        content = {
-
-        },*/
 
     ) {
         GenerateLazyColumnForTasks(
@@ -291,6 +275,7 @@ fun ShowTaskList(
             selectedDay = selectedDay,
             selectedMonth = selectedMonth,
             selectedYear = selectedYear,
+            editTask = onEditTask
         )
     }
 }
@@ -325,7 +310,7 @@ fun ShowTaskListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            ShowTaskList()
+            ShowTaskList(TaskViewModel(TaskRepositoryImpl()),{}, {})
         }
     }
 }
