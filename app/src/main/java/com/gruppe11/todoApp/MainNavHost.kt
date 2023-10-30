@@ -9,7 +9,6 @@ import com.gruppe11.todoApp.ui.screens.CreateTaskContent
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
 import com.gruppe11.todoApp.ui.screens.test2
-import com.gruppe11.todoApp.ui.screens.test3
 
 @Composable
 fun MainNavHost(

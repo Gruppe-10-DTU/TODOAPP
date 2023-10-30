@@ -29,8 +29,10 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -170,6 +172,16 @@ fun GenerateLazyRowForDays(
                                     modifier = Modifier
                                         .background(Color.White)
                                         .width(65.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.background
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        borderColor = Color.Transparent,
+                                        disabledBorderColor = Color.Transparent,
+                                    )
                                 )
                             }
                         }
@@ -231,17 +243,20 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
 
     ){
         Row(modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(1.dp)
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
-                checked = taskCompletionStatus, onCheckedChange ={
+                checked = taskCompletionStatus,
+                onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
                     taskCompletionStatus = task.isCompleted
-                } )
+                },
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+            )
             Text(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically)
-                ,
+                modifier = Modifier.align(alignment = Alignment.CenterVertically),
                 text = task.title
             )
             Spacer(Modifier.weight(1f))
@@ -324,10 +339,9 @@ fun ShowTaskList(
     Scaffold(
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(72.dp),
+                modifier = Modifier.height(80.dp),
                 colors = topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-
+                    containerColor = MaterialTheme.colorScheme.secondary,
                 ),
                 title = {
                     Box(modifier = Modifier.fillMaxSize(),
@@ -346,11 +360,7 @@ fun ShowTaskList(
         },floatingActionButton = {
             FloatingActionButton(
                 shape = CircleShape,
-                /*
-                TODO("Set the color")
-                containerColor = Color(0xF5838E),
-
-                 */
+                containerColor = MaterialTheme.colorScheme.tertiary,
                 onClick = onFloatingButtonClick) {
                 Icon(Icons.Filled.Add, "Add new Task")
             }
