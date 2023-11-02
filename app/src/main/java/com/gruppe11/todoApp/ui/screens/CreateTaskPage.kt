@@ -98,10 +98,11 @@ fun CreateTaskContent(
             {
                 // Cancel Button
                 Button(
-                    enabled = false,
+                    enabled = true,
                     onClick = returnPage,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.buttonColors(
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.background
                     )
                 ) {
                     Text(
@@ -113,17 +114,16 @@ fun CreateTaskContent(
 
                 // Create button
                 Button(
-                    enabled = false,
+                    enabled = true,
                     /*TODO: Correct the addTask arguements*/
                     onClick = { viewModel.addTask(0, taskName.toString(), LocalDateTime.now(),"LOW", false) },
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.buttonColors(
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.tertiary
                     )
                 ) {
                     Text(
                         text = "Create",
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.background
                     )
                 }
             }
