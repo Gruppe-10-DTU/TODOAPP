@@ -419,10 +419,13 @@ fun showSubTask(subtask : SubTask) {
             text = subtask.title)
         Spacer(modifier = Modifier.weight(1f))
         Checkbox(modifier = Modifier.padding(10.dp),
-            checked = checked, onCheckedChange = {
+            checked = checked,
+            onCheckedChange = {
                 subtask.completed = !subtask.completed
                 checked = subtask.completed
-            })
+            },
+            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+        )
     }
 }
 @Preview
