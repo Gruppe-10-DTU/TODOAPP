@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
-import java.time.YearMonth
 
 class TaskViewModel (
     private val taskRepository : ITaskRepository = TaskRepositoryImpl()
@@ -19,7 +18,7 @@ class TaskViewModel (
     val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
+        return taskRepository.readAll().filter{it.completion!!.dayOfYear == date.dayOfYear}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
         val tmpTask = Task()
@@ -52,13 +51,16 @@ class TaskViewModel (
     }
 
     @SuppressLint("NewApi")
-    fun generateListOfDaysInMonth(Date: LocalDateTime): MutableList<Int>{
-        val daysInMonth = YearMonth.of(Date.year,Date.month).lengthOfMonth()
-        val daysList = mutableListOf<Int>()
-        for(i in 1..daysInMonth){
-            daysList.add(i)
+    fun generateMapOfDays(date: LocalDateTime): MutableMap<LocalDateTime,Float>{
+        var totComp = 0f
+        var totTask = 0f
+        var toReturn : MutableMap<LocalDateTime,Float> = emptyMap<LocalDateTime, Float>().toMutableMap()
+        var tmp = LocalDateTime.now().minusDays(30)
+        for(i in 0 .. 60){
+            toReturn[tmp] = countTaskCompletionsByDay(date)
+            tmp = tmp.plusDays(1)
         }
-        return daysList
+        return toReturn
     }
     fun changeTaskCompletion(task: Task){
         task.isCompleted = !task.isCompleted
@@ -67,16 +69,11 @@ class TaskViewModel (
     }
 
     @SuppressLint("NewApi")
-    fun countTaskCompletionsByDay(date: LocalDateTime): MutableList<Int> {
-        val ctc = generateListOfDaysInMonth(date)
-        for (task in taskRepository.readAll()) {
-            if (task.completion?.monthValue == date.monthValue) {
-                val dayOfMonth = task.completion!!.dayOfMonth
-                if (!task.isCompleted) {
-                    ctc[dayOfMonth] = ctc[dayOfMonth] + 1
-                }
-            }
-        }
-        return ctc
+    fun countTaskCompletionsByDay(date: LocalDateTime): Float {
+        var totComp = 0f
+        var totTask = 0f
+        val completedTasks = taskRepository.readAll().toList().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
+        completedTasks.forEach { Task -> if(Task.isCompleted){totComp++} else{totTask++} }
+        return totComp/totTask
     }
 }
