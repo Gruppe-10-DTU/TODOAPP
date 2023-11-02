@@ -87,13 +87,13 @@ fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, pr
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .height(40.dp)
-            .width(55.dp)
+            .height(60.dp)
+            .padding(5.dp)
     ) {
         LinearProgressIndicator(
             modifier = Modifier
                 .wrapContentSize()
-                .height(5.dp)
+                .height(10.dp)
                 .width(50.dp)
                 .rotate(-90f),
             progress = currentProgress,
@@ -121,6 +121,7 @@ fun GenerateLazyRowForDays(
     Box(
         modifier = Modifier
             .wrapContentSize()
+            .padding(horizontal = 5.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.SpaceAround,
@@ -129,7 +130,8 @@ fun GenerateLazyRowForDays(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.secondary),
                     state = listState,
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
@@ -157,7 +159,7 @@ fun GenerateLazyRowForDays(
                                     ),
                                     progress
                                 )
-                            Spacer(Modifier.height(2.dp))
+//                            Spacer(Modifier.height(10.dp))
                                 FilterChip(
                                     shape = MaterialTheme.shapes.small,
                                     selected = selectedDay == day,
@@ -170,7 +172,6 @@ fun GenerateLazyRowForDays(
                                     },
                                     enabled = true,
                                     modifier = Modifier
-                                        .background(Color.White)
                                         .width(65.dp),
                                     colors = FilterChipDefaults.filterChipColors(
                                         containerColor = MaterialTheme.colorScheme.background,
@@ -204,7 +205,7 @@ fun GenerateLazyColumnForTasks(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .padding(horizontal = 5.dp)
     ) {
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
@@ -333,19 +334,19 @@ fun ShowTaskList(
             viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
         }
     }
-    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
     Scaffold(
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(80.dp),
+                modifier = Modifier.height(40.dp),
                 colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
+                    containerColor = MaterialTheme.colorScheme.background,
                 ),
                 title = {
                     Box(modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.TopCenter
+                        contentAlignment = Alignment.Center
                         ) {
                         val formatBigDate =
                             DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
@@ -373,7 +374,8 @@ fun ShowTaskList(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
-                        modifier = Modifier.wrapContentSize(),
+                        modifier = Modifier.wrapContentSize()
+                            .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.TopCenter
                     ) {
                         GenerateLazyRowForDays(
@@ -389,7 +391,7 @@ fun ShowTaskList(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.secondary),
+                            .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.TopCenter
                     ) {
                         GenerateLazyColumnForTasks(
