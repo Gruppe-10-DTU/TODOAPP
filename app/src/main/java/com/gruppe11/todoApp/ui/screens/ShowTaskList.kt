@@ -301,7 +301,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowTaskList (
-    viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
+    viewModel : TaskViewModel = hiltViewModel(),
     onFloatingButtonClick: () -> Unit = {},
     onEditTask: () -> Unit) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
@@ -426,7 +426,9 @@ fun ShowTaskListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            ShowTaskList()
+            ShowTaskList(
+                onEditTask = { println("editing") }
+            )
         }
     }
 }
