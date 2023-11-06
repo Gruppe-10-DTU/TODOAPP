@@ -1,19 +1,42 @@
 package com.gruppe11.todoApp.model
 
-import android.annotation.SuppressLint
 import java.time.LocalDateTime
 
-class Task {
-    var id: Int = 0
-    var title: String = ""
-    var priority: Priority? = null
-    var completion: LocalDateTime? = null
-    var isCompleted = false
-
-    @SuppressLint("NewApi")
-    override fun toString(): String {
-        return "Task: $id,\n title: $title,\n priority: $priority,\n complete by: ${completion!!.dayOfMonth},\n isCompleted: $isCompleted"
-    }
+data class Task (val id: Int, val title: String, val priority: Priority, val completion: LocalDateTime, val isCompleted: Boolean)
 
 
-}
+//sealed interface State {
+//    data class ContentState(
+//        val items: List<String>,
+//        val flag: Boolean
+//    ) : State
+//
+//    data object Loading : State
+//
+//    data class Error(val error: Throwable): State
+//}
+//
+//val state = mutableStateOf<State>(State.Loading)
+//
+//
+//fun ddfd() {
+//    val uiState = State.ContentState(
+//        items = emptyList(),
+//        flag = false
+//    )
+//    state.value = uiState.copy(flag = true)
+//}
+//
+//
+//fun uicode() {
+//    when(state.value) {
+//        State.Loading -> {
+//
+//        }
+//        is State.ContentState -> {
+//
+//        }
+//
+//        else -> {}
+//    }
+//}

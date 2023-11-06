@@ -17,22 +17,22 @@ import javax.inject.Inject
 class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository
 ) : ViewModel() {
-    private var _UIState = MutableStateFlow(listOf(Task()))
+    private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        val tmpTask = Task()
-        let {
-            tmpTask.id = id
-            tmpTask.title=title
-            tmpTask.completion = completion
-            tmpTask.priority = fromString(Prio)
-            tmpTask.isCompleted = isCompleted
-        }
-        taskRepository.createTask(tmpTask)
+//        val tmpTask = Task()
+//        let {
+//            tmpTask.id = id
+//            tmpTask.title=title
+//            tmpTask.completion = completion
+//            tmpTask.priority = fromString(Prio)
+//            tmpTask.isCompleted = isCompleted
+//        }
+        taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
         _UIState.value = taskRepository.readAll()
     }
 
@@ -63,8 +63,7 @@ class TaskViewModel @Inject constructor (
         return daysList
     }
     fun changeTaskCompletion(task: Task){
-        task.isCompleted = !task.isCompleted
-        taskRepository.update(task)
+        taskRepository.update(task.copy(isCompleted = !task.isCompleted))
         _UIState.value = taskRepository.readAll()
     }
 

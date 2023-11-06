@@ -52,6 +52,7 @@ fun MainApp() {
         }
 
         Scaffold(
+//            modifier = Modifier.background(MaterialTheme.colorScheme.secondary),
             bottomBar = {
                 if (isMainDestination) {
                     BottomBar(navController = navController)

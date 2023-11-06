@@ -63,7 +63,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -314,14 +313,14 @@ fun ShowTaskList (
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
-     */
-    for(i in 1.. 20) {
-        if (i % 2 != 0) {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
-        } else {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
-        }
-    }
+//     */
+//    for(i in 1.. 20) {
+//        if (i % 2 != 0) {
+//            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
+//        } else {
+//            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
+//        }
+//    }
 //    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
