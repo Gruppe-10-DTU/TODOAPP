@@ -22,9 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
@@ -54,7 +53,7 @@ fun EditTaskDialog(
             ) {
                 Text(
                     text = taskName,
-                    fontSize = TextUnit(2F, TextUnitType.Em),
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
                 TextButton(

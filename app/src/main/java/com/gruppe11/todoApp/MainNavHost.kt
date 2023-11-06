@@ -5,13 +5,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.gruppe11.todoApp.ui.screens.CalendarScreen
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
+import com.gruppe11.todoApp.ui.screens.EditTaskScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
 import com.gruppe11.todoApp.ui.screens.test2
-import com.gruppe11.todoApp.ui.screens.test3
-import com.gruppe11.todoApp.viewModel.CalendarViewModel
 
 @Composable
 fun MainNavHost(
@@ -25,9 +23,10 @@ fun MainNavHost(
     ) {
         // Main destinations
         composable(route = Task.route) {
-            ShowTaskList(onFloatingButtonClick = {
-                navController.navigate(CreateTask.route)
-            })
+            ShowTaskList(
+                onFloatingButtonClick = {navController.navigate(CreateTask.route)},
+                onEditTask = { navController.navigate(EditTask.route) }
+            )
         }
 
         composable(route = Calendar.route) {
@@ -44,8 +43,12 @@ fun MainNavHost(
                 navController.popBackStack()
             }, saveTask = { /*TODO*/ })
         }
-        composable(route = Calendar.route){
-            CalendarScreen(viewModel = CalendarViewModel())
+        composable(route = EditTask.route) {
+            EditTaskScreen(
+                returnPage = { navController.popBackStack() },
+                saveTask = { /*TODO*/ },
+                currentTask = Task
+            )
         }
     }
 }
