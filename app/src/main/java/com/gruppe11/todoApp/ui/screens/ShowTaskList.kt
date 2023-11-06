@@ -69,7 +69,7 @@ import java.util.Locale
 @Composable
 fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime) {
     //TODO: Refractor progressbars, make them update automatically.
-    val taskMap  = remember{viewModel.generateMapOfDays(date).toMutableMap()}
+    val taskMap  = remember{viewModel.generateMapOfDays(date)}
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -278,9 +278,7 @@ fun ShowTaskList(
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
-    var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
-    val copyProgress = remember{mutableStateListOf<Float>()}
-    /*
+    var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}/*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
