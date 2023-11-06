@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -23,6 +24,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +52,7 @@ fun MainApp() {
         }
 
         Scaffold(
+//            modifier = Modifier.background(MaterialTheme.colorScheme.secondary),
             bottomBar = {
                 if (isMainDestination) {
                     BottomBar(navController = navController)
@@ -71,8 +76,10 @@ fun BottomBar(navController : NavHostController) {
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.secondary,
+        contentColor = MaterialTheme.colorScheme.background,
+    ){
         screens.forEach{ screen ->
             if (currentDestination != null) {
                 AddItem(
@@ -89,16 +96,22 @@ fun BottomBar(navController : NavHostController) {
 fun RowScope.AddItem (
     screen: MainDestination,
     currentDestination: NavDestination,
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     NavigationBarItem(
         label = {
-            Text(text = screen.title)
+            Text(
+                text = screen.title,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         },
         icon = {
+            val textColor = if (currentDestination.route != screen.route) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.background
+
             Icon(
                 imageVector = screen.icon,
-                contentDescription = "Navigation icon"
+                contentDescription = "Navigation icon",
+                tint = textColor
             )
         },
         selected = currentDestination.hierarchy.any() {

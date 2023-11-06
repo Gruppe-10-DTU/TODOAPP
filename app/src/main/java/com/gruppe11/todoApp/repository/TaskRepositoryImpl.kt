@@ -1,13 +1,13 @@
 package com.gruppe11.todoApp.repository
 
 import com.gruppe11.todoApp.model.Task
+import javax.inject.Inject
 
-class TaskRepositoryImpl : ITaskRepository {
+class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     private var id = 0
     private val tasks: MutableList<Task> = ArrayList()
     override fun createTask(task: Task): Task {
-        task.id = id++
-        tasks.add(task)
+        tasks.add(task.copy(id = ++id))
         return task
     }
 

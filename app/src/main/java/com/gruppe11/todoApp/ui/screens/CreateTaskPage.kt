@@ -18,6 +18,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -25,15 +27,17 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 class CreateTaskPage : ComponentActivity() {
@@ -42,8 +46,7 @@ class CreateTaskPage : ComponentActivity() {
         setContent {
             TODOAPPTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     CreateTaskContent({}, {})
                 }
@@ -56,80 +59,91 @@ class CreateTaskPage : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskContent(
-    returnPage: () -> Unit,
-    saveTask: () -> Unit,
-    viewModel : TaskViewModel = viewModel()
+    returnPage: () -> Unit, saveTask: () -> Unit, viewModel: TaskViewModel = hiltViewModel()
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue("New task", TextRange(0, 8)))
+        mutableStateOf(TextFieldValue(""))
     }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-
-        modifier = Modifier.fillMaxHeight(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Create Task",
-                        maxLines = 1
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = returnPage) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            HorizontalDivider()
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(60.dp, 15.dp)
-            )
-            {
-                // Cancel Button
-                Button(
-                    enabled = false,
-                    onClick = returnPage,
-                    colors = ButtonDefaults.buttonColors(
-                        MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text(
-                        text = "Cancel",
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                }
-
-                // Create button
-                Button(
-                    enabled = false,
-                    /*TODO: Correct the addTask arguements*/
-                    onClick = { viewModel.addTask(0, taskName.toString(), LocalDateTime.now(),"LOW", false) },
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                    colors = ButtonDefaults.buttonColors(
-                        MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text(
-                        text = "Create",
-                        color = MaterialTheme.colorScheme.primary
+    Scaffold(snackbarHost = {
+        SnackbarHost(
+            hostState = snackbarHostState
+        )
+    }, modifier = Modifier.fillMaxHeight(), topBar = {
+        TopAppBar(
+            title = {
+                Text(
+                    "Create Task", maxLines = 1
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = returnPage) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Go back",
+                        modifier = Modifier.size(24.dp)
                     )
                 }
+            },
+        )
+    }, bottomBar = {
+        HorizontalDivider()
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(60.dp, 15.dp)
+        ) {
+            // Cancel Button
+            Button(
+                enabled = true,
+                onClick = returnPage,
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.buttonColors(
+                    MaterialTheme.colorScheme.background
+                )
+            ) {
+                Text(
+                    text = "Cancel", color = MaterialTheme.colorScheme.primary
+                )
+
             }
 
+            // Create button
+            Button(
+                enabled = true,/*TODO: Correct the addTask arguements*/
+                onClick = {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        if (taskName.text.isNotEmpty()) {
+                            viewModel.addTask(
+                                0, taskName.text, LocalDateTime.now(), "LOW", false
+                            )
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Task created")
+                            }
+                            returnPage()
+                        } else {
+                            dismissSnackbar(snackbarHostState, scope)
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Missing Task Name")
+                            }
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    MaterialTheme.colorScheme.tertiary
+                )
+            ) {
+                Text(
+                    text = "Create", color = MaterialTheme.colorScheme.background
+                )
+            }
         }
-    ) { padding ->
+
+    }) { padding ->
         Column(modifier = Modifier.padding(16.dp)) {
             Spacer(modifier = Modifier.height(60.dp))
             // Main task Input
@@ -139,11 +153,9 @@ fun CreateTaskContent(
                 label = { Text("Task name") },
                 textStyle = MaterialTheme.typography.bodyMedium,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
+                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
@@ -151,10 +163,19 @@ fun CreateTaskContent(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun CreateTaskPreview() {
     TODOAPPTheme {
         CreateTaskContent({}, {})
+    }
+}
+
+fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope) {
+    if (snackbarHostState.currentSnackbarData != null) {
+        scope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+        }
     }
 }

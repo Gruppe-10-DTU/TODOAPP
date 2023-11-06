@@ -5,32 +5,35 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ITaskRepository
-import com.gruppe11.todoApp.repository.TaskRepositoryImpl
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
+import java.time.YearMonth
+import javax.inject.Inject
 
-class TaskViewModel constructor(
-    private val taskRepository : ITaskRepository = TaskRepositoryImpl(),
+@HiltViewModel
+class TaskViewModel @Inject constructor(
+    private val taskRepository : ITaskRepository,
     private val taskList: MutableList<Task> =  taskRepository.readAll().toMutableList()
 ) : ViewModel() {
-    private var _UIState = MutableStateFlow(listOf(Task()))
+    private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskList.filter{it.completion!!.dayOfYear == date.dayOfYear}
+        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        val tmpTask = Task()
-        let {
-            tmpTask.id = id
-            tmpTask.title=title
-            tmpTask.completion = completion
-            tmpTask.priority = fromString(Prio)
-            tmpTask.isCompleted = isCompleted
-        }
-        taskRepository.createTask(tmpTask)
+//        val tmpTask = Task()
+//        let {
+//            tmpTask.id = id
+//            tmpTask.title=title
+//            tmpTask.completion = completion
+//            tmpTask.priority = fromString(Prio)
+//            tmpTask.isCompleted = isCompleted
+//        }
+        taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
         taskList.add(tmpTask.id,tmpTask)
         _UIState.value = taskRepository.readAll()
     }
@@ -65,8 +68,8 @@ class TaskViewModel constructor(
     }
     fun changeTaskCompletion(task: Task){
         task.isCompleted = !task.isCompleted
-        taskRepository.update(task)
         taskList.set(task.id,task)
+        taskRepository.update(task.copy(isCompleted = !task.isCompleted))
         _UIState.value = taskRepository.readAll()
     }
 

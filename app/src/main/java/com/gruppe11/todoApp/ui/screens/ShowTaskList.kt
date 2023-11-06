@@ -29,8 +29,10 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -53,10 +55,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.launch
@@ -74,13 +78,13 @@ fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime) {
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .height(40.dp)
-            .width(55.dp)
+            .height(60.dp)
+            .padding(5.dp)
     ) {
         LinearProgressIndicator(
             modifier = Modifier
                 .wrapContentSize()
-                .height(5.dp)
+                .height(10.dp)
                 .width(50.dp)
                 .rotate(-90f),
             progress = taskMap[date]!!,
@@ -105,6 +109,7 @@ fun GenerateLazyRowForDays(
     Box(
         modifier = Modifier
             .wrapContentSize()
+            .padding(horizontal = 5.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.SpaceAround,
@@ -113,7 +118,8 @@ fun GenerateLazyRowForDays(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.secondary),
                     state = listState,
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
@@ -142,8 +148,17 @@ fun GenerateLazyRowForDays(
                                     },
                                     enabled = true,
                                     modifier = Modifier
-                                        .background(Color.White)
                                         .width(65.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.background
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        borderColor = Color.Transparent,
+                                        disabledBorderColor = Color.Transparent,
+                                    )
                                 )
                             }
                         }
@@ -159,12 +174,13 @@ fun GenerateLazyRowForDays(
 @Composable
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
-    selectedDate: LocalDateTime
+    selectedDate: LocalDateTime,
+    editTask: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .padding(horizontal = 5.dp)
     ) {
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
@@ -181,7 +197,7 @@ fun GenerateLazyColumnForTasks(
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun TaskItem(task: Task, viewModel: TaskViewModel){
+fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
@@ -203,17 +219,20 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
 
     ){
         Row(modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(1.dp)
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
-                checked = taskCompletionStatus, onCheckedChange ={
+                checked = taskCompletionStatus,
+                onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
                     taskCompletionStatus = task.isCompleted
-                } )
+                },
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+            )
             Text(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically)
-                ,
+                modifier = Modifier.align(alignment = Alignment.CenterVertically),
                 text = task.title
             )
             Spacer(Modifier.weight(1f))
@@ -242,37 +261,23 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         }
     }
     if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Delete Task") },
-            text = { Text("Are you sure you want to delete this task?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.removeTask(task)
-                        showDialog.value = false
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog.value = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
+        EditTaskDialog(taskName = task.title,
+            editTask = editTask,
+            deleteTask = {
+                showDialog.value = false
+                viewModel.removeTask(task)
+                         },
+            dismissDialog = { showDialog.value = false }
         )
     }
 }
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowTaskList(
-    viewModel : TaskViewModel = viewModel(),
-    onFloatingButtonClick: () -> Unit = {}
-    ) {
+fun ShowTaskList (
+    viewModel : TaskViewModel = hiltViewModel(),
+    onFloatingButtonClick: () -> Unit = {},
+    onEditTask: () -> Unit) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
@@ -282,24 +287,27 @@ fun ShowTaskList(
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
-     */
-    for(i in 1.. 20) {
-        if (i % 2 != 0) {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
-        } else {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
-        }
-    }
+//     */
+//    for(i in 1.. 20) {
+//        if (i % 2 != 0) {
+//            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
+//        } else {
+//            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
+//        }
+//    }
+//    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
     Scaffold(
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(72.dp),
+                modifier = Modifier.height(40.dp),
                 colors = topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    containerColor = MaterialTheme.colorScheme.background,
                 ),
                 title = {
                     Box(modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.TopCenter
+                        contentAlignment = Alignment.Center
                         ) {
                         val formatBigDate =
                             DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
@@ -314,11 +322,7 @@ fun ShowTaskList(
         },floatingActionButton = {
             FloatingActionButton(
                 shape = CircleShape,
-                /*
-                TODO("Set the color")
-                containerColor = Color(0xF5838E),
-
-                 */
+                containerColor = MaterialTheme.colorScheme.tertiary,
                 onClick = onFloatingButtonClick) {
                 Icon(Icons.Filled.Add, "Add new Task")
             }
@@ -331,7 +335,8 @@ fun ShowTaskList(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
-                        modifier = Modifier.wrapContentSize(),
+                        modifier = Modifier.wrapContentSize()
+                            .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.TopCenter
                     ) {
                         GenerateLazyRowForDays(
@@ -344,12 +349,13 @@ fun ShowTaskList(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.secondary),
+                            .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.TopCenter
                     ) {
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
                             selectedDate = selectedDate,
+                            editTask = onEditTask
                         )
                     }
                 }
@@ -370,10 +376,13 @@ fun showSubTask(subtask : SubTask) {
             text = subtask.title)
         Spacer(modifier = Modifier.weight(1f))
         Checkbox(modifier = Modifier.padding(10.dp),
-            checked = checked, onCheckedChange = {
+            checked = checked,
+            onCheckedChange = {
                 subtask.completed = !subtask.completed
                 checked = subtask.completed
-            })
+            },
+            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+        )
     }
 }
 @Preview
@@ -385,7 +394,9 @@ fun ShowTaskListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            ShowTaskList()
+            ShowTaskList(
+                onEditTask = { println("editing") }
+            )
         }
     }
 }
