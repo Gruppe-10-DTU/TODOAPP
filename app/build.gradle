@@ -71,6 +71,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.2'
 
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -91,13 +92,22 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
     //HILT and DI
-    implementation "com.google.dagger:hilt-android:2.44"
-    kapt "com.google.dagger:hilt-compiler:2.44"
+    implementation 'com.google.dagger:hilt-android:2.48.1'
+    kapt 'com.google.dagger:hilt-compiler:2.48.1'
+    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
+
+    // For instrumentation tests
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.48.1'
+    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.48.1'
+
+    // For local unit tests
+    testImplementation 'com.google.dagger:hilt-android-testing:2.48.1'
+    kaptTest 'com.google.dagger:hilt-compiler:2.48.1'
+
 
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
 }
-// Allow references to generated code
 kapt {
     correctErrorTypes true
 }

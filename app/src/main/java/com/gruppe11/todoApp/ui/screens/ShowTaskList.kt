@@ -59,8 +59,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.TaskRepositoryImpl
@@ -300,10 +300,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowTaskList(
-        viewModel : TaskViewModel = viewModel(),
-        onFloatingButtonClick: () -> Unit = {},
-        onEditTask: () -> Unit) {
+fun ShowTaskList (
+    viewModel : TaskViewModel = hiltViewModel(),
+    onFloatingButtonClick: () -> Unit = {},
+    onEditTask: () -> Unit) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
@@ -426,7 +426,9 @@ fun ShowTaskListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            ShowTaskList()
+            ShowTaskList(
+                onEditTask = { println("editing") }
+            )
         }
     }
 }
