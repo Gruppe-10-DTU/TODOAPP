@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,6 +28,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -39,6 +43,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class CreateTaskPage : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +68,9 @@ fun CreateTaskContent(
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
+    }
+    var taskDate by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")).toString(), TextRange(10, 10)))
     }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -159,7 +167,36 @@ fun CreateTaskContent(
             )
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
-
+            Text(
+                text = "Select date",
+                fontWeight = FontWeight.Bold,
+                //fontSize = ,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(10.dp, 10.dp)
+            ) {
+                OutlinedTextField(
+                    //label = { Text(text = "Date") },
+                    value = taskDate,
+                    onValueChange = { taskDate = it },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    )
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                IconButton(
+                    onClick = { /*TODO*/ },
+                    content = {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = "Pick a date",
+                            modifier = Modifier.scale(1.3f)
+                        )
+                    }
+                )
+            }
         }
     }
 }
