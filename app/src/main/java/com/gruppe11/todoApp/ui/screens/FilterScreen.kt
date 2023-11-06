@@ -28,21 +28,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
+import com.gruppe11.todoApp.viewModel.FilterViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FilterScreen(
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    filterViewModel: FilterViewModel = viewModel()
 ) {
-
-    val chipPadding = 5.dp
-
-    // Temporary vars
-    var completedSelected by remember { mutableStateOf(false) }
-    var incompleteSelected by remember { mutableStateOf(false) }
-
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
         topBar = {
@@ -69,29 +65,22 @@ fun FilterScreen(
             modifier = Modifier
                 .padding(innerPadding)
         ) {
-            // Replace the following code with actually generated tags
-            // Completion chip
-            FilterChip(
-                onClick = { completedSelected = !completedSelected },
-                label = {
-                    Text("Completed")
-                },
-                selected = completedSelected,
-                modifier = Modifier.padding(chipPadding)
-            )
 
-            // Incompletion chip
-            FilterChip(
-                onClick = { incompleteSelected = !incompleteSelected },
-                label = {
-                    Text("Not completed")
-                },
-                selected = incompleteSelected,
-                modifier = Modifier.padding(chipPadding)
-            )
+            filterViewModel.tags.forEach { tag ->
+                FilterChip(
+                    onClick = { tag.checked = !tag.checked },
+                    label = {
+                        Text(tag.label)
+                    },
+                    selected = tag.checked,
+                    modifier = Modifier.padding(5.dp)
+                )
+            }
         }
     }
 }
+
+
 
 @Preview
 @Composable
