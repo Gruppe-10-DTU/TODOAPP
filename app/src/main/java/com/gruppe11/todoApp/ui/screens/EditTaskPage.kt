@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.gruppe11.todoApp.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +47,7 @@ import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 fun EditTaskScreen(
     returnPage: () -> Unit,
     saveTask: () -> Unit,
-    //currentTask: Task
+    currentTask: Task
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("Task name", TextRange(0, 7)))
@@ -69,7 +71,7 @@ fun EditTaskScreen(
                 navigationIcon = {
                     IconButton(onClick =  returnPage ) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Go Back"
                         )
                     }
@@ -87,10 +89,10 @@ fun EditTaskScreen(
             )
             {
                 Button(
-                    enabled = false, // TODO implement button functionality
+                    enabled = true,
                     onClick = returnPage,
                     colors = ButtonDefaults.buttonColors(
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.surfaceVariant
                     ),
                     modifier = Modifier
                         .width(120.dp)
@@ -126,7 +128,7 @@ fun EditTaskScreen(
         ) {
             Spacer(modifier = Modifier.height(60.dp))
             OutlinedTextField(
-                label = { Text(text = "Task Name") },
+                label = { Text(text = currentTask.title) },
                 value = taskName,
                 onValueChange = { taskName = it },
                 keyboardOptions = KeyboardOptions(
@@ -213,7 +215,7 @@ fun EditTaskScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = { /*TODO*/ },
+                            onClick = { subTaskCount-- },
                             content = {Icon(
                                 imageVector = Icons.Outlined.Cancel,
                                 contentDescription = "Remove Subtask",
@@ -274,7 +276,7 @@ fun EditTaskPaePreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            EditTaskScreen({}, {})
+            EditTaskScreen({}, {}, Task)
         }
     }
 }
