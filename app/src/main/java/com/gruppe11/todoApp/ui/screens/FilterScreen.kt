@@ -1,8 +1,8 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,19 +26,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun FilterScreen() {
+fun FilterScreen(
+    onClose: () -> Unit
+) {
+
+    val chipPadding = 5.dp
 
     // Temporary vars
-    var completionSelected by remember { mutableStateOf(false) }
-    var incompletionSelected by remember { mutableStateOf(false) }
+    var completedSelected by remember { mutableStateOf(false) }
+    var incompleteSelected by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
@@ -51,7 +54,7 @@ fun FilterScreen() {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onClose) {
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Close filter screen",
@@ -61,54 +64,31 @@ fun FilterScreen() {
                 }
             )
         }
-    ) {
-        Box(
+    ) { innerPadding ->
+        FlowRow(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(10.dp)
+                .padding(innerPadding)
         ) {
             // Replace the following code with actually generated tags
             // Completion chip
             FilterChip(
-                onClick = { completionSelected = !completionSelected },
+                onClick = { completedSelected = !completedSelected },
                 label = {
                     Text("Completed")
                 },
-                selected = completionSelected,
-                leadingIcon = if (completionSelected) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = "Done icon",
-                            modifier = Modifier.size(FilterChipDefaults.IconSize)
-                        )
-                    }
-                } else {
-                    null
-                },
+                selected = completedSelected,
+                modifier = Modifier.padding(chipPadding)
             )
 
             // Incompletion chip
             FilterChip(
-                onClick = { incompletionSelected = !incompletionSelected },
+                onClick = { incompleteSelected = !incompleteSelected },
                 label = {
                     Text("Not completed")
                 },
-                selected = incompletionSelected,
-                leadingIcon = if (incompletionSelected) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = "Done icon",
-                            modifier = Modifier.size(FilterChipDefaults.IconSize)
-                        )
-                    }
-                } else {
-                    null
-                },
+                selected = incompleteSelected,
+                modifier = Modifier.padding(chipPadding)
             )
-
         }
     }
 }
@@ -121,7 +101,7 @@ fun FilterScreenPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            FilterScreen()
+            FilterScreen(onClose = {})
         }
     }
 }
