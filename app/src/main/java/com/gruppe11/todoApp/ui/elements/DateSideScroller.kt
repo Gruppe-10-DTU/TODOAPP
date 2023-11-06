@@ -1,13 +1,17 @@
 package com.gruppe11.todoApp.ui.elements
 
+import android.content.res.Resources.getSystem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.Text
@@ -48,14 +52,16 @@ fun DateSideScroller(
             items(items = dates.value, itemContent = { day ->
                 Column {
                     FilterChip(
-                        modifier = Modifier.padding(1.dp),
+                        modifier = Modifier
+                            .padding(1.dp)
+                            .size(width = 150.dp, height = 50.dp),
                         selected = uiState.value.selectedDay == day,
                         colors = SelectableChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onBackground,
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.background,
                             selectedLeadingIconColor = Color.Transparent,
                             selectedTrailingIconColor = Color.Transparent,
-                            containerColor = MaterialTheme.colorScheme.surface,
+                            containerColor = MaterialTheme.colorScheme.secondary,
                             labelColor = MaterialTheme.colorScheme.onBackground,
                             leadingIconColor = Color.Transparent,
                             trailingIconColor = Color.Red,
@@ -68,14 +74,21 @@ fun DateSideScroller(
                         onClick = { viewModel.onSelectedDayChange(day) },
                         label = {
                             Column(
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Text(text = day.dayOfMonth.toString())
-                                Text(text = day.month.name.removeRange(3, day.month.name.length))
+                                Text(text = day.format(DateTimeFormatter.ofPattern("E")),
+                                    fontSize = 13.sp)
+                                Text(text = day.format(DateTimeFormatter.ofPattern("d. MMM")),
+                                    fontSize = 18.sp)
                             }
                         },
-                        enabled = true
+                        enabled = true,
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = Color.Transparent,
+                            disabledBorderColor = Color.Transparent,
+                        )
                     )
                 }
             }
@@ -84,7 +97,8 @@ fun DateSideScroller(
             CoroutineScope(Dispatchers.Main).launch {
                 listState.scrollToItem(
                     index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
-                    scrollOffset = -300)
+                    scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
+                )
             }
 
         }
