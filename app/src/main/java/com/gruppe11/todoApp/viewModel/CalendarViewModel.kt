@@ -14,17 +14,17 @@ class CalendarViewModel(
 ) {
     private val dayPeriod = Period.of(0, 0, 1)
     private val timePeriod = 30L
-    val startDay = LocalDate.now().minusDays(30)
-    var dateList: List<LocalDate> = emptyList()
+    val startDay: LocalDate = LocalDate.now().minusDays(30)
+    private var dateList: List<LocalDate> = emptyList()
     val dates: Flow<List<LocalDate>> = getCalendarFlow()
-    var currentTime = LocalDateTime.MIN
-    var timeIntervalList: List<LocalDateTime> = emptyList()
+    var currentTime: LocalDateTime = LocalDateTime.MIN
+    private var timeIntervalList: List<LocalDateTime> = emptyList()
     val time = getTimeFlow()
     private val _uiState = MutableStateFlow(CalendarScreenState())
     val uiState = _uiState.asStateFlow()
 
 
-    fun getCalendarFlow():Flow<List<LocalDate>> {
+    private fun getCalendarFlow():Flow<List<LocalDate>> {
         loadDates()
         val dates = flow {
             emit(dateList)
@@ -32,20 +32,20 @@ class CalendarViewModel(
         return dates
     }
 
-    fun loadDates() {
+    private fun loadDates() {
         var currentDate = startDay
         repeat(100) {
             currentDate = currentDate.plus(dayPeriod)
             dateList = dateList.plus(currentDate)
         }
     }
-    fun getTimeIntervals() {
+    private fun getTimeIntervals() {
         repeat(48) {
             timeIntervalList = timeIntervalList.plus(currentTime)
             currentTime = currentTime.plusMinutes(timePeriod)
         }
     }
-    fun getTimeFlow():Flow<List<LocalDateTime>> {
+    private fun getTimeFlow():Flow<List<LocalDateTime>> {
         getTimeIntervals()
         val times = flow {
             emit(timeIntervalList)
