@@ -64,10 +64,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@SuppressLint("NewApi", "CoroutineCreationDuringComposition", "RememberReturnType")
+@SuppressLint("NewApi", "CoroutineCreationDuringComposition", "RememberReturnType",
+)
 @Composable
-fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, progress: Float) {
+fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime) {
     //TODO: Refractor progressbars, make them update automatically.
+    val taskMap  = remember{viewModel.generateMapOfDays(date).toMutableMap()}
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -81,7 +83,7 @@ fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, pr
                 .height(5.dp)
                 .width(50.dp)
                 .rotate(-90f),
-            progress = progress,
+            progress = taskMap[date]!!,
             trackColor = MaterialTheme.colorScheme.primaryContainer,
         )
     }
@@ -99,7 +101,7 @@ fun GenerateLazyRowForDays(
     onSelectedDate: (LocalDateTime) -> Unit,
     ) {
     val listState = rememberLazyListState()
-    var coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .wrapContentSize()
@@ -115,8 +117,7 @@ fun GenerateLazyRowForDays(
                     state = listState,
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
-                    val lt = selectedDate
-                    items(viewModel.generateMapOfDays(date = lt).toList()) { day ->
+                    items(viewModel.generateMapOfDays(date = selectedDate).toList()) { day ->
                         Column(
                             verticalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier.wrapContentSize(),
@@ -124,9 +125,7 @@ fun GenerateLazyRowForDays(
                         ) {
                                 LinearDeterminateIndicator(
                                     viewModel = viewModel,
-                                    date = day.first
-                                    ,
-                                    day.second
+                                    date = day.first,
                                     )
                             Spacer(Modifier.height(2.dp))
                                 FilterChip(
@@ -281,7 +280,6 @@ fun ShowTaskList(
     var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
     var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
     val copyProgress = remember{mutableStateListOf<Float>()}
-    copyProgress
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
@@ -300,7 +298,6 @@ fun ShowTaskList(
                 modifier = Modifier.height(72.dp),
                 colors = topAppBarColors(
 //                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-
                 ),
                 title = {
                     Box(modifier = Modifier.fillMaxSize(),

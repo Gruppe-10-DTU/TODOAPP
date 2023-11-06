@@ -11,14 +11,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
 
-class TaskViewModel (
-    private val taskRepository : ITaskRepository = TaskRepositoryImpl()
+class TaskViewModel constructor(
+    private val taskRepository : ITaskRepository = TaskRepositoryImpl(),
+    private val taskList: MutableList<Task> =  taskRepository.readAll().toMutableList()
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(listOf(Task()))
     val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskRepository.readAll().filter{it.completion!!.dayOfYear == date.dayOfYear}
+        return taskList.filter{it.completion!!.dayOfYear == date.dayOfYear}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
         val tmpTask = Task()
@@ -30,6 +31,7 @@ class TaskViewModel (
             tmpTask.isCompleted = isCompleted
         }
         taskRepository.createTask(tmpTask)
+        taskList.add(tmpTask.id,tmpTask)
         _UIState.value = taskRepository.readAll()
     }
 
@@ -43,21 +45,20 @@ class TaskViewModel (
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
+        taskList.removeAt(task.id)
         _UIState.value = taskRepository.readAll()
     }
 
     fun getTaskList(): List<Task> {
-        return taskRepository.readAll()
+        return taskList
     }
 
     @SuppressLint("NewApi")
     fun generateMapOfDays(date: LocalDateTime): MutableMap<LocalDateTime,Float>{
-        var totComp = 0f
-        var totTask = 0f
         var toReturn : MutableMap<LocalDateTime,Float> = emptyMap<LocalDateTime, Float>().toMutableMap()
-        var tmp = LocalDateTime.now().minusDays(30)
+        var tmp = date.minusDays(30)
         for(i in 0 .. 60){
-            toReturn[tmp] = countTaskCompletionsByDay(date)
+            toReturn[tmp] = countTaskCompletionsByDay(tmp)
             tmp = tmp.plusDays(1)
         }
         return toReturn
@@ -65,6 +66,7 @@ class TaskViewModel (
     fun changeTaskCompletion(task: Task){
         task.isCompleted = !task.isCompleted
         taskRepository.update(task)
+        taskList.set(task.id,task)
         _UIState.value = taskRepository.readAll()
     }
 
@@ -72,8 +74,12 @@ class TaskViewModel (
     fun countTaskCompletionsByDay(date: LocalDateTime): Float {
         var totComp = 0f
         var totTask = 0f
-        val completedTasks = taskRepository.readAll().toList().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
-        completedTasks.forEach { Task -> if(Task.isCompleted){totComp++} else{totTask++} }
-        return totComp/totTask
+        val completedTasks = taskList.filter{it.completion!!.dayOfYear == date.dayOfYear}
+        completedTasks.forEach { Task ->
+            if(Task.isCompleted){totComp++}
+            totTask++
+        }
+        if(totTask > 0) return totComp/totTask
+        return 0f
     }
 }
