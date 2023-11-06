@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -58,7 +59,7 @@ class CreateTaskPage : ComponentActivity() {
 fun CreateTaskContent(
     returnPage: () -> Unit,
     saveTask: () -> Unit,
-    viewModel : TaskViewModel = viewModel()
+    viewModel : TaskViewModel = hiltViewModel()
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("New task", TextRange(0, 8)))
@@ -90,7 +91,7 @@ fun CreateTaskContent(
             HorizontalDivider()
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement   = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(60.dp, 15.dp)
