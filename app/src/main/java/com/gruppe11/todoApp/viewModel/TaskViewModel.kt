@@ -5,19 +5,20 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ITaskRepository
-import com.gruppe11.todoApp.repository.TaskRepositoryImpl
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDateTime
 import java.time.YearMonth
+import javax.inject.Inject
 
-class TaskViewModel (
-    private val taskRepository : ITaskRepository = TaskRepositoryImpl()
+@HiltViewModel
+class TaskViewModel @Inject constructor (
+    private val taskRepository : ITaskRepository
 ) : ViewModel() {
-    private val _UIState = MutableStateFlow(Task())
-    val UIState : StateFlow<Task> = _UIState.asStateFlow()
-
+    private var _UIState = MutableStateFlow(listOf(Task()))
+    val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
@@ -32,6 +33,7 @@ class TaskViewModel (
             tmpTask.isCompleted = isCompleted
         }
         taskRepository.createTask(tmpTask)
+        _UIState.value = taskRepository.readAll()
     }
 
     fun getStaticSubtasks() : List<SubTask> {
@@ -44,6 +46,7 @@ class TaskViewModel (
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
+        _UIState.value = taskRepository.readAll()
     }
 
     fun getTaskList(): List<Task> {
@@ -51,17 +54,31 @@ class TaskViewModel (
     }
 
     @SuppressLint("NewApi")
-    fun generateListOfDaysLeftInMonth(Date: LocalDateTime): MutableList<Int>{
+    fun generateListOfDaysInMonth(Date: LocalDateTime): MutableList<Int>{
         val daysInMonth = YearMonth.of(Date.year,Date.month).lengthOfMonth()
         val daysList = mutableListOf<Int>()
         for(i in 1..daysInMonth){
-            if(i - LocalDateTime.now().dayOfMonth >= 0) daysList.add(i)
+            daysList.add(i)
         }
         return daysList
     }
-
     fun changeTaskCompletion(task: Task){
         task.isCompleted = !task.isCompleted
         taskRepository.update(task)
+        _UIState.value = taskRepository.readAll()
+    }
+
+    @SuppressLint("NewApi")
+    fun countTaskCompletionsByDay(date: LocalDateTime): MutableList<Int> {
+        val ctc = generateListOfDaysInMonth(date)
+        for (task in taskRepository.readAll()) {
+            if (task.completion?.monthValue == date.monthValue) {
+                val dayOfMonth = task.completion!!.dayOfMonth
+                if (!task.isCompleted) {
+                    ctc[dayOfMonth] = ctc[dayOfMonth] + 1
+                }
+            }
+        }
+        return ctc
     }
 }

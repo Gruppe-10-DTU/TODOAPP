@@ -15,52 +15,97 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.repository.TaskRepositoryImpl
+import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@SuppressLint("NewApi")
+@SuppressLint("NewApi", "CoroutineCreationDuringComposition")
+@Composable
+fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, progress: MutableState<Float>) {
+    var currentProgress by remember {progress}
+    //TODO: Refractor progressbars, make them update automatically.
+    val cirscope = rememberCoroutineScope()
+
+    cirscope.launch {
+        val completionCounts = viewModel.countTaskCompletionsByDay(date)
+        currentProgress = completionCounts[date.dayOfMonth].toFloat()
+    }
+    Column(
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .height(60.dp)
+            .padding(5.dp)
+    ) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .wrapContentSize()
+                .height(10.dp)
+                .width(50.dp)
+                .rotate(-90f),
+            progress = currentProgress,
+            trackColor = MaterialTheme.colorScheme.primaryContainer,
+            )
+    }
+}
+
+
+
+
+@SuppressLint("NewApi", "CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenerateLazyRowForDays(
@@ -68,46 +113,84 @@ fun GenerateLazyRowForDays(
     selectedDay: Int,
     selectedMonth: Int,
     selectedYear: Int,
-    onSelectedDay: (Int) -> Unit
-) {
+    progress: MutableState<Float>,
+    onSelectedDay: (Int) -> Unit,
+    ) {
+    val listState = rememberLazyListState()
+    //val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .wrapContentSize()
+            .padding(horizontal = 5.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.SpaceAround,
         ) {
-            val formatBigDate = DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
-            Text(
-                LocalDateTime.now().toLocalDate().format(formatBigDate).toString(),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            LazyRow(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
-                val lt = LocalDateTime.of(
-                    selectedYear,
-                    selectedMonth,
-                    selectedDay,
-                    LocalDateTime.now().hour,
-                    LocalDateTime.now().minute
-                )
-                items(viewModel.generateListOfDaysLeftInMonth(lt)) { day ->
-                    FilterChip(
-                        shape = MaterialTheme.shapes.small,
-                        selected = selectedDay == day,
-                        onClick = { onSelectedDay(day) },
-                        label = { Text(lt.withDayOfMonth(day).format(formatFilterDate)) },
-                        enabled = true,
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.secondary),
+                    state = listState,
+                ) {
+                    val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
+                    var lt = LocalDateTime.of(
+                        selectedYear,
+                        selectedMonth,
+                        selectedDay,
+                        LocalDateTime.now().hour,
+                        LocalDateTime.now().minute
                     )
-                }
+                    items(viewModel.generateListOfDaysInMonth(lt)) { day ->
+                        Column(
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.wrapContentSize(),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                                LinearDeterminateIndicator(
+                                    viewModel = viewModel,
+                                    date = LocalDateTime.of(
+                                        lt.year,
+                                        lt.month,
+                                        day,
+                                        lt.hour,
+                                        lt.minute
+                                    ),
+                                    progress
+                                )
+//                            Spacer(Modifier.height(10.dp))
+                                FilterChip(
+                                    shape = MaterialTheme.shapes.small,
+                                    selected = selectedDay == day,
+                                    onClick = { onSelectedDay(day) },
+                                    label = {
+                                        Text(
+                                            text = lt.withDayOfMonth(day).format(formatFilterDate),
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    },
+                                    enabled = true,
+                                    modifier = Modifier
+                                        .width(65.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.background
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        borderColor = Color.Transparent,
+                                        disabledBorderColor = Color.Transparent,
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                //coroutineScope.launch{listState.scrollToItem(index = selectedDay-3)}
             }
         }
-    }
 }
 
 
@@ -118,21 +201,21 @@ fun GenerateLazyColumnForTasks(
     selectedDay: Int,
     selectedMonth: Int,
     selectedYear: Int,
+    editTask: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(10.dp)
+            .padding(horizontal = 5.dp)
     ) {
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
-            .fillMaxSize()
-            ,
+            .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(viewModel.getTaskListByDate(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))) { Task ->
-                TaskItem(task = Task, viewModel = viewModel)
+                TaskItem(task = Task, viewModel = viewModel, editTask )
             }
         }
     }
@@ -140,11 +223,10 @@ fun GenerateLazyColumnForTasks(
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun TaskItem(task: Task, viewModel: TaskViewModel){
+fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
-
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
@@ -163,17 +245,20 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
 
     ){
         Row(modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(1.dp)
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
-                checked = taskCompletionStatus, onCheckedChange ={
-                viewModel.changeTaskCompletion(task)
-                taskCompletionStatus = task.isCompleted
-            } )
+                checked = taskCompletionStatus,
+                onCheckedChange ={
+                    viewModel.changeTaskCompletion(task)
+                    taskCompletionStatus = task.isCompleted
+                },
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+            )
             Text(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically)
-                ,
+                modifier = Modifier.align(alignment = Alignment.CenterVertically),
                 text = task.title
             )
             Spacer(Modifier.weight(1f))
@@ -181,7 +266,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
                 .align(Alignment.CenterVertically),
                 onClick = {
                     visible = !visible
-            }) {
+                }) {
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "See subtasks",
@@ -202,42 +287,29 @@ fun TaskItem(task: Task, viewModel: TaskViewModel){
         }
     }
     if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Delete Task") },
-            text = { Text("Are you sure you want to delete this task?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.removeTask(task)
-                        showDialog.value = false
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog.value = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
+        EditTaskDialog(taskName = task.title,
+            editTask = editTask,
+            deleteTask = {
+                showDialog.value = false
+                viewModel.removeTask(task)
+                         },
+            dismissDialog = { showDialog.value = false }
         )
     }
 }
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowTaskList(
-        viewModel : TaskViewModel = viewModel(),
-        onFloatingButtonClick: () -> Unit = {}) {
+fun ShowTaskList (
+    viewModel : TaskViewModel = hiltViewModel(),
+    onFloatingButtonClick: () -> Unit = {},
+    onEditTask: () -> Unit) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableStateOf(LocalDateTime.now().dayOfMonth) }
-    val selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
+    var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
+    val copyProgress: MutableState<Float> = remember { mutableStateOf(0.0f) }
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
@@ -250,51 +322,79 @@ fun ShowTaskList(
             viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
         }
     }
-    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
     Scaffold(
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(72.dp),
+                modifier = Modifier.height(40.dp),
+                colors = topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
                 title = {
-                            GenerateLazyRowForDays(
-                                viewModel = viewModel,
-                                selectedDay = selectedDay,
-                                selectedMonth = selectedMonth,
-                                selectedYear = selectedYear,
-                            ) { day ->
-                                selectedDay = day
-                            }
+                    Box(modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                        ) {
+                        val formatBigDate =
+                            DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
+                        Text(
+                            LocalDateTime.now().toLocalDate().format(formatBigDate).toString(),
+                        )
+                    }
                         },
 
+
             )
-        },
-        floatingActionButton = {
+        },floatingActionButton = {
             FloatingActionButton(
                 shape = CircleShape,
-                /*
-                TODO("Set the color")
-                containerColor = Color(0xF5838E),
-
-                 */
+                containerColor = MaterialTheme.colorScheme.tertiary,
                 onClick = onFloatingButtonClick) {
                 Icon(Icons.Filled.Add, "Add new Task")
             }
         },
-        /*
         content = {
-
-        },*/
-
-    ) {
-        GenerateLazyColumnForTasks(
-            viewModel = viewModel,
-            selectedDay = selectedDay,
-            selectedMonth = selectedMonth,
-            selectedYear = selectedYear,
-        )
-    }
+            Surface(modifier = Modifier.padding(top = it.calculateTopPadding(),bottom=it.calculateBottomPadding())) {
+                Column(
+                    modifier = Modifier.wrapContentSize(),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier.wrapContentSize()
+                            .background(MaterialTheme.colorScheme.secondary),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        GenerateLazyRowForDays(
+                            viewModel = viewModel,
+                            selectedDay = selectedDay,
+                            selectedMonth = selectedMonth,
+                            selectedYear = selectedYear,
+                            progress = copyProgress
+                        ) { day ->
+                            selectedDay = day
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        GenerateLazyColumnForTasks(
+                            viewModel = viewModel,
+                            selectedDay = selectedDay,
+                            selectedMonth = selectedMonth,
+                            selectedYear = selectedYear,
+                            editTask = onEditTask
+                        )
+                    }
+                }
+            }
+        },
+    )
 }
-
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun showSubTask(subtask : SubTask) {
@@ -308,14 +408,15 @@ fun showSubTask(subtask : SubTask) {
             text = subtask.title)
         Spacer(modifier = Modifier.weight(1f))
         Checkbox(modifier = Modifier.padding(10.dp),
-            checked = checked, onCheckedChange = {
+            checked = checked,
+            onCheckedChange = {
                 subtask.completed = !subtask.completed
                 checked = subtask.completed
-            })
+            },
+            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+        )
     }
 }
-
-
 @Preview
 @Suppress("NewApi")
 @Composable
@@ -325,7 +426,9 @@ fun ShowTaskListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            ShowTaskList()
+            ShowTaskList(
+                onEditTask = { println("editing") }
+            )
         }
     }
 }
