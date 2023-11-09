@@ -1,23 +1,20 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,14 +27,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,14 +40,14 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
+import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class CreateTaskPage : ComponentActivity() {
@@ -79,14 +74,7 @@ fun CreateTaskContent(
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
-    var taskDate by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(
-            TextFieldValue(
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")).toString(),
-                TextRange(10, 10)
-            )
-        )
-    }
+    var priority by remember { mutableStateOf("MEDIUM") }
     var date by remember {
         mutableStateOf(LocalDateTime.now())
     }
@@ -150,7 +138,7 @@ fun CreateTaskContent(
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
                             viewModel.addTask(
-                                0, taskName.text, date, "LOW", false
+                                0, taskName.text, date, priority, false
                             )
                             scope.launch {
                                 snackbarHostState.showSnackbar("Task created")
@@ -188,8 +176,54 @@ fun CreateTaskContent(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(10.dp))
-            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            HorizDividerWithSpacer()
+            Text(
+                text = "Choose priority",
+                fontWeight = FontWeight.Bold,
+                //fontSize = ,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ){
+                Spacer(modifier = Modifier.width(20.dp))
+                FilterChip(
+                    selected = priority.equals("LOW"),
+                    onClick = { priority = "LOW" },
+                    label = { Text("Low") },
+                    enabled = true,
+                    leadingIcon = {if (priority.equals("LOW")) Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "Selected"
+                    ) }
+                )
+                FilterChip(
+                    selected = priority == "MEDIUM",
+                    onClick = { priority = "MEDIUM"},
+                    label = {
+                        Text( text = "Medium" )
+                    },
+                    enabled = true,
+                    leadingIcon = {if (priority == "MEDIUM") Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "Selected"
+                    ) }
+                )
+                FilterChip(
+                    selected = priority == "HIGH",
+                    onClick = { priority = "HIGH" },
+                    label = { Text(text = "High") },
+                    enabled = true,
+                    leadingIcon = {if (priority == "HIGH")
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Selected"
+                        ) }
+                )
+                Spacer(modifier = Modifier.width(20.dp))
+            }
+            HorizDividerWithSpacer()
             Text(
                 text = "Select date",
                 fontWeight = FontWeight.Bold,
@@ -199,15 +233,6 @@ fun CreateTaskContent(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-//                OutlinedTextField(
-//                    //label = { Text(text = "Date") },
-//                    value = date,
-//                    onValueChange = { date = it },
-//                    keyboardOptions = KeyboardOptions(
-//                        keyboardType = KeyboardType.Text,
-//                        imeAction = ImeAction.Next
-//                    )
-//                )
                 OutlinedButton(
                     onClick = { showDatePicker = true },
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
@@ -237,6 +262,7 @@ fun CreateTaskContent(
             }
             if (showDatePicker) {
                 DatePickerDialogFunction(
+                    System.currentTimeMillis(),
                     onDateSelected = { date = it },
                     onDismiss = { showDatePicker = false }
                 )
@@ -262,60 +288,6 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerDialogFunction(
-    onDateSelected: (LocalDateTime) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = System.currentTimeMillis(),
-        yearRange = IntRange(2000, LocalDateTime.now().year + 100)
-    )
 
-    val selectedDate = datePickerState.selectedDateMillis?.let {
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
-    }
-
-    DatePickerDialog(
-        onDismissRequest = { onDismiss() },
-        confirmButton = {
-            Button(
-                onClick = {
-                    selectedDate?.let { onDateSelected(it) }
-                    onDismiss()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = MaterialTheme.colorScheme.background,
-                    containerColor = MaterialTheme.colorScheme.tertiary,
-                ),
-
-                ) {
-                Text(text = "OK")
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = {
-                    onDismiss()
-                },
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.tertiary,
-                    containerColor = Color.Transparent,
-                ),
-                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary)
-            ) {
-                Text(text = "Cancel")
-            }
-        },
-        colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.background)
-    ) {
-        DatePicker(
-            state = datePickerState,
-
-            )
-    }
-}
 
 
