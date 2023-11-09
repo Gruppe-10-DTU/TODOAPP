@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -37,11 +40,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
+import com.gruppe11.todoApp.ui.elements.prioritySelection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -188,39 +194,9 @@ fun CreateTaskContent(
                 modifier = Modifier.fillMaxWidth()
             ){
                 Spacer(modifier = Modifier.width(20.dp))
-                FilterChip(
-                    selected = priority.equals("LOW"),
-                    onClick = { priority = "LOW" },
-                    label = { Text("Low") },
-                    enabled = true,
-                    leadingIcon = {if (priority.equals("LOW")) Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected"
-                    ) }
-                )
-                FilterChip(
-                    selected = priority == "MEDIUM",
-                    onClick = { priority = "MEDIUM"},
-                    label = {
-                        Text( text = "Medium" )
-                    },
-                    enabled = true,
-                    leadingIcon = {if (priority == "MEDIUM") Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected"
-                    ) }
-                )
-                FilterChip(
-                    selected = priority == "HIGH",
-                    onClick = { priority = "HIGH" },
-                    label = { Text(text = "High") },
-                    enabled = true,
-                    leadingIcon = {if (priority == "HIGH")
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = "Selected"
-                        ) }
-                )
+                prioritySelection(priority = priority, label = "LOW", onPrioritySelected ={priority = it} )
+                prioritySelection(priority = priority, label = "MEDIUM", onPrioritySelected ={priority = it} )
+                prioritySelection(priority = priority, label = "HIGH", onPrioritySelected ={priority = it} )
                 Spacer(modifier = Modifier.width(20.dp))
             }
             HorizDividerWithSpacer()
@@ -239,11 +215,15 @@ fun CreateTaskContent(
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.primary,
                         containerColor = Color.Transparent,
-                    )
+                    ),
+                    modifier = Modifier.fillMaxWidth(0.6f),
+                    shape = RoundedCornerShape(8.dp)
                 )
                 {
                     Text(
-                        text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                        textAlign = TextAlign.Start,
+                        fontSize = 16.sp
                     )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
