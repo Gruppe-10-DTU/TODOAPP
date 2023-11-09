@@ -39,16 +39,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.gruppe11.todoApp.Task
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
+import com.gruppe11.todoApp.viewModel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTaskScreen(
     returnPage: () -> Unit,
     saveTask: () -> Unit,
-    currentTask: Task
+    taskId : Int,
+    viewModel: TaskViewModel = hiltViewModel()
 ) {
+    var currentTask = viewModel.getTask(taskId)
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("Task name", TextRange(0, 7)))
     }
@@ -210,7 +215,7 @@ fun EditTaskScreen(
             Column(
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-                for (i in 1.rangeTo(subTaskCount)){
+                for (subtask: SubTask in viewModel.getSubtasks(currentTask)){
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -276,7 +281,7 @@ fun EditTaskPaePreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            EditTaskScreen({}, {}, Task)
+            EditTaskScreen({}, {}, 1)
         }
     }
 }

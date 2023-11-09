@@ -26,11 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.gruppe11.todoApp.model.Task
 
 @Composable
 fun EditTaskDialog(
-    taskName: String,
-    editTask: () -> Unit,
+    task: Task,
+    editTask: (Int) -> Unit,
     deleteTask: () -> Unit,
     dismissDialog: () -> Unit
 ) {
@@ -52,13 +53,13 @@ fun EditTaskDialog(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = taskName,
+                    text = task.title,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
                 TextButton(
                     onClick = {
-                        editTask()
+                        editTask(task.id)
                         dismissDialog()
                     },
                     colors = ButtonColors(
@@ -108,5 +109,5 @@ fun EditTaskDialog(
 @Preview
 @Composable
 fun EditTaskDialogPreview(){
-    EditTaskDialog("Testing", {}, {}, {})
+    EditTaskDialog(Task(), {}, {}, {})
 }
