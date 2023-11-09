@@ -1,9 +1,11 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -13,7 +15,6 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerColors
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -50,10 +50,10 @@ import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Date
 
 class CreateTaskPage : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +88,7 @@ fun CreateTaskContent(
         )
     }
     var date by remember {
-        mutableStateOf("Open date picker dialog")
+        mutableStateOf(LocalDateTime.now())
     }
 
     var showDatePicker by remember {
@@ -150,7 +150,7 @@ fun CreateTaskContent(
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
                             viewModel.addTask(
-                                0, taskName.text, LocalDateTime.parse(date), "LOW", false
+                                0, taskName.text, date, "LOW", false
                             )
                             scope.launch {
                                 snackbarHostState.showSnackbar("Task created")
@@ -199,35 +199,48 @@ fun CreateTaskContent(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-                OutlinedTextField(
-                    //label = { Text(text = "Date") },
-                    value = date,
-                    onValueChange = { date = it },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
+//                OutlinedTextField(
+//                    //label = { Text(text = "Date") },
+//                    value = date,
+//                    onValueChange = { date = it },
+//                    keyboardOptions = KeyboardOptions(
+//                        keyboardType = KeyboardType.Text,
+//                        imeAction = ImeAction.Next
+//                    )
+//                )
+                OutlinedButton(
+                    onClick = { showDatePicker = true },
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = Color.Transparent,
                     )
                 )
+                {
+                    Text(
+                        text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    )
+                }
                 Spacer(modifier = Modifier.width(10.dp))
                 IconButton(
-                    onClick = {showDatePicker = true },
+                    onClick = { showDatePicker = true },
                     content = {
                         Icon(
                             imageVector = Icons.Outlined.CalendarMonth,
                             contentDescription = "Pick a date",
-                            modifier = Modifier.scale(1.3f)
+                            modifier = Modifier.scale(1.3f),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 )
 
             }
             if (showDatePicker) {
-                MyDatePickerDialog(
+                DatePickerDialogFunction(
                     onDateSelected = { date = it },
                     onDismiss = { showDatePicker = false }
                 )
             }
-            MyDatePickerDialog()
         }
     }
 }
@@ -248,60 +261,29 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
     }
 }
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerView() {
-    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates {
-        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-            return utcTimeMillis <= System.currentTimeMillis()
-        }
-    })
-    val selectedDate = datePickerState.selectedDateMillis?.let {
-        convertMillisToDate(it)
-    }
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        DatePicker(
-            state = datePickerState
-        )
-        Spacer(
-            modifier = Modifier.height(
-                32.dp
-            )
-        )
-        Text(
-            text = selectedDate.toString(),
-            color = MaterialTheme.colorScheme.error
-        )
-    }
-}
-
-private fun convertMillisToDate(millis: Long): String {
-    val formatter = SimpleDateFormat("dd/MM/yyyy")
-    return formatter.format(Date(millis))
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MyDatePickerDialog(
-    onDateSelected: (String) -> Unit,
+fun DatePickerDialogFunction(
+    onDateSelected: (LocalDateTime) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates {
-        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-            return utcTimeMillis <= System.currentTimeMillis()
-        }
-    })
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis(),
+        yearRange = IntRange(2000, LocalDateTime.now().year + 100)
+    )
 
     val selectedDate = datePickerState.selectedDateMillis?.let {
-        convertMillisToDate(it)
-    } ?: ""
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
+    }
 
     DatePickerDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
             Button(
                 onClick = {
-                    onDateSelected(selectedDate)
+                    selectedDate?.let { onDateSelected(it) }
                     onDismiss()
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -319,8 +301,8 @@ fun MyDatePickerDialog(
                     onDismiss()
                 },
                 colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.tertiary,
-                        containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.tertiary,
+                    containerColor = Color.Transparent,
                 ),
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary)
             ) {
@@ -330,31 +312,10 @@ fun MyDatePickerDialog(
         colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.background)
     ) {
         DatePicker(
-            state = datePickerState
-        )
+            state = datePickerState,
+
+            )
     }
 }
 
-@Composable
-fun MyDatePickerDialog() {
-    var date by remember {
-        mutableStateOf("Open date picker dialog")
-    }
 
-    var showDatePicker by remember {
-        mutableStateOf(false)
-    }
-
-    Box(contentAlignment = Alignment.Center) {
-        Button(onClick = { showDatePicker = true }) {
-            Text(text = date)
-        }
-    }
-
-    if (showDatePicker) {
-        MyDatePickerDialog(
-            onDateSelected = { date = it },
-            onDismiss = { showDatePicker = false }
-        )
-    }
-}
