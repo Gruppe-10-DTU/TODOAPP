@@ -60,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -175,7 +176,7 @@ fun GenerateLazyRowForDays(
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     selectedDate: LocalDateTime,
-    editTask: () -> Unit
+    editTask: (Int) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -189,7 +190,7 @@ fun GenerateLazyColumnForTasks(
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(viewModel.getTaskListByDate(selectedDate)) { Task ->
-                TaskItem(task = Task, viewModel = viewModel)
+                TaskItem(task = Task, viewModel = viewModel, editTask)
             }
         }
     }
@@ -197,7 +198,7 @@ fun GenerateLazyColumnForTasks(
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
+fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
     var taskCompletionStatus by mutableStateOf(task.isCompleted)
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
@@ -261,12 +262,12 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
         }
     }
     if (showDialog.value) {
-        EditTaskDialog(taskName = task.title,
+        EditTaskDialog(task = task,
             editTask = editTask,
             deleteTask = {
                 showDialog.value = false
                 viewModel.removeTask(task)
-                         },
+             },
             dismissDialog = { showDialog.value = false }
         )
     }
@@ -276,8 +277,8 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: () -> Unit){
 @Composable
 fun ShowTaskList (
     viewModel : TaskViewModel = hiltViewModel(),
-    onFloatingButtonClick: () -> Unit = {},
-    onEditTask: () -> Unit) {
+    onFloatingButtonClick: () -> Unit,
+    onEditTask: (Int) -> Unit) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
@@ -395,7 +396,8 @@ fun ShowTaskListPreview() {
             color = MaterialTheme.colorScheme.background
         ){
             ShowTaskList(
-                onEditTask = { println("editing") }
+                onEditTask = { println("editing") },
+                onFloatingButtonClick = { println("Test") }
             )
         }
     }

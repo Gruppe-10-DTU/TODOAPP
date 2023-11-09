@@ -1,25 +1,36 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
+import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.YearMonth
 import javax.inject.Inject
 
 @HiltViewModel
-class TaskViewModel @Inject constructor(
+class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
-    private val taskList: MutableList<Task> =  taskRepository.readAll().toMutableList()
+    private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
-    private var _UIState = MutableStateFlow(taskRepository.readAll())
+    private var _UIState = MutableStateFlow(listOf(Task()))
     val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
+    private var taskList : MutableList<Task> = emptyList<Task>().toMutableList()
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            taskRepository.readAll().forEach { task -> taskList.add(task) }
+
+        }
+    }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
@@ -67,7 +78,6 @@ class TaskViewModel @Inject constructor(
         return toReturn
     }
     fun changeTaskCompletion(task: Task){
-        task.isCompleted = !task.isCompleted
         taskList.set(task.id,task)
         taskRepository.update(task.copy(isCompleted = !task.isCompleted))
         _UIState.value = taskRepository.readAll()
@@ -84,5 +94,13 @@ class TaskViewModel @Inject constructor(
         }
         if(totTask > 0) return totComp/totTask
         return 0f
+    }
+
+    fun getSubtasks(currentTask: Task): List<SubTask> {
+        return subtaskRepository.readAll(currentTask);
+    }
+
+    fun getTask(taskId: Int): Task {
+        return UIState.value.find{ task -> task.id == taskId }?:Task()
     }
 }

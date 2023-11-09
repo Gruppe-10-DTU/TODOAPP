@@ -3,8 +3,10 @@ package com.gruppe11.todoApp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
 import com.gruppe11.todoApp.ui.screens.EditTaskScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
@@ -43,11 +45,16 @@ fun MainNavHost(
                 navController.popBackStack()
             }, saveTask = { /*TODO*/ })
         }
-        composable(route = EditTask.route) {
+        composable(
+            route = EditTask.route,
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType }
+            )
+        ) {
             EditTaskScreen(
                 returnPage = { navController.popBackStack() },
                 saveTask = { /*TODO*/ },
-                currentTask = Task
+                taskId = it.arguments?.getInt("id")!!
             )
         }
     }
