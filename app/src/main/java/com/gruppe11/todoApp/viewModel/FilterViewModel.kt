@@ -1,14 +1,15 @@
 package com.gruppe11.todoApp.viewModel
 
 import androidx.lifecycle.ViewModel
-import com.gruppe11.todoApp.ui.elements.Tag
+import com.gruppe11.todoApp.model.Tag
 
 class FilterViewModel : ViewModel() {
-    private val _filterTags = getFilterTags().toMutableList()
+    private val _filterTags = getFilterTags().toMutableSet()
 
-    val tags: List<Tag>
+    val tags: Set<Tag>
         get() = _filterTags
 
+    // Temporary
     private fun getFilterTags() = listOf(
         Tag(1, "Completed"),
         Tag(2, "Not completed")

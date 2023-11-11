@@ -3,6 +3,8 @@ package com.gruppe11.todoApp.ui.screens
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,8 +67,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
+import com.gruppe11.todoApp.ui.elements.FilterTags
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.launch
@@ -310,6 +314,10 @@ fun ShowTaskList (
     var selectedDay by remember{ mutableStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
     val copyProgress: MutableState<Float> = remember { mutableStateOf(0.0f) }
+
+    // Filter tags visible or not
+    var filterTagsVisible by remember { mutableStateOf(false) }
+
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
@@ -362,7 +370,8 @@ fun ShowTaskList (
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
-                        modifier = Modifier.wrapContentSize()
+                        modifier = Modifier
+                            .wrapContentSize()
                             .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.TopCenter
                     ) {
@@ -374,6 +383,44 @@ fun ShowTaskList (
                             progress = copyProgress
                         ) { day ->
                             selectedDay = day
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        Column {
+                            Row{
+                                IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Tune,
+                                        contentDescription = "Open filter selection",
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .padding(4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Box (
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background),
+                            contentAlignment = Alignment.TopCenter
+                    ) {
+                        Column {
+                            AnimatedVisibility(
+                                visible = filterTagsVisible,
+                                enter = slideInVertically(),
+                                exit = slideOutVertically()
+                            ) {
+                                FilterTags()
+                            }
                         }
                     }
                     Box(

@@ -1,4 +1,4 @@
-package com.gruppe11.todoApp.ui.elements
+package com.gruppe11.todoApp.model
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
