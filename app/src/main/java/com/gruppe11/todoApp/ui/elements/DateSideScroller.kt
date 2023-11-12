@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -39,11 +41,27 @@ fun DateSideScroller(
     val dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
     Column(horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center) {
-        Text(
+        TextButton(onClick = {
+            viewModel.onSelectedDayChange(uiState.value.currentDay)
+            CoroutineScope(Dispatchers.Main).launch {
+                listState.scrollToItem(
+                    index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
+                    scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
+                )
+            }
+        },
+            colors = ButtonColors(containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+                disabledContainerColor = Color.Transparent,
+                disabledContentColor = Color.LightGray
+            )
+        ) {
+            Text(
             text = uiState.value.currentDay
                 .format(DateTimeFormatter.ofPattern("E d. MMMM")),
-            fontSize = 22.sp
-        )
+            fontSize = 18.sp,
+            )
+        }
         LazyRow(
             state = listState,
             verticalAlignment = Alignment.CenterVertically,
