@@ -11,16 +11,20 @@ import java.time.LocalDateTime
 import java.time.Period
 
 class CalendarViewModel(
+    state: CalendarScreenState
 ) {
     private val dayPeriod = Period.of(0, 0, 1)
     private val timePeriod = 30L
+
     val startDay: LocalDate = LocalDate.now().minusDays(30)
     private var dateList: List<LocalDate> = emptyList()
     val dates: Flow<List<LocalDate>> = getCalendarFlow()
+
     var currentTime: LocalDateTime = LocalDateTime.MIN
     private var timeIntervalList: List<LocalDateTime> = emptyList()
     val time = getTimeFlow()
-    private val _uiState = MutableStateFlow(CalendarScreenState())
+
+    private val _uiState = MutableStateFlow(state)
     val uiState = _uiState.asStateFlow()
 
 
