@@ -68,8 +68,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
-import com.gruppe11.todoApp.ui.elements.FilterTags
+import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
+import com.gruppe11.todoApp.viewModel.FilterViewModel
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -205,8 +206,17 @@ fun GenerateLazyColumnForTasks(
     selectedDay: Int,
     selectedMonth: Int,
     selectedYear: Int,
-    editTask: () -> Unit
+    editTask: () -> Unit,
+    filterViewModel: FilterViewModel
 ) {
+    val filteredTasks = viewModel.getTaskListByDate(LocalDateTime.of(
+        selectedYear,
+        selectedMonth,
+        selectedDay,
+        LocalDateTime.now().hour,
+        LocalDateTime.now().minute)
+    ).filter { task -> filterTaskItem(task, filterViewModel) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -218,11 +228,17 @@ fun GenerateLazyColumnForTasks(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(viewModel.getTaskListByDate(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))) { Task ->
-                TaskItem(task = Task, viewModel = viewModel, editTask )
+            items(filteredTasks, key = { task -> task.id }) { task ->
+                TaskItem(task, viewModel = viewModel, editTask )
             }
         }
     }
+}
+
+fun filterTaskItem(task: Task, filterViewModel: FilterViewModel) : Boolean {
+    return ((filterViewModel.complete.value && task.isCompleted) ||
+            (filterViewModel.incomplete.value && !task.isCompleted) ||
+            (!filterViewModel.complete.value && !filterViewModel.incomplete.value))
 }
 
 @SuppressLint("UnrememberedMutableState")
@@ -315,7 +331,8 @@ fun ShowTaskList (
     var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
     val copyProgress: MutableState<Float> = remember { mutableStateOf(0.0f) }
 
-    // Filter tags visible or not
+    // Filter tags section visible or not
+    var filterViewModel = FilterViewModel()
     var filterTagsVisible by remember { mutableStateOf(false) }
 
     /*
@@ -419,7 +436,7 @@ fun ShowTaskList (
                                 enter = slideInVertically(),
                                 exit = slideOutVertically()
                             ) {
-                                FilterTags()
+                                FilterSection(filterViewModel)
                             }
                         }
                     }
@@ -434,7 +451,8 @@ fun ShowTaskList (
                             selectedDay = selectedDay,
                             selectedMonth = selectedMonth,
                             selectedYear = selectedYear,
-                            editTask = onEditTask
+                            editTask = onEditTask,
+                            filterViewModel = filterViewModel
                         )
                     }
                 }

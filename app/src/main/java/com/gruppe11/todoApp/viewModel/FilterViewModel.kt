@@ -1,17 +1,16 @@
 package com.gruppe11.todoApp.viewModel
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.Tag
 
 class FilterViewModel : ViewModel() {
     private val _filterTags = getFilterTags().toMutableSet()
+    var complete = mutableStateOf(false)
+    var incomplete = mutableStateOf(false)
 
     val tags: Set<Tag>
         get() = _filterTags
 
-    // Temporary
-    private fun getFilterTags() = listOf(
-        Tag(1, "Completed"),
-        Tag(2, "Not completed")
-    )
+    private fun getFilterTags() = emptySet<Tag>()
 }
