@@ -31,7 +31,7 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     override fun read(id: Int): Task? {
         return tasks
             .stream()
-            .filter { e: Task? -> e!!.id == id }
+            .filter { e -> e.id == id }
             .findFirst()
             .orElse(null)
     }
@@ -41,12 +41,15 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     }
 
     override fun update(task: Task): Task {
-        val index = tasks.indexOfFirst { e: Task? -> e!!.id == task.id }
-        tasks[index] = task
+        val index = tasks.indexOfFirst { e -> e.id == task.id }
+        if (index >= 0) {
+            tasks[index] = task
+        }
+
         return task
     }
 
     override fun delete(task: Task) {
-        tasks.removeIf { e: Task? -> e!!.id == task.id }
+        tasks.removeIf { e -> e.id == task.id }
     }
 }

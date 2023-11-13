@@ -18,13 +18,20 @@ class SubtaskRepositoryImpl @Inject constructor() : ISubtaskRepository{
         return map[task.id] ?: ArrayList()
     }
 
-    override fun update(task: Task, subtask: SubTask): SubTask {
-        TODO("Not yet implemented")
+    override fun update(task: Task, subtask: SubTask): SubTask? {
+        val subtasks : MutableList<SubTask> = map[task.id] ?: return null;
 
+        val id = subtasks.indexOfFirst { e -> e.id == subtask.id }
+        subtasks[id] = subtask
+        map[task.id] = subtasks
+        return subtask
     }
 
     override fun delete(task: Task, subtask: SubTask) {
-        TODO("Not yet implemented")
+        val subtasks : MutableList<SubTask> = map[task.id] ?: return
+
+        subtasks.removeIf{ e -> e.id == subtask.id }
+
     }
 
 }
