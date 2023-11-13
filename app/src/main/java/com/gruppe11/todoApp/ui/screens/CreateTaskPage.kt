@@ -4,22 +4,16 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -32,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
+import com.gruppe11.todoApp.ui.elements.PriorityFC
+import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -117,23 +112,16 @@ fun CreateTaskContent(
                 .padding(60.dp, 15.dp)
         ) {
             // Cancel Button
-            Button(
-                enabled = true,
-                onClick = returnPage,
-                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                colors = ButtonDefaults.buttonColors(
-                    MaterialTheme.colorScheme.background
-                )
-            ) {
-                Text(
-                    text = "Cancel", color = MaterialTheme.colorScheme.primary
-                )
-
-            }
+            SwitchableButton(
+                text = "Cancel",
+                onClick = { returnPage() },
+                isFilled = false,
+                pickedColor = MaterialTheme.colorScheme.primary
+            )
 
             // Create button
-            Button(
-                enabled = true,/*TODO: Correct the addTask arguements*/
+            SwitchableButton(
+                text = "Create",
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
@@ -152,14 +140,9 @@ fun CreateTaskContent(
                         }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(
-                    MaterialTheme.colorScheme.tertiary
-                )
-            ) {
-                Text(
-                    text = "Create", color = MaterialTheme.colorScheme.background
-                )
-            }
+                isFilled = true,
+                pickedColor = MaterialTheme.colorScheme.tertiary
+            )
         }
 
     }) { padding ->
@@ -182,47 +165,10 @@ fun CreateTaskContent(
                 fontWeight = FontWeight.Bold,
                 //fontSize = ,
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ){
-                Spacer(modifier = Modifier.width(20.dp))
-                FilterChip(
-                    selected = priority.equals("LOW"),
-                    onClick = { priority = "LOW" },
-                    label = { Text("Low") },
-                    enabled = true,
-                    leadingIcon = {if (priority.equals("LOW")) Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected"
-                    ) }
-                )
-                FilterChip(
-                    selected = priority == "MEDIUM",
-                    onClick = { priority = "MEDIUM"},
-                    label = {
-                        Text( text = "Medium" )
-                    },
-                    enabled = true,
-                    leadingIcon = {if (priority == "MEDIUM") Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected"
-                    ) }
-                )
-                FilterChip(
-                    selected = priority == "HIGH",
-                    onClick = { priority = "HIGH" },
-                    label = { Text(text = "High") },
-                    enabled = true,
-                    leadingIcon = {if (priority == "HIGH")
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = "Selected"
-                        ) }
-                )
-                Spacer(modifier = Modifier.width(20.dp))
-            }
+            PriorityFC(
+                selectedPriority = priority,
+                onClick = { newPriority -> priority = newPriority }
+            )
             HorizDividerWithSpacer()
             Text(
                 text = "Select date",
@@ -233,19 +179,10 @@ fun CreateTaskContent(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-                OutlinedButton(
+                SwitchableButton(text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                     onClick = { showDatePicker = true },
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        containerColor = Color.Transparent,
-                    )
-                )
-                {
-                    Text(
-                        text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                    )
-                }
+                    isFilled = false,
+                    pickedColor = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(10.dp))
                 IconButton(
                     onClick = { showDatePicker = true },
@@ -258,7 +195,6 @@ fun CreateTaskContent(
                         )
                     }
                 )
-
             }
             if (showDatePicker) {
                 DatePickerDialogFunction(

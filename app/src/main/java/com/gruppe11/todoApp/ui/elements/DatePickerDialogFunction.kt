@@ -2,20 +2,13 @@ package com.gruppe11.todoApp.ui.elements
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -40,33 +33,20 @@ fun DatePickerDialogFunction(
     DatePickerDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
-            Button(
-                onClick = {
+            SwitchableButton(
+                text = "Ok", onClick = {
                     selectedDate?.let { onDateSelected(it) }
                     onDismiss()
                 },
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = MaterialTheme.colorScheme.background,
-                    containerColor = MaterialTheme.colorScheme.tertiary,
-                ),
-
-                ) {
-                Text(text = "OK")
-            }
+                isFilled = true,
+                pickedColor = MaterialTheme.colorScheme.primary
+            )
         },
         dismissButton = {
-            OutlinedButton(
-                onClick = {
-                    onDismiss()
-                },
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.tertiary,
-                    containerColor = Color.Transparent,
-                ),
-                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary)
-            ) {
-                Text(text = "Cancel")
-            }
+            SwitchableButton(text = "Cancel",
+                onClick = { onDismiss() },
+                isFilled = false,
+                pickedColor = MaterialTheme.colorScheme.tertiary)
         },
         colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.background)
     ) {
