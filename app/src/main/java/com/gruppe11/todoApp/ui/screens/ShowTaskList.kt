@@ -286,6 +286,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             }
         }
     }
+
     if (showDialog.value) {
         EditTaskDialog(task = task,
             editTask = editTask,
@@ -297,6 +298,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
         )
     }
 }
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
