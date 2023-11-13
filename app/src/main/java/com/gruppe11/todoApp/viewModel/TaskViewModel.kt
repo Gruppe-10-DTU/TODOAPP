@@ -1,20 +1,16 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.time.YearMonth
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,18 +18,11 @@ class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
-    private var _UIState = MutableStateFlow(listOf(Task()))
+    private var _UIState = MutableStateFlow(emptyList<Task>())
     val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
-    private var taskList : MutableList<Task> = emptyList<Task>().toMutableList()
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            taskRepository.readAll().forEach { task -> taskList.add(task) }
-
-        }
-    }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
+        return taskRepository.readAll().filter{it.completion!!.dayOfYear == date.dayOfYear}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
 //        val tmpTask = Task()
@@ -45,7 +34,6 @@ class TaskViewModel @Inject constructor (
 //            tmpTask.isCompleted = isCompleted
 //        }
         taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
-        taskList.add(tmpTask.id,tmpTask)
         _UIState.value = taskRepository.readAll()
     }
 
@@ -59,12 +47,11 @@ class TaskViewModel @Inject constructor (
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
-        taskList.removeAt(task.id)
         _UIState.value = taskRepository.readAll()
     }
 
     fun getTaskList(): List<Task> {
-        return taskList
+        return UIState.value
     }
 
     @SuppressLint("NewApi")
@@ -78,7 +65,6 @@ class TaskViewModel @Inject constructor (
         return toReturn
     }
     fun changeTaskCompletion(task: Task){
-        taskList.set(task.id,task)
         taskRepository.update(task.copy(isCompleted = !task.isCompleted))
         _UIState.value = taskRepository.readAll()
     }
@@ -87,7 +73,7 @@ class TaskViewModel @Inject constructor (
     fun countTaskCompletionsByDay(date: LocalDateTime): Float {
         var totComp = 0f
         var totTask = 0f
-        val completedTasks = taskList.filter{it.completion!!.dayOfYear == date.dayOfYear}
+        val completedTasks = _UIState.value.filter{it.completion!!.dayOfYear == date.dayOfYear}
         completedTasks.forEach { Task ->
             if(Task.isCompleted){totComp++}
             totTask++
@@ -101,6 +87,6 @@ class TaskViewModel @Inject constructor (
     }
 
     fun getTask(taskId: Int): Task {
-        return UIState.value.find{ task -> task.id == taskId }?:Task()
+        return UIState.value.find{ task -> task.id == taskId }!!
     }
 }
