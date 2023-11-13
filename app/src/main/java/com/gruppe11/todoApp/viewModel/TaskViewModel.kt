@@ -24,14 +24,6 @@ class TaskViewModel @Inject constructor (
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-//        val tmpTask = Task()
-//        let {
-//            tmpTask.id = id
-//            tmpTask.title=title
-//            tmpTask.completion = completion
-//            tmpTask.priority = fromString(Prio)
-//            tmpTask.isCompleted = isCompleted
-//        }
         taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
         _UIState.value = taskRepository.readAll()
     }

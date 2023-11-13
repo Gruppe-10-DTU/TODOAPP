@@ -87,7 +87,7 @@ fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, pr
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .height(60.dp)
-            .padding(5.dp)
+            .padding(7.5.dp)
     ) {
         LinearProgressIndicator(
             modifier = Modifier
@@ -167,6 +167,8 @@ fun GenerateLazyRowForDays(
                                         Text(
                                             text = lt.withDayOfMonth(day).format(formatFilterDate),
                                             textAlign = TextAlign.Center,
+                                            modifier = Modifier.padding(0.dp).fillMaxWidth()
+
                                         )
                                     },
                                     enabled = true,
