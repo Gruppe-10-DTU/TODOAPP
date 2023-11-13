@@ -8,5 +8,5 @@ object CreateTask : TaskDestination {
     override val route = "createTask"
 }
 object EditTask : TaskDestination {
-    override val route = "editTask"
+    override val route = "editTask/{taskId}"
 }

@@ -27,7 +27,7 @@ fun MainNavHost(
         composable(route = Task.route) {
             ShowTaskList(
                 onFloatingButtonClick = {navController.navigate(CreateTask.route)},
-                onEditTask = { navController.navigate(EditTask.route) }
+                onEditTask = { navController.navigate(route = EditTask.route.replace("{taskId}", it.toString())) }
             )
         }
 
@@ -48,13 +48,13 @@ fun MainNavHost(
         composable(
             route = EditTask.route,
             arguments = listOf(
-                navArgument("id") { type = NavType.IntType }
+                navArgument("taskId") { type = NavType.IntType }
             )
         ) {
             EditTaskScreen(
                 returnPage = { navController.popBackStack() },
                 saveTask = { /*TODO*/ },
-                taskId = it.arguments?.getInt("id")!!
+                taskId = it.arguments?.getInt("taskId")!!
             )
         }
     }
