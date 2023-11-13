@@ -81,7 +81,7 @@ fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, pr
 
     cirscope.launch {
         val completionCounts = viewModel.countTaskCompletionsByDay(date)
-        currentProgress = completionCounts[date.dayOfMonth].toFloat()
+        currentProgress = completionCounts[date.dayOfMonth-1].toFloat()
     }
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
