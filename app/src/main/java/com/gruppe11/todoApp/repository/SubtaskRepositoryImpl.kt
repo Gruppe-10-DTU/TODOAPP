@@ -9,10 +9,10 @@ class SubtaskRepositoryImpl @Inject constructor() : ISubtaskRepository{
     private var map: MutableMap<Int, MutableList<SubTask>> = HashMap()
     override fun createSubtask(task: Task, subtask: SubTask): SubTask {
         val list : MutableList<SubTask> = map[task.id] ?: ArrayList();
-        subtask.id = list.size+1;
-        list.add(subtask);
+        val newSubtask = subtask.copy(id = list.size+1)
+        list.add(newSubtask);
         map[task.id] = list
-        return subtask;
+        return newSubtask;
     }
 
     override fun readAll(task: Task): List<SubTask> {

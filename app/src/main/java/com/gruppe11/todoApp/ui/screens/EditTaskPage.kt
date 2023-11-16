@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gruppe11.todoApp.model.Priority
+import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 
@@ -53,9 +54,18 @@ fun EditTaskScreen(
     taskId : Int,
     viewModel: TaskViewModel = hiltViewModel()
 ) {
-    var currentTask = viewModel.getTask(taskId)
+    val tmp = viewModel.getTask(taskId) ?: returnPage()
 
-    currentTask.priority = currentTask.priority ?: Priority.LOW
+    if (tmp.equals(null)) {
+        returnPage()
+        return
+    } else {
+
+    }
+
+    var currentTask by remember { mutableStateOf((tmp as Task).copy()) }
+
+
     var subtasks = viewModel.getSubtasks(currentTask);
 
 
@@ -128,12 +138,11 @@ fun EditTaskScreen(
             modifier = Modifier.padding(10.dp),
 
         ) {
-            var title by remember{ mutableStateOf(currentTask.title) }
             Spacer(modifier = Modifier.height(60.dp))
             OutlinedTextField(
                 label = { Text("Title") },
-                value = title,
-                onValueChange = { title = it },
+                value = currentTask.title,
+                onValueChange = { currentTask = currentTask.copy(title = it) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next

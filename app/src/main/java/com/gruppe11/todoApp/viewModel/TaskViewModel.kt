@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.YearMonth
@@ -24,8 +25,7 @@ class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
-    private var _UIState = MutableStateFlow(taskRepository.readAll())
-    val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
+
 
     init {
 
@@ -37,18 +37,19 @@ class TaskViewModel @Inject constructor (
                     addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
                 }
             }
-            taskRepository.readAll().forEach { task -> taskList.add(task)
-            }
+
         }
     }
 
+    private var _UIState = MutableStateFlow(taskRepository.readAll())
+    val UIState = _UIState.asStateFlow()
 
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
+        val task: Task = taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
         _UIState.value = taskRepository.readAll()
     }
 
@@ -93,9 +94,8 @@ class TaskViewModel @Inject constructor (
         return subtaskRepository.readAll(currentTask).toMutableList();
     }
 
-    fun getTask(taskId: Int): Task {
-        val text = taskRepository.read(taskId)
-        return text ?:Task()
+    fun getTask(taskId: Int): Task? {
+        return taskRepository.read(taskId)
     }
 
     fun removeSubtask(task: Task, subtask: SubTask) {

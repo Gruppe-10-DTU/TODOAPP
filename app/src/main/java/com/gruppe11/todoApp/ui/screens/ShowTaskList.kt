@@ -245,6 +245,7 @@ fun filterTaskItem(task: Task, filterViewModel: FilterViewModel) : Boolean {
             (!filterViewModel.complete.value && !filterViewModel.incomplete.value))
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
@@ -475,8 +476,7 @@ fun showSubTask(subtask : SubTask) {
         Checkbox(modifier = Modifier.padding(10.dp),
             checked = checked,
             onCheckedChange = {
-                subtask.completed = !subtask.completed
-                checked = subtask.completed
+                checked = !checked
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
         )

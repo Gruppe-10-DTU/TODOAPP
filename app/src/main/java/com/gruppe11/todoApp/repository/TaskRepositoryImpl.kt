@@ -9,18 +9,7 @@ import javax.inject.Inject
 @RequiresApi(Build.VERSION_CODES.O)
 class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     private var id = 1
-    private val tasks: MutableList<Task>
-    init {
-        tasks = ArrayList()
-        for(i in 1.. 20) {
-            if (i % 2 != 0) {
-                tasks.add(Task(i, "Task: $i", LocalDateTime.now(), "HIGH", false))
-            } else {
-                tasks.add(Task(i, "Task: $i", LocalDateTime.now(), "LOW", false))
-            }
-            id++
-        }
-    }
+    private val tasks: MutableList<Task> = ArrayList();
 
     override fun createTask(task: Task): Task {
         tasks.add(task.copy(id = ++id))
@@ -28,11 +17,7 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     }
 
     override fun read(id: Int): Task? {
-        return tasks
-            .stream()
-            .filter { e -> e.id == id }
-            .findFirst()
-            .orElse(null)
+        return tasks.find { task: Task -> task.id == id }
     }
 
     override fun readAll(): List<Task> {

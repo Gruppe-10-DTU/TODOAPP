@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
 import java.time.LocalDateTime
 
@@ -113,5 +114,5 @@ fun EditTaskDialog(
 @Preview
 @Composable
 fun EditTaskDialogPreview(){
-    EditTaskDialog(Task(1, "Task: 1", LocalDateTime.now(), "HIGH", false), {}, {}, {})
+    EditTaskDialog(Task(1, "Task: 1", Priority.HIGH, LocalDateTime.now(),false), {}, {}, {})
 }
