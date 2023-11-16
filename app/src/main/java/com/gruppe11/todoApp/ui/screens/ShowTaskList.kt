@@ -93,7 +93,7 @@ fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime, pr
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .height(60.dp)
-            .padding(5.dp)
+            .padding(7.5.dp)
     ) {
         LinearProgressIndicator(
             modifier = Modifier
@@ -173,6 +173,8 @@ fun GenerateLazyRowForDays(
                                         Text(
                                             text = lt.withDayOfMonth(day).format(formatFilterDate),
                                             textAlign = TextAlign.Center,
+                                            modifier = Modifier.padding(0.dp).fillMaxWidth()
+
                                         )
                                     },
                                     enabled = true,
@@ -340,7 +342,7 @@ fun ShowTaskList (
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
      */
-    for(i in 1.. 20) {
+    for(i in 1.. 10) {
         if (i % 2 != 0) {
             viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
         } else {
