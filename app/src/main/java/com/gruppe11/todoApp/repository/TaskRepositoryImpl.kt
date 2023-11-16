@@ -23,8 +23,7 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     }
 
     override fun createTask(task: Task): Task {
-        task.id = id++
-        tasks.add(task)
+        tasks.add(task.copy(id = ++id))
         return task
     }
 

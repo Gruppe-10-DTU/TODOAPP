@@ -24,8 +24,9 @@ class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
-    private var _UIState = MutableStateFlow(listOf(Task()))
-    private var taskList : MutableList<Task> = emptyList<Task>().toMutableList()
+    private var _UIState = MutableStateFlow(taskRepository.readAll())
+    val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
+
     init {
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -41,28 +42,13 @@ class TaskViewModel @Inject constructor (
         }
     }
 
-    val UIState : StateFlow<List<Task>> = MutableStateFlow(taskList)
 
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
     }
     fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        val tmpTask = Task()
-        let {
-            tmpTask.id = id
-            tmpTask.title=title
-            tmpTask.completion = completion
-            tmpTask.priority = fromString(Prio)
-            tmpTask.isCompleted = isCompleted
-        }
-        val tmpTask2 = taskRepository.createTask(tmpTask)
-        if (id == 1) {
-            for (i in 1 .. 3) {
-                val subtask = SubTask("subtask $i")
-                subtaskRepository.createSubtask(tmpTask, subtask)
-            }
-        }
+        taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
         _UIState.value = taskRepository.readAll()
     }
 
@@ -85,8 +71,7 @@ class TaskViewModel @Inject constructor (
         return daysList
     }
     fun changeTaskCompletion(task: Task){
-        task.isCompleted = !task.isCompleted
-        taskRepository.update(task)
+        taskRepository.update(task.copy(isCompleted = !task.isCompleted))
         _UIState.value = taskRepository.readAll()
     }
 
