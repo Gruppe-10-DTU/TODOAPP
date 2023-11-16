@@ -1,6 +1,8 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
@@ -206,7 +208,7 @@ fun GenerateLazyColumnForTasks(
     selectedDay: Int,
     selectedMonth: Int,
     selectedYear: Int,
-    filterViewModel: FilterViewModel
+    filterViewModel: FilterViewModel,
     editTask: (Int) -> Unit
 ) {
     val filteredTasks = viewModel.getTaskListByDate(LocalDateTime.of(
@@ -241,6 +243,7 @@ fun filterTaskItem(task: Task, filterViewModel: FilterViewModel) : Boolean {
             (!filterViewModel.complete.value && !filterViewModel.incomplete.value))
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
@@ -299,7 +302,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 .padding(2.dp)
                 .fillMaxWidth()
             ) {
-                for (subtask in viewModel.getStaticSubtasks()){
+                for (subtask in viewModel.getSubtasks(task)){
                     HorizontalDivider()
                     showSubTask(subtask)
                 }
@@ -342,13 +345,7 @@ fun ShowTaskList (
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
      */
-    for(i in 1.. 20) {
-        if (i % 2 != 0) {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
-        } else {
-            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
-        }
-    }
+
 //    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)

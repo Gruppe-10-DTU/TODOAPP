@@ -11,6 +11,7 @@ class SubtaskRepositoryImpl @Inject constructor() : ISubtaskRepository{
         val list : MutableList<SubTask> = map[task.id] ?: ArrayList();
         subtask.id = list.size+1;
         list.add(subtask);
+        map[task.id] = list
         return subtask;
     }
 

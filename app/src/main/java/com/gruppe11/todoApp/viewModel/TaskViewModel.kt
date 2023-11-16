@@ -1,5 +1,7 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
@@ -11,26 +13,36 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.YearMonth
 import javax.inject.Inject
 
+@RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(listOf(Task()))
-    val UIState : StateFlow<List<Task>> = _UIState.asStateFlow()
     private var taskList : MutableList<Task> = emptyList<Task>().toMutableList()
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            taskRepository.readAll().forEach { task -> taskList.add(task) }
 
+        viewModelScope.launch(Dispatchers.IO) {
+            for(i in 1.. 20) {
+                if (i % 2 != 0) {
+                    addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
+                } else {
+                    addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
+                }
+            }
+            taskRepository.readAll().forEach { task -> taskList.add(task)
+            }
         }
     }
+
+    val UIState : StateFlow<List<Task>> = MutableStateFlow(taskList)
+
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
@@ -44,16 +56,14 @@ class TaskViewModel @Inject constructor (
             tmpTask.priority = fromString(Prio)
             tmpTask.isCompleted = isCompleted
         }
-        taskRepository.createTask(tmpTask)
+        val tmpTask2 = taskRepository.createTask(tmpTask)
+        if (id == 1) {
+            for (i in 1 .. 3) {
+                val subtask = SubTask("subtask $i")
+                subtaskRepository.createSubtask(tmpTask, subtask)
+            }
+        }
         _UIState.value = taskRepository.readAll()
-    }
-
-    fun getStaticSubtasks() : List<SubTask> {
-        val test = ArrayList<SubTask>()
-        test.add(SubTask("Subtask 1"))
-        test.add(SubTask("Subtask 2"))
-
-        return test
     }
 
     fun removeTask(task: Task){
@@ -94,11 +104,16 @@ class TaskViewModel @Inject constructor (
         return ctc
     }
 
-    fun getSubtasks(currentTask: Task): List<SubTask> {
-        return subtaskRepository.readAll(currentTask);
+    fun getSubtasks(currentTask: Task): MutableList<SubTask> {
+        return subtaskRepository.readAll(currentTask).toMutableList();
     }
 
     fun getTask(taskId: Int): Task {
-        return UIState.value.find{ task -> task.id == taskId }?:Task()
+        val text = taskRepository.read(taskId)
+        return text ?:Task()
+    }
+
+    fun removeSubtask(task: Task, subtask: SubTask) {
+        subtaskRepository.delete(task, subtask)
     }
 }
