@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
@@ -102,7 +103,9 @@ fun CreateTaskContent(
                 onClick = { returnPage() },
                 isFilled = false,
                 pickedColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth(0.47f).fillMaxHeight(0.06f)
+                modifier = Modifier
+                    .fillMaxWidth(0.47f)
+                    .fillMaxHeight(0.06f)
             )
 
             // Create button
@@ -128,7 +131,9 @@ fun CreateTaskContent(
                 },
                 isFilled = true,
                 pickedColor = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.fillMaxWidth(0.89f).fillMaxHeight(0.06f)
+                modifier = Modifier
+                    .fillMaxWidth(0.89f)
+                    .fillMaxHeight(0.06f)
             )
         }
 
@@ -174,11 +179,14 @@ fun CreateTaskContent(
                     ),
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth(0.8f).height(60.dp)
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(60.dp)
                 ) {
-                    Text(date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                    Text(text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                        fontSize = 20.sp)
                 }
-                HorizDividerWithSpacer(10.dp)
+                Spacer(modifier = Modifier.height(10.dp))
                 IconButton(
                     onClick = { showDatePicker = true },
                     content = {
