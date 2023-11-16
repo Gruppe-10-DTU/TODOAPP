@@ -1,16 +1,20 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -22,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -89,14 +94,15 @@ fun CreateTaskContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(60.dp, 15.dp)
+                .padding(40.dp, 15.dp)
         ) {
             // Cancel Button
             SwitchableButton(
                 text = "Cancel",
                 onClick = { returnPage() },
                 isFilled = false,
-                pickedColor = MaterialTheme.colorScheme.primary
+                pickedColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxWidth(0.47f).fillMaxHeight(0.06f)
             )
 
             // Create button
@@ -121,7 +127,8 @@ fun CreateTaskContent(
                     }
                 },
                 isFilled = true,
-                pickedColor = MaterialTheme.colorScheme.tertiary
+                pickedColor = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.fillMaxWidth(0.89f).fillMaxHeight(0.06f)
             )
         }
 
@@ -159,10 +166,18 @@ fun CreateTaskContent(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-                SwitchableButton(text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                    onClick = { showDatePicker = true },
-                    isFilled = false,
-                    pickedColor = MaterialTheme.colorScheme.primary)
+                OutlinedButton(
+                    onClick = {showDatePicker = true },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = Color.Transparent,
+                    ),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth(0.8f).height(60.dp)
+                ) {
+                    Text(date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                }
                 Spacer(modifier = Modifier.width(10.dp))
                 IconButton(
                     onClick = { showDatePicker = true },

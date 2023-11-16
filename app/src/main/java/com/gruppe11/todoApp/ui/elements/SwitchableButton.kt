@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -15,7 +16,8 @@ fun SwitchableButton(
     text: String,
     onClick: () -> Unit,
     isFilled: Boolean,
-    pickedColor: Color
+    pickedColor: Color,
+    modifier: Modifier = Modifier
 ) {
     if (isFilled) {
         Button(
@@ -23,7 +25,8 @@ fun SwitchableButton(
             colors = ButtonDefaults.buttonColors(
                 contentColor = MaterialTheme.colorScheme.background,
                 containerColor = pickedColor,
-            )
+            ),
+            modifier = modifier
         ) {
             Text(text)
         }
@@ -34,7 +37,8 @@ fun SwitchableButton(
                 contentColor = pickedColor,
                 containerColor = Color.Transparent,
             ),
-            border = BorderStroke(2.dp, pickedColor)
+            border = BorderStroke(2.dp, pickedColor),
+            modifier = modifier
         ) {
             Text(text)
         }
