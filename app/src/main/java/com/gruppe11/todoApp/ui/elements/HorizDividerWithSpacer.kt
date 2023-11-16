@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 
 @Composable
-fun HorizDividerWithSpacer (){
-    Spacer(modifier = Modifier.height(10.dp))
+fun HorizDividerWithSpacer (
+    dividerHeight: Dp
+){
+    Spacer(modifier = Modifier.height(dividerHeight))
     HorizontalDivider(modifier = Modifier.fillMaxWidth())
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(dividerHeight))
 }

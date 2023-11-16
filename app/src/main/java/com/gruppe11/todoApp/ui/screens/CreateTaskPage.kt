@@ -146,7 +146,7 @@ fun CreateTaskContent(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-            HorizDividerWithSpacer()
+            HorizDividerWithSpacer(10.dp)
             Text(
                 text = "Choose priority",
                 fontWeight = FontWeight.Bold,
@@ -156,7 +156,7 @@ fun CreateTaskContent(
                 selectedPriority = priority,
                 onClick = { newPriority -> priority = newPriority }
             )
-            HorizDividerWithSpacer()
+            HorizDividerWithSpacer(10.dp)
             Text(
                 text = "Select date",
                 fontWeight = FontWeight.Bold,
@@ -178,7 +178,7 @@ fun CreateTaskContent(
                 ) {
                     Text(date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                HorizDividerWithSpacer(10.dp)
                 IconButton(
                     onClick = { showDatePicker = true },
                     content = {
