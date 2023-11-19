@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,22 +56,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.*
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@SuppressLint("NewApi", "CoroutineCreationDuringComposition", "RememberReturnType",
-)
+@SuppressLint("NewApi", "CoroutineCreationDuringComposition", "RememberReturnType")
 @Composable
-fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime) {
+fun LinearDeterminateIndicator(progress: Float) {
     //TODO: Refractor progressbars, make them update automatically.
-    val taskMap  = remember{viewModel.generateMapOfDays(date)}
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -78,15 +77,15 @@ fun LinearDeterminateIndicator(viewModel: TaskViewModel, date: LocalDateTime) {
             .height(60.dp)
             .padding(5.dp)
     ) {
-        LinearProgressIndicator(
-            modifier = Modifier
-                .wrapContentSize()
-                .height(10.dp)
-                .width(50.dp)
-                .rotate(-90f),
-            progress = taskMap[date]!!,
-            trackColor = MaterialTheme.colorScheme.primaryContainer,
-        )
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .height(10.dp)
+                    .width(50.dp)
+                    .rotate(-90f),
+                progress = progress,
+                trackColor = MaterialTheme.colorScheme.primaryContainer,
+            )
     }
 }
 
@@ -102,6 +101,7 @@ fun GenerateLazyRowForDays(
     onSelectedDate: (LocalDateTime) -> Unit,
     ) {
     val listState = rememberLazyListState()
+    val daysMap by viewModel.DaysMap.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
@@ -117,29 +117,30 @@ fun GenerateLazyRowForDays(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.secondary),
-                    state = listState,
+//                    state = listState.apply{coroutineScope.launch{listState.scrollToItem(listState.firstVisibleItemIndex + 29)}},
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
-                    items(viewModel.generateMapOfDays(date = selectedDate).toList()) { day ->
+                    items(viewModel.DaysMap.value.keys.toList()) { day ->
                         Column(
                             verticalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier.wrapContentSize(),
                             horizontalAlignment = Alignment.Start
                         ) {
-                                LinearDeterminateIndicator(
-                                    viewModel = viewModel,
-                                    date = day.first,
+                                daysMap[day]?.let {
+                                    LinearDeterminateIndicator(
+                                        progress = it
                                     )
+                                }
                             Spacer(Modifier.height(2.dp))
                                 FilterChip(
                                     shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.dayOfYear == day.first.dayOfYear,
+                                    selected = selectedDate.dayOfYear == day.dayOfYear,
                                     onClick = {
-                                        onSelectedDate(day.first)
+                                        onSelectedDate(day)
                                               },
                                     label = {
                                         Text(
-                                            text = day.first.format(formatFilterDate),
+                                            text = day.format(formatFilterDate),
                                             textAlign = TextAlign.Center,
                                         )
                                     },
@@ -161,8 +162,8 @@ fun GenerateLazyRowForDays(
                         }
                     }
 
-                coroutineScope.launch{listState.scrollToItem(index = selectedDate.dayOfMonth.plus(27))}
             }
+
         }
 }
 
@@ -185,8 +186,8 @@ fun GenerateLazyColumnForTasks(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(viewModel.getTaskListByDate(selectedDate)) { Task ->
-                TaskItem(task = Task, viewModel = viewModel, editTask)
+            items(viewModel.getTaskListByDate(selectedDate)) { task ->
+                TaskItem(task = task, viewModel = viewModel, editTask)
             }
         }
     }
@@ -195,7 +196,9 @@ fun GenerateLazyColumnForTasks(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
-    var taskCompletionStatus by mutableStateOf(task.isCompleted)
+    val taskCompletionStatus = rememberSaveable {
+        mutableStateOf(task.isCompleted)
+    }
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -221,10 +224,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
-                checked = taskCompletionStatus,
+                checked = taskCompletionStatus.value,
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
-                    taskCompletionStatus = task.isCompleted
+                    taskCompletionStatus.value = taskCompletionStatus.value.not()
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
@@ -277,24 +280,24 @@ fun ShowTaskList (
     onEditTask: (Int) -> Unit) {
     val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
-    var selectedMonth by remember{mutableStateOf(LocalDateTime.now().monthValue)}
-    var selectedDay by remember{ mutableStateOf(LocalDateTime.now().dayOfMonth) }
-    var selectedYear by remember{mutableStateOf(LocalDateTime.now().year)}
-    var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}/*
+    var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
+    var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
+    var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
+    var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
+    /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
-//     */
-//    for(i in 1.. 20) {
-//        if (i % 2 != 0) {
-//            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
-//        } else {
-//            viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
-//        }
-//    }
+     */
+    for(i in 1.. 10) {
+        viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
+    }
+
+
 //    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -313,8 +316,6 @@ fun ShowTaskList (
                         )
                     }
                         },
-
-
             )
         },floatingActionButton = {
             FloatingActionButton(
