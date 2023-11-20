@@ -211,7 +211,7 @@ fun EditTaskScreen(
                         IconButton(
                             onClick = {
                                 viewModel.removeSubtask(currentTask, subtask)
-                                subtasks.remove(subtask)
+                                subtasks = subtasks.filter{it.id != currentTask.id}
                             },
                             content = {Icon(
                                 imageVector = Icons.Outlined.Cancel,
@@ -243,7 +243,7 @@ fun EditTaskScreen(
 
                 OutlinedTextField(
                     //label = { Text(text = "Date") },
-                    value = currentTask.completion.toString(),
+                    value = currentTask.deadline.toString(),
                     onValueChange = { println(it) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,

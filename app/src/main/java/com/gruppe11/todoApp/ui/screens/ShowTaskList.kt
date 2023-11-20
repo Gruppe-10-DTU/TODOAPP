@@ -301,7 +301,6 @@ fun ShowTaskList (
     viewModel : TaskViewModel = hiltViewModel(),
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
-    val uiState by viewModel.UIState.collectAsStateWithLifecycle()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }

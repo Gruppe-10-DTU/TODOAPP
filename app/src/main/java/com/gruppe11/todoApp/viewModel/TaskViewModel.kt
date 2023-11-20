@@ -3,14 +3,17 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -23,6 +26,7 @@ class TaskViewModel @Inject constructor (
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> get() = _UIState
+
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
     init {
@@ -36,9 +40,6 @@ class TaskViewModel @Inject constructor (
             }
         }
     }
-
-    private var _UIState = MutableStateFlow(taskRepository.readAll())
-    val UIState = _UIState.asStateFlow()
 
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
@@ -93,6 +94,9 @@ class TaskViewModel @Inject constructor (
 
     fun getSubtasks(currentTask: Task): List<SubTask> {
         return subtaskRepository.readAll(currentTask)
+    }
+    fun removeSubtask(task: Task, subTask: SubTask){
+        subtaskRepository.delete(task,subTask)
     }
     fun getTask(taskId: Int): Task {
         return UIState.value.find{ task -> task.id == taskId }!!
