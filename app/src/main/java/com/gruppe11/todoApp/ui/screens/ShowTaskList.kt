@@ -3,6 +3,8 @@ package com.gruppe11.todoApp.ui.screens
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,7 +64,9 @@ import androidx.lifecycle.viewmodel.compose.*
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
+import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
+import com.gruppe11.todoApp.viewModel.FilterViewModel
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -75,7 +81,7 @@ fun LinearDeterminateIndicator(progress: Float) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .height(60.dp)
-            .padding(5.dp)
+            .padding(7.5.dp)
     ) {
             LinearProgressIndicator(
                 modifier = Modifier
@@ -142,6 +148,8 @@ fun GenerateLazyRowForDays(
                                         Text(
                                             text = day.format(formatFilterDate),
                                             textAlign = TextAlign.Center,
+                                            modifier = Modifier.padding(0.dp).fillMaxWidth()
+
                                         )
                                     },
                                     enabled = true,
@@ -173,8 +181,17 @@ fun GenerateLazyRowForDays(
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     selectedDate: LocalDateTime,
-    editTask: (Int) -> Unit
+    editTask: (Int) -> Unit,
+    filterViewModel: FilterViewModel
 ) {
+    val filteredTasks = viewModel.getTaskListByDate(LocalDateTime.of(
+        selectedYear,
+        selectedMonth,
+        selectedDay,
+        LocalDateTime.now().hour,
+        LocalDateTime.now().minute)
+    ).filter { task -> filterTaskItem(task, filterViewModel) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -186,11 +203,17 @@ fun GenerateLazyColumnForTasks(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(viewModel.getTaskListByDate(selectedDate)) { task ->
+            items(filteredTasks, key = {task -> task.id}) { task ->
                 TaskItem(task = task, viewModel = viewModel, editTask)
             }
         }
     }
+}
+
+fun filterTaskItem(task: Task, filterViewModel: FilterViewModel) : Boolean {
+    return ((filterViewModel.complete.value && task.isCompleted) ||
+            (filterViewModel.incomplete.value && !task.isCompleted) ||
+            (!filterViewModel.complete.value && !filterViewModel.incomplete.value))
 }
 
 @SuppressLint("UnrememberedMutableState")
@@ -284,6 +307,9 @@ fun ShowTaskList (
     var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
     var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
+    var filterViewModel = FilterViewModel()
+    var filterTagsVisible by remember { mutableStateOf(false) }
+
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
@@ -297,7 +323,6 @@ fun ShowTaskList (
 //    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
 //    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -347,6 +372,44 @@ fun ShowTaskList (
                     }
                     Box(
                         modifier = Modifier
+                            .wrapContentHeight()
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        Column {
+                            Row{
+                                IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Tune,
+                                        contentDescription = "Open filter selection",
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .padding(4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Box (
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background),
+                            contentAlignment = Alignment.TopCenter
+                    ) {
+                        Column {
+                            AnimatedVisibility(
+                                visible = filterTagsVisible,
+                                enter = slideInVertically(),
+                                exit = slideOutVertically()
+                            ) {
+                                FilterSection(filterViewModel)
+                            }
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.TopCenter
@@ -354,7 +417,8 @@ fun ShowTaskList (
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
                             selectedDate = selectedDate,
-                            editTask = onEditTask
+                            editTask = onEditTask,
+                            filterViewModel = filterViewModel
                         )
                     }
                 }
