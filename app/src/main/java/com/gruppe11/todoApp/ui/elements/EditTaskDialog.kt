@@ -1,5 +1,7 @@
 package com.gruppe11.todoApp.ui.elements
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,7 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
+import java.time.LocalDateTime
 
 @Composable
 fun EditTaskDialog(
@@ -106,8 +110,9 @@ fun EditTaskDialog(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun EditTaskDialogPreview(){
-//    EditTaskDialog(Task(), {}, {}, {})
+    EditTaskDialog(Task(1, "Task: 1", Priority.HIGH, LocalDateTime.now(),false), {}, {}, {})
 }

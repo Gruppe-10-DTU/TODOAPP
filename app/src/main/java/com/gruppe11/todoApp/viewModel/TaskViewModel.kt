@@ -1,5 +1,7 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
@@ -12,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
+
+@RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
@@ -19,9 +23,23 @@ class TaskViewModel @Inject constructor (
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> get() = _UIState
-
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            for(i in 1.. 20) {
+                if (i % 2 != 0) {
+                    addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
+                } else {
+                    addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
+                }
+            }
+        }
+    }
+
+    private var _UIState = MutableStateFlow(taskRepository.readAll())
+    val UIState = _UIState.asStateFlow()
+
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return _UIState.value.filter {it.deadline.dayOfYear == date.dayOfYear}
@@ -38,14 +56,6 @@ class TaskViewModel @Inject constructor (
 //        }
         taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
         _DaysMap.value = generateMapOfDays(date = deadline)
-    }
-
-    fun getStaticSubtasks() : List<SubTask> {
-        val test = ArrayList<SubTask>()
-        test.add(SubTask("Subtask 1"))
-        test.add(SubTask("Subtask 2"))
-
-        return test
     }
 
     fun removeTask(task: Task){

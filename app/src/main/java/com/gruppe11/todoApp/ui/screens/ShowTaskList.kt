@@ -1,6 +1,8 @@
 package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
@@ -181,8 +183,8 @@ fun GenerateLazyRowForDays(
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     selectedDate: LocalDateTime,
-    editTask: (Int) -> Unit,
-    filterViewModel: FilterViewModel
+    filterViewModel: FilterViewModel,
+    editTask: (Int) -> Unit
 ) {
     val filteredTasks = viewModel.getTaskListByDate(selectedDate
     ).filter { task -> filterTaskItem(task, filterViewModel) }
@@ -211,6 +213,7 @@ fun filterTaskItem(task: Task, filterViewModel: FilterViewModel) : Boolean {
             (!filterViewModel.complete.value && !filterViewModel.incomplete.value))
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
@@ -271,13 +274,14 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 .padding(2.dp)
                 .fillMaxWidth()
             ) {
-                for (subtask in viewModel.getStaticSubtasks()){
+                for (subtask in viewModel.getSubtasks(task)){
                     HorizontalDivider()
                     showSubTask(subtask)
                 }
             }
         }
     }
+
     if (showDialog.value) {
         EditTaskDialog(task = task,
             editTask = editTask,
@@ -289,6 +293,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
         )
     }
 }
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -436,8 +441,7 @@ fun showSubTask(subtask : SubTask) {
         Checkbox(modifier = Modifier.padding(10.dp),
             checked = checked,
             onCheckedChange = {
-                subtask.completed = !subtask.completed
-                checked = subtask.completed
+                checked = !checked
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
         )

@@ -1,11 +1,13 @@
 package com.gruppe11.todoApp.ui.screens
 
+import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Cancel
@@ -26,25 +28,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTaskScreen(
@@ -53,15 +54,20 @@ fun EditTaskScreen(
     taskId : Int,
     viewModel: TaskViewModel = hiltViewModel()
 ) {
-    var currentTask = viewModel.getTask(taskId)
-    var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue("Task name", TextRange(0, 7)))
+    val tmp = viewModel.getTask(taskId) ?: returnPage()
+
+    if (tmp.equals(null)) {
+        returnPage()
+        return
+    } else {
+
     }
-    var priority by remember { mutableStateOf(2) }
-    var subTaskCount by remember { mutableStateOf(1)}
-    var taskDate by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue("01/01/2023", TextRange(10, 10)))
-    }
+
+    var currentTask by remember { mutableStateOf((tmp as Task).copy()) }
+
+
+    var subtasks = viewModel.getSubtasks(currentTask);
+
 
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
@@ -130,12 +136,13 @@ fun EditTaskScreen(
     ) { padding ->
         Column(
             modifier = Modifier.padding(10.dp),
+
         ) {
             Spacer(modifier = Modifier.height(60.dp))
             OutlinedTextField(
-                label = { Text(text = currentTask.title) },
-                value = taskName,
-                onValueChange = { taskName = it },
+                label = { Text("Title") },
+                value = currentTask.title,
+                onValueChange = { currentTask = currentTask.copy(title = it) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
@@ -154,39 +161,21 @@ fun EditTaskScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ){
+                var prio by remember{ mutableStateOf(currentTask.priority) }
+
                 Spacer(modifier = Modifier.width(20.dp))
-                FilterChip(
-                    selected = priority == 1,
-                    onClick = { priority = 1 },
-                    label = { Text("Low") },
-                    enabled = true,
-                    leadingIcon = {if (priority == 1) Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected"
-                    ) }
-                )
-                FilterChip(
-                    selected = priority == 2,
-                    onClick = { priority = 2},
-                    label = {
-                        Text( text = "Medium" )},
-                    enabled = true,
-                    leadingIcon = {if (priority == 2) Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected"
-                    ) }
-                )
-                FilterChip(
-                    selected = priority == 3,
-                    onClick = { priority = 3 },
-                    label = {Text(text = "High")},
-                    enabled = true,
-                    leadingIcon = {if (priority == 3)
-                        Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected"
-                    ) }
-                )
+                for (priority : Priority in Priority.entries) {
+                    FilterChip(
+                        selected = prio  == priority,
+                        onClick = { prio = priority },
+                        label = { priority.name },
+                        enabled = true,
+                        leadingIcon = { Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Selected"
+                        ) }
+                    )
+                }
                 Spacer(modifier = Modifier.width(20.dp))
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -202,7 +191,7 @@ fun EditTaskScreen(
                     //fontSize = ,
                 )
                 IconButton(
-                    onClick = { subTaskCount++ },
+                    onClick = { println("NOT IMPLEMENTED") },
                     content = {Icon(
                         imageVector = Icons.Outlined.Cancel,
                         contentDescription = "Add subtask",
@@ -215,12 +204,15 @@ fun EditTaskScreen(
             Column(
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
-                for (subtask: SubTask in viewModel.getSubtasks(currentTask)){
+                for (subtask in subtasks){
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = { subTaskCount-- },
+                            onClick = {
+                                viewModel.removeSubtask(currentTask, subtask)
+                                subtasks.remove(subtask)
+                            },
                             content = {Icon(
                                 imageVector = Icons.Outlined.Cancel,
                                 contentDescription = "Remove Subtask",
@@ -248,10 +240,11 @@ fun EditTaskScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(10.dp, 10.dp)
             ) {
+
                 OutlinedTextField(
                     //label = { Text(text = "Date") },
-                    value = taskDate,
-                    onValueChange = { taskDate = it },
+                    value = currentTask.completion.toString(),
+                    onValueChange = { println(it) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
@@ -273,6 +266,7 @@ fun EditTaskScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun EditTaskPaePreview() {
