@@ -1,6 +1,8 @@
 package com.gruppe11.todoApp.di
 
+import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
 import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import dagger.Module
 import dagger.Provides
@@ -16,5 +18,11 @@ object DiProvider {
     @Singleton
     fun providesTaskRepository() : ITaskRepository {
         return TaskRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun providesSubtaskRepository() : ISubtaskRepository {
+        return SubtaskRepositoryImpl()
     }
 }
