@@ -184,12 +184,7 @@ fun GenerateLazyColumnForTasks(
     editTask: (Int) -> Unit,
     filterViewModel: FilterViewModel
 ) {
-    val filteredTasks = viewModel.getTaskListByDate(LocalDateTime.of(
-        selectedYear,
-        selectedMonth,
-        selectedDay,
-        LocalDateTime.now().hour,
-        LocalDateTime.now().minute)
+    val filteredTasks = viewModel.getTaskListByDate(selectedDate
     ).filter { task -> filterTaskItem(task, filterViewModel) }
 
     Box(
