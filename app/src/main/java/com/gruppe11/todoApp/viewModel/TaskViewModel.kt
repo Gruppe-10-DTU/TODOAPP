@@ -13,10 +13,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.YearMonth
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -25,10 +24,12 @@ class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
+    private var _UIState = MutableStateFlow(taskRepository.readAll())
+    val UIState : StateFlow<List<Task>> get() = _UIState
 
-
+    private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
+    val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
     init {
-
         viewModelScope.launch(Dispatchers.IO) {
             for(i in 1.. 20) {
                 if (i % 2 != 0) {
@@ -37,68 +38,67 @@ class TaskViewModel @Inject constructor (
                     addTask(i, "Task: $i", LocalDateTime.now(), "LOW", false)
                 }
             }
-
         }
     }
 
-    private var _UIState = MutableStateFlow(taskRepository.readAll())
-    val UIState = _UIState.asStateFlow()
-
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return taskRepository.readAll().filter{it.completion!!.dayOfMonth == date.dayOfMonth}
+        return _UIState.value.filter {it.deadline.dayOfYear == date.dayOfYear}
     }
-    fun addTask(id: Int, title: String, completion: LocalDateTime, Prio: String, isCompleted: Boolean){
-        val task: Task = taskRepository.createTask(Task(id = id,title = title,completion = completion, priority = fromString(Prio), isCompleted = isCompleted))
-        _UIState.value = taskRepository.readAll()
+
+    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean){
+//        val tmpTask = Task()
+//        let {
+//            tmpTask.id = id
+//            tmpTask.title=title
+//            tmpTask.completion = completion
+//            tmpTask.priority = fromString(Prio)
+//            tmpTask.isCompleted = isCompleted
+//        }
+        taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+        _DaysMap.value = generateMapOfDays(date = deadline)
     }
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
-        _UIState.value = taskRepository.readAll()
     }
 
     fun getTaskList(): List<Task> {
-        return taskRepository.readAll()
+        return UIState.value
+    }
+    @SuppressLint("NewApi")
+    fun generateMapOfDays(date: LocalDateTime): MutableMap<LocalDate, Float> {
+        val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
+        var tmp = date.minusDays(30)
+        for(i in 0 .. 60){
+            toReturn[tmp.toLocalDate()] = countTaskCompletionsByDay(tmp)
+            tmp = tmp.plusDays(1)
+        }
+       return toReturn
     }
 
     @SuppressLint("NewApi")
-    fun generateListOfDaysInMonth(Date: LocalDateTime): MutableList<Int>{
-        val daysInMonth = YearMonth.of(Date.year,Date.month).lengthOfMonth()
-        val daysList = mutableListOf<Int>()
-        for(i in 1..daysInMonth){
-            daysList.add(i)
-        }
-        return daysList
-    }
     fun changeTaskCompletion(task: Task){
         taskRepository.update(task.copy(isCompleted = !task.isCompleted))
         _UIState.value = taskRepository.readAll()
+        _DaysMap.value = _DaysMap.value.toMutableMap().apply{ this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
     }
 
     @SuppressLint("NewApi")
-    fun countTaskCompletionsByDay(date: LocalDateTime): MutableList<Int> {
-        val ctc = generateListOfDaysInMonth(date)
-        for (task in taskRepository.readAll()) {
-            if (task.completion?.monthValue == date.monthValue) {
-                val dayOfMonth = task.completion!!.dayOfMonth
-                if (!task.isCompleted) {
-                    ctc[dayOfMonth] = ctc[dayOfMonth] + 1
-                }
-            }
-        }
-        return ctc
+    fun countTaskCompletionsByDay(date: LocalDateTime): Float {
+        val totComp = _UIState.value.filter { it.deadline.dayOfYear == date.dayOfYear }.count { completed -> completed.isCompleted}
+        val totTask = _UIState.value.count{ it.deadline.dayOfYear == date.dayOfYear }
+        if (totTask == 0) return 0f
+        return totComp/totTask.toFloat()
     }
 
-    fun getSubtasks(currentTask: Task): MutableList<SubTask> {
-        return subtaskRepository.readAll(currentTask).toMutableList();
+    fun getSubtasks(currentTask: Task): List<SubTask> {
+        return subtaskRepository.readAll(currentTask)
     }
-
-    fun getTask(taskId: Int): Task? {
-        return taskRepository.read(taskId)
+    fun removeSubtask(task: Task, subTask: SubTask){
+        subtaskRepository.delete(task,subTask)
     }
-
-    fun removeSubtask(task: Task, subtask: SubTask) {
-        subtaskRepository.delete(task, subtask)
+    fun getTask(taskId: Int): Task {
+        return UIState.value.find{ task -> task.id == taskId }!!
     }
 }
