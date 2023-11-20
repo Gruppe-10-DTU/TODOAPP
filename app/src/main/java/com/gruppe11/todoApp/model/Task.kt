@@ -2,7 +2,7 @@ package com.gruppe11.todoApp.model
 
 import java.time.LocalDateTime
 
-data class Task (val id: Int, val title: String, val priority: Priority, val deadline: LocalDateTime, val isCompleted: Boolean)
+data class Task (val id: Int, val title: String, val priority: Priority, val completion: LocalDateTime, val isCompleted: Boolean)
 
 
 //sealed interface State {
