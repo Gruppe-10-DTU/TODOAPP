@@ -121,7 +121,7 @@ fun GenerateLazyRowForDays(
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
                     items(viewModel.DaysMap.value.keys.toList()) { day ->
-                        Column(
+                            Column(
                             verticalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier.wrapContentSize(),
                             horizontalAlignment = Alignment.Start
@@ -136,7 +136,7 @@ fun GenerateLazyRowForDays(
                                     shape = MaterialTheme.shapes.small,
                                     selected = selectedDate.dayOfYear == day.dayOfYear,
                                     onClick = {
-                                        onSelectedDate(day)
+                                        onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
                                               },
                                     label = {
                                         Text(

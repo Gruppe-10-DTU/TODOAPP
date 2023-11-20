@@ -9,6 +9,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
 @HiltViewModel
@@ -19,8 +20,8 @@ class TaskViewModel @Inject constructor (
     private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> get() = _UIState
 
-    private var _DaysMap = MutableStateFlow(emptyMap<LocalDateTime,Float>())
-    val DaysMap : StateFlow<Map<LocalDateTime,Float>> get() = _DaysMap
+    private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
+    val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return _UIState.value.filter {it.deadline.dayOfYear == date.dayOfYear}
@@ -54,13 +55,12 @@ class TaskViewModel @Inject constructor (
     fun getTaskList(): List<Task> {
         return UIState.value
     }
-
     @SuppressLint("NewApi")
-    fun generateMapOfDays(date: LocalDateTime): MutableMap<LocalDateTime, Float> {
-        val toReturn : MutableMap<LocalDateTime,Float> = emptyMap<LocalDateTime, Float>().toMutableMap()
+    fun generateMapOfDays(date: LocalDateTime): MutableMap<LocalDate, Float> {
+        val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
         var tmp = date.minusDays(30)
         for(i in 0 .. 60){
-            toReturn[tmp] = countTaskCompletionsByDay(tmp)
+            toReturn[tmp.toLocalDate()] = countTaskCompletionsByDay(tmp)
             tmp = tmp.plusDays(1)
         }
        return toReturn
@@ -70,7 +70,7 @@ class TaskViewModel @Inject constructor (
     fun changeTaskCompletion(task: Task){
         taskRepository.update(task.copy(isCompleted = !task.isCompleted))
         _UIState.value = taskRepository.readAll()
-        updateDaysMap(task.deadline)
+        _DaysMap.value = _DaysMap.value.toMutableMap().apply{ this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
     }
 
     @SuppressLint("NewApi")
@@ -87,9 +87,4 @@ class TaskViewModel @Inject constructor (
     fun getTask(taskId: Int): Task {
         return UIState.value.find{ task -> task.id == taskId }!!
     }
-
-    fun updateDaysMap(date: LocalDateTime){
-        _DaysMap.value = generateMapOfDays(date)
-    }
-
 }
