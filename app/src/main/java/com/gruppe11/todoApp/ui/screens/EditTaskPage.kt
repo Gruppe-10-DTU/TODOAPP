@@ -50,7 +50,6 @@ import com.gruppe11.todoApp.viewModel.TaskViewModel
 @Composable
 fun EditTaskScreen(
     returnPage: () -> Unit,
-    saveTask: () -> Unit,
     taskId : Int,
     viewModel: TaskViewModel = hiltViewModel()
 ) {
@@ -117,7 +116,7 @@ fun EditTaskScreen(
                 //Spacer(modifier = Modifier.width(30.dp))
                 Button(
                     enabled = false, // TODO implement button functionality
-                    onClick = saveTask,
+                    onClick = returnPage,
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.buttonColors(
                         MaterialTheme.colorScheme.primary
@@ -275,7 +274,7 @@ fun EditTaskPaePreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ){
-            EditTaskScreen({}, {}, 1)
+            EditTaskScreen({}, 1)
         }
     }
 }

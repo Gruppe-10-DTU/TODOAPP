@@ -34,16 +34,9 @@ class TaskViewModel @Inject constructor (
     }
 
     fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean){
-//        val tmpTask = Task()
-//        let {
-//            tmpTask.id = id
-//            tmpTask.title=title
-//            tmpTask.completion = completion
-//            tmpTask.priority = fromString(Prio)
-//            tmpTask.isCompleted = isCompleted
-//        }
         taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
         _DaysMap.value = generateMapOfDays(date = deadline)
+
     }
 
     fun removeTask(task: Task){
@@ -88,4 +81,5 @@ class TaskViewModel @Inject constructor (
     fun getTask(taskId: Int): Task {
         return UIState.value.find{ task -> task.id == taskId }!!
     }
+
 }

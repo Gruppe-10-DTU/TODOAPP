@@ -3,11 +3,14 @@ package com.gruppe11.todoApp.ui.screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -35,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
@@ -46,15 +50,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
 @SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskContent(
-    returnPage: () -> Unit, saveTask: () -> Unit, viewModel: TaskViewModel = hiltViewModel()
+    returnPage: () -> Unit,
+    viewModel: TaskViewModel = hiltViewModel()
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
+    var subtaskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(""))
+    }
+    var showSubTaskDialog by remember { mutableStateOf(false) }
+    var subtaskList by remember { mutableStateOf(listOf<SubTask>()) }
     var priority by remember { mutableStateOf("MEDIUM") }
     var date by remember {
         mutableStateOf(LocalDateTime.now())
@@ -66,6 +77,13 @@ fun CreateTaskContent(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val addSubtask: () -> Unit = {
+        if (subtaskName.text.isNotEmpty()) {
+            subtaskList = subtaskList + SubTask(title = subtaskName.text, id = 0, completed = false)
+            subtaskName = TextFieldValue("")
+        }
+    }
 
     Scaffold(snackbarHost = {
         SnackbarHost(
@@ -138,73 +156,145 @@ fun CreateTaskContent(
         }
 
     }) { padding ->
-        Column(modifier = Modifier.padding(16.dp)) {
-            Spacer(modifier = Modifier.height(60.dp))
-            // Main task Input
-            OutlinedTextField(
-                value = taskName,
-                onValueChange = { taskName = it },
-                label = { Text("Task name") },
-                textStyle = MaterialTheme.typography.bodyMedium,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            HorizDividerWithSpacer(10.dp)
-            Text(
-                text = "Choose priority",
-                fontWeight = FontWeight.Bold,
-                //fontSize = ,
-            )
-            PriorityFC(
-                selectedPriority = priority,
-                onClick = { newPriority -> priority = newPriority }
-            )
-            HorizDividerWithSpacer(10.dp)
-            Text(
-                text = "Select date",
-                fontWeight = FontWeight.Bold,
-                //fontSize = ,
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(10.dp, 10.dp)
-            ) {
-                OutlinedButton(
-                    onClick = {showDatePicker = true },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        containerColor = Color.Transparent,
+        LazyColumn(modifier = Modifier.padding(16.dp)) {
+            item {
+                Spacer(modifier = Modifier.height(60.dp))
+                // Main task Input
+                OutlinedTextField(
+                    value = taskName,
+                    onValueChange = { taskName = it },
+                    label = { Text("Task name") },
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
                     ),
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(60.dp)
-                ) {
-                    Text(text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                        fontSize = 20.sp)
+                    modifier = Modifier.fillMaxWidth()
+                )
+                HorizDividerWithSpacer(10.dp)
+                Text(
+                    text = "Choose priority",
+                    fontWeight = FontWeight.Bold,
+                    //fontSize = ,
+                )
+                PriorityFC(
+                    selectedPriority = priority,
+                    onClick = { newPriority -> priority = newPriority }
+                )
+                HorizDividerWithSpacer(10.dp)
+                Row {
+                    Text(text = "Add Subtask")
+                    IconButton(
+                        onClick = {
+                            showSubTaskDialog = true
+                            subtaskName = TextFieldValue("")
+                        },
+                        content = {
+                            Icon(
+                                imageVector = Icons.Filled.AddCircleOutline,
+                                contentDescription = "Cancel",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    )
                 }
-                Spacer(modifier = Modifier.height(10.dp))
-                IconButton(
-                    onClick = { showDatePicker = true },
-                    content = {
-                        Icon(
-                            imageVector = Icons.Outlined.CalendarMonth,
-                            contentDescription = "Pick a date",
-                            modifier = Modifier.scale(1.3f),
-                            tint = MaterialTheme.colorScheme.primary
+
+                if (showSubTaskDialog) {
+                    OutlinedTextField(
+                        value = subtaskName,
+                        onValueChange = { subtaskName = it },
+                        label = { Text("Subtask name") },
+                        textStyle = MaterialTheme.typography.bodySmall,
+//                        keyboardOptions = KeyboardOptions(
+//                            keyboardType = KeyboardType.Text,
+//                            imeAction = ImeAction.Next
+//                        ),
+                    )
+                    Row {
+                        SwitchableButton(
+                            text = "Cancel",
+                            onClick = {
+                                showSubTaskDialog = false
+                            },
+                            isFilled = false,
+                            pickedColor = MaterialTheme.colorScheme.tertiary
+                        )
+                        SwitchableButton(
+                            text = "Confirm",
+                            onClick = {
+                                addSubtask()
+                                showSubTaskDialog = false
+                            },
+                            isFilled = true,
+                            pickedColor = MaterialTheme.colorScheme.tertiary
                         )
                     }
+                }
+                subtaskList.forEach() { subtask ->
+                    Row(
+                    ) {
+                        IconButton(onClick = {
+                            subtaskList = subtaskList.filter { it != subtask }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.RemoveCircleOutline,
+                                contentDescription = "Delete Subtask",
+                                modifier = Modifier.scale(1.3f),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        OutlinedTextField(value = subtask.title,
+                            onValueChange = { subtask.title = it }
+                        )
+
+                    }
+                }
+                HorizDividerWithSpacer(10.dp)
+                Text(
+                    text = "Select date",
+                    fontWeight = FontWeight.Bold,
+                    //fontSize = ,
                 )
-            }
-            if (showDatePicker) {
-                DatePickerDialogFunction(
-                    System.currentTimeMillis(),
-                    onDateSelected = { date = it },
-                    onDismiss = { showDatePicker = false }
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(10.dp, 10.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { showDatePicker = true },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            containerColor = Color.Transparent,
+                        ),
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(60.dp)
+                    ) {
+                        Text(
+                            text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                            fontSize = 20.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    IconButton(
+                        onClick = { showDatePicker = true },
+                        content = {
+                            Icon(
+                                imageVector = Icons.Outlined.CalendarMonth,
+                                contentDescription = "Pick a date",
+                                modifier = Modifier.scale(1.3f),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    )
+                }
+                if (showDatePicker) {
+                    DatePickerDialogFunction(
+                        System.currentTimeMillis(),
+                        onDateSelected = { date = it },
+                        onDismiss = { showDatePicker = false }
+                    )
+                }
             }
         }
     }
@@ -214,7 +304,7 @@ fun CreateTaskContent(
 @Composable
 fun CreateTaskPreview() {
     TODOAPPTheme {
-        CreateTaskContent({}, {})
+        CreateTaskContent({})
     }
 }
 
@@ -225,6 +315,7 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
         }
     }
 }
+
 
 
 

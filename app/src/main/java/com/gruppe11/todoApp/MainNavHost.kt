@@ -43,7 +43,7 @@ fun MainNavHost(
         composable(route = CreateTask.route) {
             CreateTaskContent(returnPage = {
                 navController.popBackStack()
-            }, saveTask = { /*TODO*/ })
+            })
         }
         composable(
             route = EditTask.route,
@@ -53,7 +53,6 @@ fun MainNavHost(
         ) {
             EditTaskScreen(
                 returnPage = { navController.popBackStack() },
-                saveTask = { /*TODO*/ },
                 taskId = it.arguments?.getInt("taskId")!!
             )
         }
