@@ -133,8 +133,9 @@ fun CreateTaskContent(
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
                             viewModel.addTask(
-                                0, taskName.text, date, priority, false
+                                0, taskName.text, date, priority, false, subtaskList
                             )
+
                             scope.launch {
                                 snackbarHostState.showSnackbar("Task created")
                             }

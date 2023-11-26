@@ -126,6 +126,7 @@ fun GenerateLazyRowForDays(
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.secondary),
 //                    state = listState.apply{coroutineScope.launch{listState.scrollToItem(listState.firstVisibleItemIndex + 29)}},
+
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
                     items(viewModel.DaysMap.value.keys.toList()) { day ->
@@ -314,8 +315,8 @@ fun ShowTaskList (
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
      */
-    for(i in 1.. 10) {
-        viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false)
+    for(i in 1.. 2) {
+        viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false, listOf())
     }
 
 

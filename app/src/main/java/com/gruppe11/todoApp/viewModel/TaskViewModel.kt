@@ -33,8 +33,9 @@ class TaskViewModel @Inject constructor (
         return _UIState.value.filter {it.deadline.dayOfYear == date.dayOfYear}
     }
 
-    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean){
-        taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
+        val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+        addSubtasks(task, subtaskList)
         _DaysMap.value = generateMapOfDays(date = deadline)
 
     }
@@ -80,6 +81,14 @@ class TaskViewModel @Inject constructor (
     }
     fun getTask(taskId: Int): Task {
         return UIState.value.find{ task -> task.id == taskId }!!
+    }
+
+    fun addSubtasks(task: Task, subtasks: List<SubTask>){
+        val existingSubtasks = subtaskRepository.readAll(task)
+        val newSubtasks = subtasks.filterNot { existingSubtasks.contains(it) }
+        for (subtask in newSubtasks) {
+            subtaskRepository.createSubtask(task, subtask)
+        }
     }
 
 }
