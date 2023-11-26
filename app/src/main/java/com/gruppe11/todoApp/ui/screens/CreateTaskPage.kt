@@ -133,7 +133,7 @@ fun CreateTaskContent(
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
                             viewModel.addTask(
-                                0, taskName.text, date, priority, false, subtaskList
+                                viewModel.getTaskList().size, taskName.text, date, priority, false, subtaskList
                             )
 
                             scope.launch {

@@ -1,6 +1,7 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.SubTask
@@ -35,6 +36,7 @@ class TaskViewModel @Inject constructor (
 
     fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
         val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+       Log.d("task", task.toString())
         addSubtasks(task, subtaskList)
         _DaysMap.value = generateMapOfDays(date = deadline)
 

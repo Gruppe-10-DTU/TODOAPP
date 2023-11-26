@@ -67,6 +67,7 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
+import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.FilterViewModel
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -357,6 +358,13 @@ fun ShowTaskList (
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    SwitchableButton(text = "test subtask adder",
+                        onClick = {
+                                  viewModel.addSubtasks(viewModel.getTask(2),
+                                      listOf(SubTask("TEST TEST",1,false)))
+                                  },
+                        isFilled = true,
+                        pickedColor = MaterialTheme.colorScheme.tertiary)
                     Box(
                         modifier = Modifier
                             .wrapContentSize()
