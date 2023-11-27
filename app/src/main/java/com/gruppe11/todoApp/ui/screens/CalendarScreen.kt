@@ -1,24 +1,16 @@
 package com.gruppe11.todoApp.ui.screens
 
-import android.annotation.SuppressLint
-import android.content.res.Resources
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
@@ -26,11 +18,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,7 +35,6 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel
@@ -67,7 +56,8 @@ fun CalendarScreen(
         }
     ) { padding ->
         Box(
-            modifier = Modifier.padding(padding)
+            modifier = Modifier
+                .padding(padding)
                 .verticalScroll(state = columnState)
         ) {
             Column(
@@ -101,14 +91,29 @@ fun CalendarScreen(
             ) {
                 taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
                     .filter { it.deadline.toLocalDate() == uiState.value.selectedDay }
+                    .sortedBy { it.deadline }
                     .listIterator().forEach { task ->
                         ElevatedCard(
-                            modifier = Modifier.offset(
-                                x = 50.dp,
-                                y = ((task.deadline.hour * 120) + (task.deadline.minute * 2)).dp
-                            )
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .offset(
+                                    x = 50.dp,
+                                    y = (((task.deadline.hour * 120) + (task.deadline.minute * 2)) - 60).dp
+                                )
+                                .size(100.dp, 60.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+
                         ) {
-                            Text(text = task.title.plus("\n").plus(task.priority))
+                            Column(verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(text = task.title.plus("\n").plus(task.priority))
+                            }
+
                         }
                     }
             }
