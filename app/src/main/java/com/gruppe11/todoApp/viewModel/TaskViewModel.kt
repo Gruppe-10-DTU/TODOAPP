@@ -3,8 +3,10 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.SubTask
+import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
@@ -28,6 +30,14 @@ class TaskViewModel @Inject constructor (
     private var _DaysMap = MutableStateFlow(generateMapOfDays())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
+    private val _filterTags = getFilterTags().toMutableSet()
+    var completeFilter = mutableStateOf(false)
+    var incompleteFilter = mutableStateOf(false)
+
+    val tags: Set<Tag>
+        get() = _filterTags
+
+    private fun getFilterTags() = emptySet<Tag>()
 
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
@@ -95,5 +105,4 @@ class TaskViewModel @Inject constructor (
             subtaskRepository.createSubtask(task, subtask)
         }
     }
-
 }
