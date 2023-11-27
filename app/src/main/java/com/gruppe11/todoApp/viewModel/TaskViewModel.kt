@@ -25,7 +25,7 @@ class TaskViewModel @Inject constructor (
     private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> get() = _UIState
 
-    private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
+    private var _DaysMap = MutableStateFlow(generateMapOfDays())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
 
@@ -38,7 +38,7 @@ class TaskViewModel @Inject constructor (
         val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
        Log.d("task", task.toString())
         addSubtasks(task, subtaskList)
-        _DaysMap.value = generateMapOfDays(date = deadline)
+        _DaysMap.value = generateMapOfDays()
 
     }
 
@@ -50,9 +50,9 @@ class TaskViewModel @Inject constructor (
         return UIState.value
     }
     @SuppressLint("NewApi")
-    fun generateMapOfDays(date: LocalDateTime): MutableMap<LocalDate, Float> {
+    fun generateMapOfDays(): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
-        var tmp = date.minusDays(30)
+        var tmp = LocalDateTime.now().minusDays(30)
         for(i in 0 .. 60){
             toReturn[tmp.toLocalDate()] = countTaskCompletionsByDay(tmp)
             tmp = tmp.plusDays(1)
@@ -69,6 +69,9 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun countTaskCompletionsByDay(date: LocalDateTime): Float {
+        if(_UIState.value.isEmpty()){
+            return 0f
+        }
         val totComp = _UIState.value.filter { it.deadline.dayOfYear == date.dayOfYear }.count { completed -> completed.isCompleted}
         val totTask = _UIState.value.count{ it.deadline.dayOfYear == date.dayOfYear }
         if (totTask == 0) return 0f

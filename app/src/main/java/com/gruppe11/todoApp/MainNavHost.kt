@@ -11,7 +11,6 @@ import com.gruppe11.todoApp.ui.screens.CreateTaskContent
 import com.gruppe11.todoApp.ui.screens.EditTaskScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
-import com.gruppe11.todoApp.ui.screens.test2
 
 @Composable
 fun MainNavHost(
@@ -32,7 +31,7 @@ fun MainNavHost(
         }
 
         composable(route = Calendar.route) {
-            test2()
+//            test2()
         }
 
         composable(route = Settings.route) {

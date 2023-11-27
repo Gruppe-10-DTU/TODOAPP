@@ -129,6 +129,7 @@ fun GenerateLazyRowForDays(
 //                    state = listState.apply{coroutineScope.launch{listState.scrollToItem(listState.firstVisibleItemIndex + 29)}},
 
                 ) {
+
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
                     items(viewModel.DaysMap.value.keys.toList()) { day ->
                             Column(
@@ -311,14 +312,15 @@ fun ShowTaskList (
     var filterViewModel = FilterViewModel()
     var filterTagsVisible by remember { mutableStateOf(false) }
 
+
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
     PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
      */
-    for(i in 1.. 2) {
-        viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false, listOf())
-    }
+//    for(i in 1.. 2) {
+//        viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false, listOf())
+//    }
 
 
 //    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
@@ -360,8 +362,13 @@ fun ShowTaskList (
                 ) {
                     SwitchableButton(text = "test subtask adder",
                         onClick = {
-                                  viewModel.addSubtasks(viewModel.getTask(2),
-                                      listOf(SubTask("TEST TEST",1,false)))
+                            if(viewModel.getTaskList().isNotEmpty()) {
+                                val task = viewModel.getTask(1)
+                                viewModel.addSubtasks(
+                                    task,
+                                    listOf(SubTask("TEST TEST", viewModel.getSubtasks(task).size+1, false))
+                                )
+                            }
                                   },
                         isFilled = true,
                         pickedColor = MaterialTheme.colorScheme.tertiary)
