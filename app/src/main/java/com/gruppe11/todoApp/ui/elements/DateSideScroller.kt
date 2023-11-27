@@ -35,6 +35,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun DateSideScroller(
     viewModel: CalendarViewModel,
+    jumpToCurrentTime: () -> Unit
 ) {
     val listState = rememberLazyListState()
     val uiState = viewModel.uiState.collectAsState()
@@ -49,6 +50,7 @@ fun DateSideScroller(
                     scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
                 )
             }
+            jumpToCurrentTime()
         },
             colors = ButtonColors(containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onBackground,
