@@ -1,6 +1,7 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.SubTask
@@ -24,7 +25,7 @@ class TaskViewModel @Inject constructor (
     private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> get() = _UIState
 
-    private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
+    private var _DaysMap = MutableStateFlow(generateMapOfDays())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
 
@@ -33,17 +34,12 @@ class TaskViewModel @Inject constructor (
         return _UIState.value.filter {it.deadline.dayOfYear == date.dayOfYear}
     }
 
-    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean){
-//        val tmpTask = Task()
-//        let {
-//            tmpTask.id = id
-//            tmpTask.title=title
-//            tmpTask.completion = completion
-//            tmpTask.priority = fromString(Prio)
-//            tmpTask.isCompleted = isCompleted
-//        }
-        taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
-        _DaysMap.value = generateMapOfDays(date = deadline)
+    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
+        val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+       Log.d("task", task.toString())
+        addSubtasks(task, subtaskList)
+        _DaysMap.value = generateMapOfDays()
+
     }
 
     fun removeTask(task: Task){
@@ -54,9 +50,9 @@ class TaskViewModel @Inject constructor (
         return UIState.value
     }
     @SuppressLint("NewApi")
-    fun generateMapOfDays(date: LocalDateTime): MutableMap<LocalDate, Float> {
+    fun generateMapOfDays(): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
-        var tmp = date.minusDays(30)
+        var tmp = LocalDateTime.now().minusDays(30)
         for(i in 0 .. 60){
             toReturn[tmp.toLocalDate()] = countTaskCompletionsByDay(tmp)
             tmp = tmp.plusDays(1)
@@ -73,6 +69,9 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun countTaskCompletionsByDay(date: LocalDateTime): Float {
+        if(_UIState.value.isEmpty()){
+            return 0f
+        }
         val totComp = _UIState.value.filter { it.deadline.dayOfYear == date.dayOfYear }.count { completed -> completed.isCompleted}
         val totTask = _UIState.value.count{ it.deadline.dayOfYear == date.dayOfYear }
         if (totTask == 0) return 0f
@@ -88,4 +87,13 @@ class TaskViewModel @Inject constructor (
     fun getTask(taskId: Int): Task {
         return UIState.value.find{ task -> task.id == taskId }!!
     }
+
+    fun addSubtasks(task: Task, subtasks: List<SubTask>){
+        val existingSubtasks = subtaskRepository.readAll(task)
+        val newSubtasks = subtasks.filterNot { existingSubtasks.contains(it) }
+        for (subtask in newSubtasks) {
+            subtaskRepository.createSubtask(task, subtask)
+        }
+    }
+
 }

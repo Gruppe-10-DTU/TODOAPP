@@ -3,7 +3,6 @@ package com.gruppe11.todoApp.repository
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.gruppe11.todoApp.model.Task
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -12,7 +11,7 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     private val tasks: MutableList<Task> = ArrayList();
 
     override fun createTask(task: Task): Task {
-        tasks.add(task.copy(id = ++id))
+        tasks.add(task.copy(id = id++))
         return task
     }
 
