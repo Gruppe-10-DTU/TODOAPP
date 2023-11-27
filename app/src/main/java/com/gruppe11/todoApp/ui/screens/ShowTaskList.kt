@@ -67,7 +67,6 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
-import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.FilterViewModel
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -360,18 +359,18 @@ fun ShowTaskList (
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    SwitchableButton(text = "test subtask adder",
-                        onClick = {
-                            if(viewModel.getTaskList().isNotEmpty()) {
-                                val task = viewModel.getTask(1)
-                                viewModel.addSubtasks(
-                                    task,
-                                    listOf(SubTask("TEST TEST", viewModel.getSubtasks(task).size+1, false))
-                                )
-                            }
-                                  },
-                        isFilled = true,
-                        pickedColor = MaterialTheme.colorScheme.tertiary)
+//                    SwitchableButton(text = "test subtask adder",
+//                        onClick = {
+//                            if(viewModel.getTaskList().isNotEmpty()) {
+//                                val task = viewModel.getTask(1)
+//                                viewModel.addSubtasks(
+//                                    task,
+//                                    listOf(SubTask("TEST TEST", viewModel.getSubtasks(task).size+1, false))
+//                                )
+//                            }
+//                                  },
+//                        isFilled = true,
+//                        pickedColor = MaterialTheme.colorScheme.tertiary)
                     Box(
                         modifier = Modifier
                             .wrapContentSize()
