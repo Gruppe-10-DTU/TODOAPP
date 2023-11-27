@@ -1,7 +1,10 @@
 package com.gruppe11.todoApp.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,12 +43,12 @@ fun CalendarScreen(
         taskViewModel.addTask(
             i,
             "Task: 3$i",
-            LocalDateTime.now().plusDays(1L).plusHours(i % 3L),
+            LocalDateTime.now().plusDays(1L).plusHours(i.toLong()),
             "HIGH",
             false
         )
     }
-    val uiState = viewModel.uiState.collectAsState()
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val timeIntervals = viewModel.time.collectAsStateWithLifecycle(initialValue = emptyList())
     val columnState = rememberLazyListState()
     Scaffold(
@@ -55,40 +58,45 @@ fun CalendarScreen(
             )
         }
     ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            items(items = timeIntervals.value, itemContent = {time ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = time.format(DateTimeFormatter.ofPattern("HH:mm")))
-                    Row() {
-                        taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
-                            .filter { it.completion?.hour == time.hour }
-                            .listIterator().forEach { task ->
-                                ElevatedCard() {
-                                    Text(text = task.title)
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(modifier = Modifier.padding(padding)) {
+                items(items = timeIntervals.value, itemContent = { time ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = time.format(DateTimeFormatter.ofPattern("HH:mm")))
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
+                                .filter { it.completion?.hour == time.hour }
+                                .listIterator().forEach { task ->
+                                    ElevatedCard(modifier = Modifier.padding(10.dp)) {
+                                        Text(text = task.title.plus("\n").plus(task.priority))
+                                    }
                                 }
-                            }
+                        }
                     }
+                    HorizontalDivider(
+                        Modifier
+                            .fillMaxWidth()
+                            .alpha(0.3F)
+                    )
                 }
-                HorizontalDivider(
-                    Modifier
-                        .fillMaxWidth()
-                        .alpha(0.3F))
-            }
-            )
-            CoroutineScope(Dispatchers.Main).launch {
-                columnState.scrollToItem(
-                    index = uiState.value.selectedDay.atStartOfDay().plusHours(LocalDateTime.now().hour.toLong()).hour,
-                    scrollOffset = 0
                 )
+                CoroutineScope(Dispatchers.Main).launch {
+                    columnState.scrollToItem(
+                        index = uiState.value.selectedDay.atStartOfDay()
+                            .plusHours(LocalDateTime.now().hour.toLong()).hour,
+                        scrollOffset = 0
+                    )
 
+                }
             }
-        }
 
+        }
     }
 }
 

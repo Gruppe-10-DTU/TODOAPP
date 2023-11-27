@@ -15,7 +15,7 @@ class CalendarViewModel(
 ) {
     private val dayPeriod = Period.of(0, 0, 1)
 
-    val startDay: LocalDate = LocalDate.now().minusDays(30)
+    val startDay: LocalDate = LocalDate.now().minusDays(7)
     private var dateList: List<LocalDate> = emptyList()
     val dates: Flow<List<LocalDate>> = getCalendarFlow()
 
@@ -43,7 +43,7 @@ class CalendarViewModel(
         }
     }
     private fun getTimeIntervals() {
-        repeat(48) {
+        repeat(24) {
             timeIntervalList = timeIntervalList.plus(currentTime)
             currentTime = currentTime.plusHours(1L)
         }
