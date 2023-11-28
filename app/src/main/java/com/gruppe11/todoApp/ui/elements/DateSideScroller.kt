@@ -119,6 +119,9 @@ fun DateSideScroller(
                     index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
                     scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
                 )
+                if( uiState.value.selectedDay == uiState.value.currentDay){
+                    jumpToCurrentTime()
+                }
             }
 
         }
