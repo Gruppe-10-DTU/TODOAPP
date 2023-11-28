@@ -24,7 +24,7 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     }
 
     override fun update(task: Task): Task {
-        val index = tasks.indexOfFirst { e -> e.id == task.id }
+        val index = tasks.indexOfFirst { it.id == task.id }
         if (index >= 0) {
             tasks[index] = task
         }

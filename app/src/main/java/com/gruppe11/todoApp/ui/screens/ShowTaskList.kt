@@ -49,7 +49,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -152,7 +151,9 @@ fun GenerateLazyRowForDays(
                                         Text(
                                             text = day.format(formatFilterDate),
                                             textAlign = TextAlign.Center,
-                                            modifier = Modifier.padding(0.dp).fillMaxWidth()
+                                            modifier = Modifier
+                                                .padding(0.dp)
+                                                .fillMaxWidth()
 
                                         )
                                     },
@@ -219,9 +220,7 @@ fun filterTaskItem(task: Task, filterViewModel: FilterViewModel) : Boolean {
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
-    val taskCompletionStatus = rememberSaveable {
-        mutableStateOf(task.isCompleted)
-    }
+    val taskCompletionStatus by viewModel.UIState.collectAsStateWithLifecycle()
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -247,10 +246,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
-                checked = taskCompletionStatus.value,
+                checked = taskCompletionStatus.find{it.id == task.id  }!!.isCompleted,
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
-                    taskCompletionStatus.value = taskCompletionStatus.value.not()
+
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
