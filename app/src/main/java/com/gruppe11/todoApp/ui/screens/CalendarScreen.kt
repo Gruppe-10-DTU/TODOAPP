@@ -69,7 +69,7 @@ fun CalendarScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(120.dp),
-                        contentAlignment = Alignment.CenterStart
+                        contentAlignment = Alignment.TopStart
                     ) {
                         HorizontalDivider(
                             Modifier
@@ -82,23 +82,24 @@ fun CalendarScreen(
                         )
 
                     }
-
                 }
             }
-            Column(
+            Box(
                 modifier = Modifier.fillMaxWidth()
                 //.verticalScroll(state = columnState)
             ) {
                 taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
-                    .filter { it.deadline.toLocalDate() == uiState.value.selectedDay }
+                    .filter { it.deadline.toLocalDate() == uiState.value.selectedDay && !it.isCompleted}
                     .sortedBy { it.deadline }
-                    .listIterator().forEach { task ->
+                    .forEach() { task ->
                         ElevatedCard(
                             modifier = Modifier
-                                .padding(10.dp)
                                 .offset(
                                     x = 50.dp,
-                                    y = (((task.deadline.hour * 120) + (task.deadline.minute * 2)) - 60).dp
+                                    y = (
+                                            (task.deadline.hour.times(120)
+                                                    + task.deadline.minute.times(2))
+                                            ).dp - 60.dp
                                 )
                                 .size(100.dp, 60.dp)
                                 .border(
@@ -108,10 +109,12 @@ fun CalendarScreen(
                                 )
 
                         ) {
-                            Column(verticalArrangement = Arrangement.Center,
+                            Column(
+                                modifier = Modifier.padding(5.dp),
+                                verticalArrangement = Arrangement.SpaceEvenly,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text(text = task.title.plus("\n").plus(task.priority))
+                                Text(text = task.title)
                             }
 
                         }
@@ -122,15 +125,15 @@ fun CalendarScreen(
                     .fillMaxWidth()
                     .offset(
                         x = 0.dp,
-                        y = ((LocalDateTime.now().hour * 120) + (LocalDateTime.now().minute * 2)).dp
+                        y = (
+                                (LocalDateTime.now().hour.times(120)
+                                        + LocalDateTime.now().minute.times(2))
+                                ).dp
                     ),
                 color = MaterialTheme.colorScheme.primary,
                 thickness = 2.dp
-
             )
-
         }
-
     }
 }
 
