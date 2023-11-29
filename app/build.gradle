@@ -17,8 +17,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunner "com.gruppe11.todoapp.CucumberTestRunner"
+        testInstrumentationRunner "com.gruppe11.todoapp.test.CucumberTestRunner"
         vectorDrawables {
             useSupportLibrary true
         }
