@@ -311,7 +311,6 @@ fun ShowTaskList (
     var filterViewModel = FilterViewModel()
     var filterTagsVisible by remember { mutableStateOf(false) }
 
-
     /*
     MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
     PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
