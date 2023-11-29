@@ -7,6 +7,6 @@ import org.junit.runner.RunWith
 @RunWith(Cucumber::class)
 @CucumberOptions(
     features = ["features"],
-    glue = ["PrintToConsoleTest"]
+    glue = ["com.gruppe11.todoapp"]
 )
 class CucumberTestOptions
