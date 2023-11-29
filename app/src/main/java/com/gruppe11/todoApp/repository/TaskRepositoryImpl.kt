@@ -11,8 +11,9 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     private val tasks: MutableList<Task> = ArrayList();
 
     override fun createTask(task: Task): Task {
-        tasks.add(task.copy(id = id++))
-        return task
+        val newTask = task.copy(id = id++)
+        tasks.add(newTask)
+        return newTask
     }
 
     override fun read(id: Int): Task? {
