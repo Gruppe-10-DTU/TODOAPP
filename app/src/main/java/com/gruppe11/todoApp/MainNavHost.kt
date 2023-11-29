@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -12,6 +13,7 @@ import com.gruppe11.todoApp.ui.screens.EditTaskScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
 
+@SuppressLint("NewApi")
 @Composable
 fun MainNavHost(
     navController: NavHostController,

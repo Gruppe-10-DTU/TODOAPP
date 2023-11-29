@@ -41,12 +41,14 @@ class TaskViewModel @Inject constructor (
         val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
        Log.d("task", task.toString())
         addSubtasks(task, subtaskList)
+        _UIState.value = taskRepository.readAll()
         _DaysMap.value = generateMapOfDays()
 
     }
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
+        _UIState.value = taskRepository.readAll()
     }
 
     fun getTaskList(): List<Task> {
@@ -72,7 +74,6 @@ class TaskViewModel @Inject constructor (
             }
         }
         _DaysMap.value = _DaysMap.value.toMutableMap().apply{this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
-        print(_DaysMap.value)
     }
 
     @SuppressLint("NewApi")
