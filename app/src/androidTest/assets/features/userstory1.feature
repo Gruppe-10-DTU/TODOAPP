@@ -1,12 +1,9 @@
-Feature: Simple Feature
-  As a user, I want to test a simple feature
+Feature: Create Task
+  As a user I want to create a task so that I don't forget it
 
-  Scenario: Simple Test Scenario
-    Given I have a simple test environment
-    When I perform a simple action
-    Then I should get a simple result
+  Scenario: Create Task Scenario
+    Given I want to create a task
+    When I click on the plus icon, a text box I can fill out should appear
+    Then The task should be created under today
 
-  Scenario: Simple Test Scenario 2
-    Given I want to print something to console
-    When I run the println method
-    Then I should see a print in the console
+
