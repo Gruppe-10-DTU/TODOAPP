@@ -1,5 +1,6 @@
 package com.gruppe11.todoapp.test
 
+import dagger.hilt.android.testing.HiltAndroidTest
 import io.cucumber.junit.Cucumber
 import io.cucumber.junit.CucumberOptions
 import org.junit.runner.RunWith
