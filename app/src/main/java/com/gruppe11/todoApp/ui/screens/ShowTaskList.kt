@@ -68,7 +68,6 @@ import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
-import com.gruppe11.todoApp.viewModel.FilterViewModel
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -185,11 +184,10 @@ fun GenerateLazyRowForDays(
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     selectedDate: LocalDateTime,
-    filterViewModel: FilterViewModel,
     editTask: (Int) -> Unit
 ) {
     val filteredTasks = viewModel.getTaskListByDate(selectedDate
-    ).filter { task -> filterTaskItem(task, filterViewModel) }
+    ).filter { task -> filterTaskItem(task, viewModel) }
 
     Box(
         modifier = Modifier
@@ -209,10 +207,11 @@ fun GenerateLazyColumnForTasks(
     }
 }
 
-fun filterTaskItem(task: Task, filterViewModel: FilterViewModel) : Boolean {
-    return ((filterViewModel.complete.value && task.isCompleted) ||
-            (filterViewModel.incomplete.value && !task.isCompleted) ||
-            (!filterViewModel.complete.value && !filterViewModel.incomplete.value))
+@RequiresApi(Build.VERSION_CODES.O)
+fun filterTaskItem(task: Task, taskViewModel: TaskViewModel) : Boolean {
+    return ((taskViewModel.completeFilter.value && task.isCompleted) ||
+            (taskViewModel.incompleteFilter.value && !task.isCompleted) ||
+            (!taskViewModel.completeFilter.value && !taskViewModel.incompleteFilter.value))
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -308,7 +307,6 @@ fun ShowTaskList (
     var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
     var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
-    var filterViewModel = FilterViewModel()
     var filterTagsVisible by remember { mutableStateOf(false) }
 
     /*
@@ -417,7 +415,7 @@ fun ShowTaskList (
                                 enter = slideInVertically(),
                                 exit = slideOutVertically()
                             ) {
-                                FilterSection(filterViewModel)
+                                FilterSection(taskViewModel = viewModel)
                             }
                         }
                     }
@@ -430,8 +428,7 @@ fun ShowTaskList (
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
                             selectedDate = selectedDate,
-                            editTask = onEditTask,
-                            filterViewModel = filterViewModel
+                            editTask = onEditTask
                         )
                     }
                 }
