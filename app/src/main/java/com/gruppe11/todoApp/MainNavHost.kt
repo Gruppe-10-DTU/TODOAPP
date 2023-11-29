@@ -1,22 +1,28 @@
 package com.gruppe11.todoApp
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
+import com.gruppe11.todoApp.ui.screens.CalendarScreen
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
 import com.gruppe11.todoApp.ui.screens.EditTaskScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
+import com.gruppe11.todoApp.viewModel.CalendarViewModel
 
 @Composable
 fun MainNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val calendarViewModel = remember { CalendarViewModel(CalendarScreenState()) }
+
     NavHost(
         navController = navController,
         startDestination = Task.route,
@@ -31,7 +37,7 @@ fun MainNavHost(
         }
 
         composable(route = Calendar.route) {
-//            test2()
+            CalendarScreen(calendarViewModel)
         }
 
         composable(route = Settings.route) {
