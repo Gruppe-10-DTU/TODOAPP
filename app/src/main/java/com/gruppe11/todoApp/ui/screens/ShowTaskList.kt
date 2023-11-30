@@ -68,6 +68,7 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.flow.filter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -187,8 +188,8 @@ fun GenerateLazyColumnForTasks(
     selectedDate: LocalDateTime,
     editTask: (Int) -> Unit
 ) {
-    val filteredTasks = viewModel.getTaskListByDate(selectedDate
-    ).filter { task -> filterTaskItem(task, viewModel) }
+    val tasks by viewModel.UIState.collectAsState()
+    val filteredTasks = tasks.filter { task -> task.deadline.toLocalDate().equals(selectedDate.toLocalDate()) && filterTaskItem(task, viewModel)  }
 
     Box(
         modifier = Modifier

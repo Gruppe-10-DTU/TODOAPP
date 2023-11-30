@@ -2,7 +2,9 @@ package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
@@ -13,6 +15,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
@@ -27,8 +30,8 @@ class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
-    private var _UIState = MutableStateFlow(taskRepository.readAll())
-        val UIState : StateFlow<List<Task>> get() = _UIState
+    private var _UIState =  MutableStateFlow(taskRepository.readAll())
+        val UIState : StateFlow<List<Task>> get() =  _UIState.asStateFlow()
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
@@ -60,6 +63,7 @@ class TaskViewModel @Inject constructor (
     fun removeTask(task: Task){
         taskRepository.delete(task)
         _UIState.update { taskRepository.readAll() }
+        _DaysMap.value = _DaysMap.value.toMutableMap().apply{this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
     }
 
     fun getTaskList(): List<Task> {
