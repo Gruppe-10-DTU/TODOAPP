@@ -1,4 +1,4 @@
-package com.gruppe11.todoapp.test
+package com.gruppe11.todoApp.test
 
 import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
 import com.gruppe11.todoApp.repository.TaskRepositoryImpl
