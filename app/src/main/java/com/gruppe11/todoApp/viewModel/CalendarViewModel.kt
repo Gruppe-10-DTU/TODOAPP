@@ -1,6 +1,9 @@
 package com.gruppe11.todoApp.viewModel
 
+import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
+import dagger.assisted.Assisted
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,10 +12,13 @@ import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
+import javax.inject.Inject
 
-class CalendarViewModel(
-    state: CalendarScreenState
-) {
+@HiltViewModel
+class CalendarViewModel @Inject constructor(
+) : ViewModel() {
+    private val state: CalendarScreenState = CalendarScreenState()
+
     private val dayPeriod = Period.of(0, 0, 1)
 
     val startDay: LocalDate = LocalDate.now().minusDays(7)

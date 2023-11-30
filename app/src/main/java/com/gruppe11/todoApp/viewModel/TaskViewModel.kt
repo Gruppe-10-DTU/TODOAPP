@@ -26,7 +26,6 @@ class TaskViewModel @Inject constructor (
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> get() = _UIState
-
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 

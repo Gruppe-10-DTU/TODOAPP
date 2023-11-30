@@ -37,9 +37,9 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun CalendarScreen(
-    viewModel: CalendarViewModel
+    viewModel: CalendarViewModel,
+    taskViewModel: TaskViewModel = hiltViewModel()
 ) {
-    val taskViewModel: TaskViewModel = hiltViewModel()
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val timeIntervals = viewModel.time.collectAsStateWithLifecycle(initialValue = emptyList())
     val columnState = rememberScrollState(initial = uiState.value.scollState)
@@ -62,7 +62,6 @@ fun CalendarScreen(
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
-                //.verticalScroll(state = columnState)
             ) {
                 timeIntervals.value.forEach { time ->
                     Box(
@@ -140,5 +139,5 @@ fun CalendarScreen(
 @Preview
 @Composable
 fun PreviewCalendarScreen(){
-    CalendarScreen(CalendarViewModel(CalendarScreenState()))
+    CalendarScreen(CalendarViewModel())
 }
