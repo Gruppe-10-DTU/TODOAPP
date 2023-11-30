@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.ui.elements.DateSideScroller
-import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
 import com.gruppe11.todoApp.viewModel.CalendarViewModel
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -129,28 +128,30 @@ fun CalendarScreen(
                         }
                     }
             }
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(
-                        x = 0.dp,
-                        y = (
-                                (LocalDateTime.now().hour.times(timeSlotHeight)
-                                        + LocalDateTime.now().minute.times(timeSlotHeight/60))
-                                ).dp
-                    )
-                    .onGloballyPositioned { coordinates ->
-                    viewModel.onScrollStateChange(coordinates.positionInParent().y)
-                },
-                color = MaterialTheme.colorScheme.primary,
-                thickness = 2.dp
-            )
-            CoroutineScope(Dispatchers.Main).launch {
-                if(uiState.value.selectedDay == uiState.value.currentDay) {
-                    columnState.scrollTo(
-                        uiState.value.scrollState.toInt() -
-                                (getSystem().displayMetrics.densityDpi)
-                    )
+            if(uiState.value.selectedDay == uiState.value.currentDay) {
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(
+                            x = 0.dp,
+                            y = (
+                                    (LocalDateTime.now().hour.times(timeSlotHeight)
+                                            + LocalDateTime.now().minute.times(timeSlotHeight / 60))
+                                    ).dp
+                        )
+                        .onGloballyPositioned { coordinates ->
+                            viewModel.onScrollStateChange(coordinates.positionInParent().y)
+                        },
+                    color = MaterialTheme.colorScheme.primary,
+                    thickness = 2.dp
+                )
+                CoroutineScope(Dispatchers.Main).launch {
+                    if (uiState.value.selectedDay == uiState.value.currentDay) {
+                        columnState.scrollTo(
+                            uiState.value.scrollState.toInt() -
+                                    (getSystem().displayMetrics.densityDpi)
+                        )
+                    }
                 }
             }
         }
