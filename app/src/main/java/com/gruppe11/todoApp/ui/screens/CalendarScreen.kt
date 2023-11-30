@@ -42,10 +42,10 @@ import java.time.format.DateTimeFormatter
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun CalendarScreen(
-    viewModel: CalendarViewModel
+    viewModel: CalendarViewModel,
+    taskViewModel: TaskViewModel = hiltViewModel()
 ) {
     val timeSlotHeight = 120
-    val taskViewModel: TaskViewModel = hiltViewModel()
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val timeIntervals = viewModel.time.collectAsStateWithLifecycle(initialValue = emptyList())
     val columnState = rememberScrollState()
@@ -160,5 +160,5 @@ fun CalendarScreen(
 @Preview
 @Composable
 fun PreviewCalendarScreen(){
-    CalendarScreen(CalendarViewModel(CalendarScreenState()))
+    CalendarScreen(CalendarViewModel())
 }

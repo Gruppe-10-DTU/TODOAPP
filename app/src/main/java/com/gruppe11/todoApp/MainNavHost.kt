@@ -1,8 +1,10 @@
 package com.gruppe11.todoApp
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,12 +18,12 @@ import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
 import com.gruppe11.todoApp.viewModel.CalendarViewModel
 
+@SuppressLint("NewApi")
 @Composable
 fun MainNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    val calendarViewModel = remember { CalendarViewModel(CalendarScreenState()) }
 
     NavHost(
         navController = navController,
@@ -37,7 +39,10 @@ fun MainNavHost(
         }
 
         composable(route = Calendar.route) {
-            CalendarScreen(calendarViewModel)
+            // Creates a ViewModel from the current BackStackEntry
+            // Available in the androidx.hilt:hilt-navigation-compose artifact
+            val viewModel = hiltViewModel<CalendarViewModel>()
+            CalendarScreen(viewModel)
         }
 
         composable(route = Settings.route) {
