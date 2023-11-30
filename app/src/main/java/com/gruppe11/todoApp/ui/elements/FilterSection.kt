@@ -1,5 +1,7 @@
 package com.gruppe11.todoApp.ui.elements
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
@@ -10,47 +12,47 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.gruppe11.todoApp.viewModel.FilterViewModel
-import com.gruppe11.todoapp.R
+import com.gruppe11.todoApp.R
+import com.gruppe11.todoApp.viewModel.TaskViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FilterSection(
-    filterViewModel: FilterViewModel = viewModel()
+    taskViewModel: TaskViewModel
 ) {
     FlowRow {
         FilterChip(
             onClick = {
-                filterViewModel.complete.value = !filterViewModel.complete.value
-                uncheckOnAllSelected(filterViewModel)
+                taskViewModel.completeFilter.value = !taskViewModel.completeFilter.value
+                uncheckOnAllSelected(taskViewModel)
             },
             label = {
                 Text(stringResource(id = R.string.complete))
             },
-            selected = filterViewModel.complete.value,
+            selected = taskViewModel.completeFilter.value,
             modifier = Modifier
                 .padding(horizontal = 4.dp)
         )
 
         FilterChip(
             onClick = {
-                filterViewModel.incomplete.value = !filterViewModel.incomplete.value
-                uncheckOnAllSelected(filterViewModel)
+                taskViewModel.incompleteFilter.value = !taskViewModel.incompleteFilter.value
+                uncheckOnAllSelected(taskViewModel)
             },
             label = {
                 Text(stringResource(R.string.incomplete))
             },
-            selected = filterViewModel.incomplete.value,
+            selected = taskViewModel.incompleteFilter.value,
             modifier = Modifier
                 .padding(horizontal = 4.dp)
         )
 
-        filterViewModel.tags.forEach { tag ->
+        taskViewModel.tags.forEach { tag ->
             FilterChip(
                 onClick = {
                     tag.checked = !tag.checked
-                    uncheckOnAllSelected(filterViewModel)
+                    uncheckOnAllSelected(taskViewModel)
                 },
                 label = {
                     Text(tag.label)
@@ -63,14 +65,15 @@ fun FilterSection(
     }
 }
 
-private fun uncheckOnAllSelected(filterViewModel: FilterViewModel) {
-    if (filterViewModel.tags.all { it.checked }) {
-        filterViewModel.tags.onEach { it.checked = false}
+@RequiresApi(Build.VERSION_CODES.O)
+private fun uncheckOnAllSelected(taskViewModel: TaskViewModel) {
+    if (taskViewModel.tags.all { it.checked }) {
+        taskViewModel.tags.onEach { it.checked = false}
     }
 
-    if (filterViewModel.complete.value && filterViewModel.incomplete.value) {
-        filterViewModel.complete.value = false
-        filterViewModel.incomplete.value = false
+    if (taskViewModel.completeFilter.value && taskViewModel.incompleteFilter.value) {
+        taskViewModel.completeFilter.value = false
+        taskViewModel.incompleteFilter.value = false
     }
 }
 
