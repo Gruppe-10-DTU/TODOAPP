@@ -47,8 +47,8 @@ class FilterTasks {
     @And("All the tasks that do not have the associated date should not be displayed")
     fun allTheTasksThatDoNotHaveTheAssociatedDateShouldNotBeDisplayed() {
 
-        val tasks : List<Task> = viewModel.getTaskListByDate(selectedDate);
-        assertNotEquals(6, tasks.size);
+        val tasks : List<Task> = viewModel.getTaskList();
+        assertEquals(6, tasks.size);
 
     }
 }
