@@ -219,7 +219,6 @@ fun filterTaskItem(task: Task, taskViewModel: TaskViewModel) : Boolean {
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
-    val taskCompletionStatus by viewModel.UIState.collectAsStateWithLifecycle()
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -245,8 +244,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
-                checked = if(viewModel.getTaskList().isNotEmpty()){taskCompletionStatus.find{it.id == task.id}!!.isCompleted}
-                else{return},
+                checked = task.isCompleted,
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
                 },
@@ -308,20 +306,7 @@ fun ShowTaskList (
     var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
     var filterTagsVisible by remember { mutableStateOf(false) }
 
-    /*
-    MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
-    PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
-    PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
-     */
-//    for(i in 1.. 2) {
-//        viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false, listOf())
-//    }
-
-
-//    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-    Scaffold(
+     Scaffold(
         topBar = {
             TopAppBar(
                 modifier = Modifier.height(40.dp),

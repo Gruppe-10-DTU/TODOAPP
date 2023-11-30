@@ -13,6 +13,9 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -25,7 +28,7 @@ class TaskViewModel @Inject constructor (
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(taskRepository.readAll())
-    val UIState : StateFlow<List<Task>> get() = _UIState
+        val UIState : StateFlow<List<Task>> get() = _UIState
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
@@ -56,7 +59,7 @@ class TaskViewModel @Inject constructor (
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
-        _UIState.value = taskRepository.readAll()
+        _UIState.update { taskRepository.readAll() }
     }
 
     fun getTaskList(): List<Task> {
