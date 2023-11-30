@@ -35,23 +35,24 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun DateSideScroller(
     viewModel: CalendarViewModel,
-    jumpToCurrentTime: () -> Unit
+    onTitleClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
     val uiState = viewModel.uiState.collectAsState()
     val dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
     Column(horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center) {
-        TextButton(onClick = {
-            viewModel.onSelectedDayChange(uiState.value.currentDay)
-            CoroutineScope(Dispatchers.Main).launch {
-                listState.scrollToItem(
-                    index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
-                    scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
-                )
-            }
-            jumpToCurrentTime()
-        },
+        TextButton(
+            onClick = {
+                viewModel.onSelectedDayChange(uiState.value.currentDay)
+                CoroutineScope(Dispatchers.Main).launch {
+                    listState.scrollToItem(
+                        index = viewModel.startDay.datesUntil(uiState.value.currentDay).count().toInt(),
+                        scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
+                    )
+                    onTitleClick()
+                }
+            },
             colors = ButtonColors(containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 disabledContainerColor = Color.Transparent,
@@ -119,12 +120,7 @@ fun DateSideScroller(
                     index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
                     scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
                 )
-                if( uiState.value.selectedDay == uiState.value.currentDay){
-                    jumpToCurrentTime()
-                }
             }
-
         }
-
     }
 }

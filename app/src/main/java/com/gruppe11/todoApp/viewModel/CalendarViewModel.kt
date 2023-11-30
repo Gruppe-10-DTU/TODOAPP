@@ -69,5 +69,12 @@ class CalendarViewModel @Inject constructor(
             )
         }
     }
+    fun onScrollStateChange(value: Float){
+        _uiState.update { currentState ->
+            currentState.copy(
+                scrollState = value
+            )
+        }
+    }
 }
 
