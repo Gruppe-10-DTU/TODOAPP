@@ -63,5 +63,12 @@ class CalendarViewModel(
             )
         }
     }
+    fun onScrollStateChange(value: Float){
+        _uiState.update { currentState ->
+            currentState.copy(
+                scrollState = value
+            )
+        }
+    }
 }
 
