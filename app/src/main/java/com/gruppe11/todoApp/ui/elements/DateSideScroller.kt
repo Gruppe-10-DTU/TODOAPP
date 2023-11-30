@@ -44,10 +44,10 @@ fun DateSideScroller(
         verticalArrangement = Arrangement.Center) {
         TextButton(
             onClick = {
-                //viewModel.onSelectedDayChange(uiState.value.currentDay)
+                viewModel.onSelectedDayChange(uiState.value.currentDay)
                 CoroutineScope(Dispatchers.Main).launch {
                     listState.scrollToItem(
-                        index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
+                        index = viewModel.startDay.datesUntil(uiState.value.currentDay).count().toInt(),
                         scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
                     )
                     onTitleClick()
