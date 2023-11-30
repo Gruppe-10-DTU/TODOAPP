@@ -13,6 +13,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -25,8 +26,7 @@ class TaskViewModel @Inject constructor (
 ) : ViewModel() {
     private var _UIState = MutableStateFlow(taskRepository.readAll())
     val UIState : StateFlow<List<Task>> get() = _UIState
-
-    private var _DaysMap = MutableStateFlow(generateMapOfDays())
+    private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
     private val _filterTags = getFilterTags().toMutableSet()
@@ -38,6 +38,9 @@ class TaskViewModel @Inject constructor (
 
     private fun getFilterTags() = emptySet<Tag>()
 
+    init {
+        _DaysMap.value = generateMapOfDays()
+    }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return _UIState.value.filter {it.deadline.dayOfYear == date.dayOfYear}
@@ -46,12 +49,14 @@ class TaskViewModel @Inject constructor (
     fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
         val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
         addSubtasks(task, subtaskList)
+        _UIState.value = taskRepository.readAll()
         _DaysMap.value = generateMapOfDays()
 
     }
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
+        _UIState.value = taskRepository.readAll()
     }
 
     fun getTaskList(): List<Task> {
@@ -71,8 +76,12 @@ class TaskViewModel @Inject constructor (
     @SuppressLint("NewApi")
     fun changeTaskCompletion(task: Task){
         taskRepository.update(task.copy(isCompleted = !task.isCompleted))
-        _UIState.value = taskRepository.readAll()
-        _DaysMap.value = _DaysMap.value.toMutableMap().apply{ this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
+        _UIState.update{it.map {
+            if(it.id == task.id) {it.copy(isCompleted = !it.isCompleted)}
+            else {it}
+            }
+        }
+        _DaysMap.value = _DaysMap.value.toMutableMap().apply{this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
     }
 
     @SuppressLint("NewApi")
@@ -80,7 +89,7 @@ class TaskViewModel @Inject constructor (
         if(_UIState.value.isEmpty()){
             return 0f
         }
-        val totComp = _UIState.value.filter { it.deadline.dayOfYear == date.dayOfYear }.count { completed -> completed.isCompleted}
+        val totComp = _UIState.value.filter { it.deadline.dayOfYear == date.dayOfYear }.count { it.isCompleted }
         val totTask = _UIState.value.count{ it.deadline.dayOfYear == date.dayOfYear }
         if (totTask == 0) return 0f
         return totComp/totTask.toFloat()
