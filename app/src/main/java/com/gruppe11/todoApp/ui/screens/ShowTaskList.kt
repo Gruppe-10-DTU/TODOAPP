@@ -245,10 +245,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             .fillMaxWidth()
             .clipToBounds()) {
             Checkbox(modifier = Modifier.padding(10.dp),
-                checked = taskCompletionStatus.find{it.id == task.id  }!!.isCompleted,
+                checked = if(viewModel.getTaskList().isNotEmpty()){taskCompletionStatus.find{it.id == task.id}!!.isCompleted}
+                else{return},
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
-
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
