@@ -1,6 +1,5 @@
 package com.gruppe11.todoApp.ui.screens
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
@@ -215,7 +214,6 @@ fun filterTaskItem(task: Task, taskViewModel: TaskViewModel) : Boolean {
             (!taskViewModel.completeFilter.value && !taskViewModel.incompleteFilter.value))
 }
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
     val taskCompletionStatus by viewModel.TaskState.collectAsStateWithLifecycle()
@@ -305,6 +303,7 @@ fun ShowTaskList (
     var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+
     Scaffold(
         topBar = {
             TopAppBar(
