@@ -31,6 +31,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -68,6 +70,7 @@ fun CreateTaskContent(
     }
     var showSubTaskDialog by remember { mutableStateOf(false) }
     var subtaskList by remember { mutableStateOf(listOf<SubTask>()) }
+    val subtaskFocusRequester = remember { FocusRequester() }
     var priority by remember { mutableStateOf("MEDIUM") }
     var date by remember {
         mutableStateOf(LocalDateTime.now())
@@ -210,8 +213,11 @@ fun CreateTaskContent(
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
-
+                        modifier = Modifier.focusRequester(subtaskFocusRequester)
                         )
+                    LaunchedEffect(Unit) {
+                        subtaskFocusRequester.requestFocus()
+                    }
                     Row {
                         SwitchableButton(
                             text = "Cancel",
