@@ -40,29 +40,32 @@ fun DateSideScroller(
     val listState = rememberLazyListState()
     val uiState = viewModel.uiState.collectAsState()
     val dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
-    Column(horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
         TextButton(
             onClick = {
                 viewModel.onSelectedDayChange(uiState.value.currentDay)
                 CoroutineScope(Dispatchers.Main).launch {
                     listState.scrollToItem(
-                        index = viewModel.startDay.datesUntil(uiState.value.currentDay).count().toInt(),
-                        scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
+                        index = 5,
+                        scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
                     )
                     onTitleClick()
                 }
             },
-            colors = ButtonColors(containerColor = Color.Transparent,
+            colors = ButtonColors(
+                containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 disabledContainerColor = Color.Transparent,
                 disabledContentColor = Color.LightGray
             )
         ) {
             Text(
-            text = uiState.value.currentDay
-                .format(DateTimeFormatter.ofPattern("E d. MMMM")),
-            fontSize = 18.sp,
+                text = uiState.value.currentDay
+                    .format(DateTimeFormatter.ofPattern("E d. MMMM")),
+                fontSize = 18.sp,
             )
         }
         LazyRow(
@@ -99,26 +102,31 @@ fun DateSideScroller(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Text(text = day.format(DateTimeFormatter.ofPattern("E")),
-                                    fontSize = 13.sp)
-                                Text(text = day.format(DateTimeFormatter.ofPattern("d. MMM")),
-                                    fontSize = 18.sp)
+                                Text(
+                                    text = day.format(DateTimeFormatter.ofPattern("E")),
+                                    fontSize = 13.sp
+                                )
+                                Text(
+                                    text = day.format(DateTimeFormatter.ofPattern("d. MMM")),
+                                    fontSize = 18.sp
+                                )
                             }
                         },
                         enabled = true,
                         border = FilterChipDefaults.filterChipBorder(
                             borderColor = Color.Transparent,
                             disabledBorderColor = Color.Transparent,
+                            enabled = true,
+                            selected = true
                         )
                     )
                 }
             }
-
             )
             CoroutineScope(Dispatchers.Main).launch {
                 listState.scrollToItem(
-                    index = viewModel.startDay.datesUntil(uiState.value.selectedDay).count().toInt(),
-                    scrollOffset = (getSystem().displayMetrics.widthPixels * (-0.65F)).toInt()
+                    index = 5,
+                    scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
                 )
             }
         }

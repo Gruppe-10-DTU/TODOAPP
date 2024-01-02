@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -30,6 +31,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -67,6 +70,7 @@ fun CreateTaskContent(
     }
     var showSubTaskDialog by remember { mutableStateOf(false) }
     var subtaskList by remember { mutableStateOf(listOf<SubTask>()) }
+    val subtaskFocusRequester = remember { FocusRequester() }
     var priority by remember { mutableStateOf("MEDIUM") }
     var date by remember {
         mutableStateOf(LocalDateTime.now())
@@ -109,9 +113,9 @@ fun CreateTaskContent(
         )
     }, bottomBar = {
         HorizontalDivider()
-        BottomAppBar (
+        BottomAppBar(
             containerColor = MaterialTheme.colorScheme.background,
-        ){
+        ) {
             //Cancel button
             SwitchableButton(
                 text = "Cancel",
@@ -131,7 +135,12 @@ fun CreateTaskContent(
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
                             viewModel.addTask(
-                                viewModel.getTaskList().size+1, taskName.text, date, priority, false, subtaskList
+                                viewModel.getTaskList().size + 1,
+                                taskName.text,
+                                date,
+                                priority,
+                                false,
+                                subtaskList
                             )
 
                             scope.launch {
@@ -204,11 +213,11 @@ fun CreateTaskContent(
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
-//                        keyboardOptions = KeyboardOptions(
-//                            keyboardType = KeyboardType.Text,
-//                            imeAction = ImeAction.Next
-//                        ),
-                    )
+                        modifier = Modifier.focusRequester(subtaskFocusRequester)
+                        )
+                    LaunchedEffect(Unit) {
+                        subtaskFocusRequester.requestFocus()
+                    }
                     Row {
                         SwitchableButton(
                             text = "Cancel",
@@ -231,6 +240,7 @@ fun CreateTaskContent(
                 }
                 subtaskList.forEach() { subtask ->
                     Row(
+                        Modifier.padding(vertical = 4.dp)
                     ) {
                         IconButton(onClick = {
                             subtaskList = subtaskList.filter { it != subtask }
@@ -242,10 +252,13 @@ fun CreateTaskContent(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        OutlinedTextField(value = subtask.title,
-                            onValueChange = { subtask.title = it }
+                        OutlinedTextField(
+                            value = subtask.title,
+                            onValueChange = { subtask.title = it },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = MaterialTheme.colorScheme.primary
+                            )
                         )
-
                     }
                 }
                 HorizDividerWithSpacer(10.dp)
