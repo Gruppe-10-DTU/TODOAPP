@@ -127,7 +127,6 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
                     items(viewModel.DaysMap.value.keys.toList()) { day ->
                             Column(
@@ -154,7 +153,6 @@ fun GenerateLazyRowForDays(
                                             modifier = Modifier
                                                 .padding(0.dp)
                                                 .fillMaxWidth()
-
                                         )
                                     },
                                     enabled = true,
@@ -169,14 +167,14 @@ fun GenerateLazyRowForDays(
                                     border = FilterChipDefaults.filterChipBorder(
                                         borderColor = Color.Transparent,
                                         disabledBorderColor = Color.Transparent,
+                                        enabled = true,
+                                        selected = true
                                     )
                                 )
                             }
                         }
                     }
-
             }
-
         }
 }
 
@@ -187,9 +185,9 @@ fun GenerateLazyColumnForTasks(
     selectedDate: LocalDateTime,
     editTask: (Int) -> Unit
 ) {
-    val filteredTasks = viewModel.getTaskListByDate(selectedDate
-    ).filter { task -> filterTaskItem(task, viewModel) }
-
+    val filteredTasks =
+        viewModel.TaskState.collectAsStateWithLifecycle().value
+            .filter{it.deadline.toLocalDate() == selectedDate.toLocalDate()}
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -201,8 +199,10 @@ fun GenerateLazyColumnForTasks(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(filteredTasks, key = {task -> task.id}) { task ->
+            items(filteredTasks) { task ->
+                key(task.id){
                 TaskItem(task = task, viewModel = viewModel, editTask)
+            }
             }
         }
     }
@@ -216,7 +216,7 @@ fun filterTaskItem(task: Task, taskViewModel: TaskViewModel) : Boolean {
 
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
-    val taskCompletionStatus by viewModel.UIState.collectAsStateWithLifecycle()
+    val taskCompletionStatus by viewModel.TaskState.collectAsStateWithLifecycle()
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -304,19 +304,6 @@ fun ShowTaskList (
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-    /*
-    MAKE SURE TO REMOVE CODE BELOW ONCE WE DELIVER. THIS IS ONLY TO TEST
-    PREVIEW, TASKS SHOULD NOT BE ADDED LIKE THIS!
-    PLEASE ENSURE TO REMOVE THE BIT AFTER THE FOR LOOP AS WELL!
-     */
-//    for(i in 1.. 2) {
-//        viewModel.addTask(i, "Task: $i", LocalDateTime.now(), "HIGH", false, listOf())
-//    }
-
-
-//    viewModel.addTask(6,"Task: " + "" +  6, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.plus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(1),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
-//    viewModel.addTask(viewModel.getTaskList().size+1,"Task: " + "" +  viewModel.getTaskList().size+1, LocalDateTime.of(LocalDateTime.now().year,LocalDateTime.now().monthValue,LocalDateTime.now().dayOfMonth.minus(2),LocalDateTime.now().hour,LocalDateTime.now().minute),"LOW",false)
     Scaffold(
         topBar = {
             TopAppBar(
