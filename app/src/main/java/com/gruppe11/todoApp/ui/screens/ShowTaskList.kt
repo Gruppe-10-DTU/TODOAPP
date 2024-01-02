@@ -248,7 +248,6 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 checked = task.isCompleted,
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
-
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
