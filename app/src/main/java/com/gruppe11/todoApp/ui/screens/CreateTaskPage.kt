@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -109,9 +110,9 @@ fun CreateTaskContent(
         )
     }, bottomBar = {
         HorizontalDivider()
-        BottomAppBar (
+        BottomAppBar(
             containerColor = MaterialTheme.colorScheme.background,
-        ){
+        ) {
             //Cancel button
             SwitchableButton(
                 text = "Cancel",
@@ -131,7 +132,12 @@ fun CreateTaskContent(
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
                             viewModel.addTask(
-                                viewModel.getTaskList().size+1, taskName.text, date, priority, false, subtaskList
+                                viewModel.getTaskList().size + 1,
+                                taskName.text,
+                                date,
+                                priority,
+                                false,
+                                subtaskList
                             )
 
                             scope.launch {
@@ -204,11 +210,8 @@ fun CreateTaskContent(
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
-//                        keyboardOptions = KeyboardOptions(
-//                            keyboardType = KeyboardType.Text,
-//                            imeAction = ImeAction.Next
-//                        ),
-                    )
+
+                        )
                     Row {
                         SwitchableButton(
                             text = "Cancel",
@@ -231,6 +234,7 @@ fun CreateTaskContent(
                 }
                 subtaskList.forEach() { subtask ->
                     Row(
+                        Modifier.padding(vertical = 4.dp)
                     ) {
                         IconButton(onClick = {
                             subtaskList = subtaskList.filter { it != subtask }
@@ -242,10 +246,13 @@ fun CreateTaskContent(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        OutlinedTextField(value = subtask.title,
-                            onValueChange = { subtask.title = it }
+                        OutlinedTextField(
+                            value = subtask.title,
+                            onValueChange = { subtask.title = it },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = MaterialTheme.colorScheme.primary
+                            )
                         )
-
                     }
                 }
                 HorizDividerWithSpacer(10.dp)
