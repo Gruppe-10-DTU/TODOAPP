@@ -438,7 +438,7 @@ fun ShowTaskList (
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun showSubTask(task: Task, subtask : SubTask) {
+fun showSubTask(task: Task, subtask : SubTask, viewModel: TaskViewModel) {
     var checked by mutableStateOf(subtask.completed)
     Row(modifier = Modifier
         .fillMaxWidth()
