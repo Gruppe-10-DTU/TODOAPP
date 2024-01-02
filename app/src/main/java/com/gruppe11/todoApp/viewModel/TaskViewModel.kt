@@ -85,6 +85,12 @@ class TaskViewModel @Inject constructor (
     }
 
     @SuppressLint("NewApi")
+    fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
+        subtaskRepository.update(task, subtask.copy(completed = !subtask.completed));
+
+    }
+
+    @SuppressLint("NewApi")
     fun countTaskCompletionsByDay(date: LocalDateTime): Float {
         if(_UIState.value.isEmpty()){
             return 0f

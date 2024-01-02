@@ -435,9 +435,10 @@ fun ShowTaskList (
         },
     )
 }
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun showSubTask(subtask : SubTask) {
+fun showSubTask(task: Task, subtask : SubTask) {
     var checked by mutableStateOf(subtask.completed)
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -450,7 +451,8 @@ fun showSubTask(subtask : SubTask) {
         Checkbox(modifier = Modifier.padding(10.dp),
             checked = checked,
             onCheckedChange = {
-                checked = !checked
+                //checked = !checked
+                viewModel.changeSubtaskCompletion(task, subtask)
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
         )
