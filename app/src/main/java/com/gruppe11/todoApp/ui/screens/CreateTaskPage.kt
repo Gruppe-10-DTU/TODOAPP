@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -108,22 +109,19 @@ fun CreateTaskContent(
         )
     }, bottomBar = {
         HorizontalDivider()
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(40.dp, 15.dp)
-        ) {
-            // Cancel Button
+        BottomAppBar (
+            containerColor = MaterialTheme.colorScheme.background,
+        ){
+            //Cancel button
             SwitchableButton(
                 text = "Cancel",
                 onClick = { returnPage() },
                 isFilled = false,
                 pickedColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .fillMaxWidth(0.47f)
-                    .fillMaxHeight(0.06f)
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
             )
 
             // Create button
@@ -151,8 +149,9 @@ fun CreateTaskContent(
                 isFilled = true,
                 pickedColor = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier
-                    .fillMaxWidth(0.89f)
-                    .fillMaxHeight(0.06f)
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
             )
         }
 
@@ -217,7 +216,7 @@ fun CreateTaskContent(
                                 showSubTaskDialog = false
                             },
                             isFilled = false,
-                            pickedColor = MaterialTheme.colorScheme.tertiary
+                            pickedColor = MaterialTheme.colorScheme.primary
                         )
                         SwitchableButton(
                             text = "Confirm",
