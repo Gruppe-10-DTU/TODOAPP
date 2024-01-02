@@ -89,7 +89,7 @@ fun CalendarScreen(
                 )
             }
         }
-        LaunchedEffect(true) {
+        LaunchedEffect(uiState.value) {
             if (uiState.value.selectedDay == uiState.value.currentDay) {
                 columnState.scrollTo(
                     uiState.value.scrollState.toInt() -
