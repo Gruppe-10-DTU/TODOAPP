@@ -1,17 +1,23 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -21,15 +27,17 @@ class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
-    private var _TaskState = MutableStateFlow(taskRepository.readAll())
-    val TaskState: StateFlow<List<Task>> get() = _TaskState
+    private var _TaskState = MutableStateFlow<List<Task>>(emptyList())
+    val TaskState: StateFlow<List<Task>> get() = _TaskState.asStateFlow()
+
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
+
+    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now(), false, false))
+    val UIState = _UIState.asStateFlow()
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
     private val _filterTags = getFilterTags().toMutableSet()
-    var completeFilter = mutableStateOf(false)
-    var incompleteFilter = mutableStateOf(false)
-
+    
     val tags: Set<Tag>
         get() = _filterTags
 
@@ -37,28 +45,39 @@ class TaskViewModel @Inject constructor (
 
     init {
         _DaysMap.value = generateMapOfDays()
+        viewModelScope.launch(Dispatchers.IO) {
+            taskRepository.readAll().collect{
+                tasks -> _TaskState.value = tasks
+            }
+        }
     }
-    @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return _TaskState.value.filter {it.deadline.toLocalDate() == date.toLocalDate()}
     }
 
-    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
-        val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
-        addSubtasks(task, subtaskList)
-        _TaskState.value = taskRepository.readAll()
-        _DaysMap.value = generateMapOfDays()
+    fun changeDate(date: LocalDateTime) {
+        _UIState.update { currentState -> currentState.copy(selectedData = date)}
+    }
+    fun updateTask(task: Task, subtaskList: List<SubTask>){
+        taskRepository.update(task)
+//        addSubtasks(task, subtaskList)
+    }
 
+    fun addTask(task: Task, subtaskList: List<SubTask>){
+        val tmpTask = taskRepository.createTask(task)
+        addSubtasks(tmpTask, subtaskList)
+        val newDays = generateMapOfDays()
+        if (_DaysMap.compareAndSet(newDays, newDays)) {
+            println("Updated")
+        } else {
+            println("Not updated")
+        }
     }
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
-        _TaskState.value = taskRepository.readAll()
     }
 
-    fun getTaskList(): List<Task> {
-        return TaskState.value
-    }
     @SuppressLint("NewApi")
     fun generateMapOfDays(): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
@@ -72,13 +91,15 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeTaskCompletion(task: Task){
-        taskRepository.update(task.copy(isCompleted = !task.isCompleted))
-        _TaskState.update{it.map {
-            if(it.id == task.id) {it.copy(isCompleted = !it.isCompleted)}
-            else {it}
+        viewModelScope.launch(Dispatchers.IO) {
+            taskRepository.update(task.copy(isCompleted = !task.isCompleted))
+            delay(50)
+            _DaysMap.update {
+                _DaysMap.value.toMutableMap().apply{
+                    this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline)
+                }
             }
         }
-        _DaysMap.value = _DaysMap.value.toMutableMap().apply{this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
     }
 
     @SuppressLint("NewApi")
@@ -104,8 +125,8 @@ class TaskViewModel @Inject constructor (
     fun removeSubtask(task: Task, subTask: SubTask){
         subtaskRepository.delete(task,subTask)
     }
-    fun getTask(taskId: Int): Task {
-        return TaskState.value.find{ task -> task.id == taskId }!!
+    fun getTask(taskId: Int): Task? {
+        return taskRepository.read(taskId)
     }
 
     fun addSubtasks(task: Task, subtasks: List<SubTask>){
@@ -114,5 +135,25 @@ class TaskViewModel @Inject constructor (
         for (subtask in newSubtasks) {
             subtaskRepository.createSubtask(task, subtask)
         }
+    }
+
+    fun changeFilter(target: String) {
+        when (target) {
+            "complete" -> _UIState.update { currentState -> currentState.copy(completeFilter = !currentState.completeFilter) }
+            "incomplete" -> _UIState.update { currentState -> currentState.copy(incompleteFilter = !currentState.incompleteFilter) }
+        }
+        if (_UIState.value.completeFilter && _UIState.value.incompleteFilter) {
+            _UIState.update { currentState -> currentState.copy(completeFilter = false, incompleteFilter = false) }
+        }
+    }
+
+    fun filterTask(task: Task): Boolean {
+        return ((_UIState.value.completeFilter && task.isCompleted) ||
+                (_UIState.value.incompleteFilter && !task.isCompleted) ||
+                (!_UIState.value.completeFilter && !_UIState.value.incompleteFilter))
+    }
+
+    fun getTasks(): Flow<List<Task>> {
+        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }
     }
 }

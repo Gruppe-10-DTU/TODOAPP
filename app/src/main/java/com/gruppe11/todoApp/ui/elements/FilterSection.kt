@@ -13,37 +13,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gruppe11.todoApp.R
+import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FilterSection(
-    taskViewModel: TaskViewModel
+    taskViewModel: TaskViewModel,
+    state: TasksScreenState
 ) {
     FlowRow {
         FilterChip(
             onClick = {
-                taskViewModel.completeFilter.value = !taskViewModel.completeFilter.value
+                taskViewModel.changeFilter("complete")
                 uncheckOnAllSelected(taskViewModel)
             },
             label = {
                 Text(stringResource(id = R.string.complete))
             },
-            selected = taskViewModel.completeFilter.value,
+            selected = state.completeFilter,
             modifier = Modifier
                 .padding(horizontal = 4.dp)
         )
 
         FilterChip(
             onClick = {
-                taskViewModel.incompleteFilter.value = !taskViewModel.incompleteFilter.value
+                taskViewModel.changeFilter("incomplete")
                 uncheckOnAllSelected(taskViewModel)
             },
             label = {
                 Text(stringResource(R.string.incomplete))
             },
-            selected = taskViewModel.incompleteFilter.value,
+            selected = state.incompleteFilter,
             modifier = Modifier
                 .padding(horizontal = 4.dp)
         )
@@ -69,11 +71,6 @@ fun FilterSection(
 private fun uncheckOnAllSelected(taskViewModel: TaskViewModel) {
     if (taskViewModel.tags.all { it.checked }) {
         taskViewModel.tags.onEach { it.checked = false}
-    }
-
-    if (taskViewModel.completeFilter.value && taskViewModel.incompleteFilter.value) {
-        taskViewModel.completeFilter.value = false
-        taskViewModel.incompleteFilter.value = false
     }
 }
 
