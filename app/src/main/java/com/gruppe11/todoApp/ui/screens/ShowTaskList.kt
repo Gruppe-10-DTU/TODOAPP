@@ -191,7 +191,6 @@ fun GenerateLazyRowForDays(
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     filteredTasks: List<Task>,
-    selectedDate: LocalDateTime,
     editTask: (Int) -> Unit
 ) {
 
@@ -215,11 +214,7 @@ fun GenerateLazyColumnForTasks(
     }
 }
 
-fun filterTaskItem(task: Task, taskViewModel: TaskViewModel) : Boolean {
-    return ((taskViewModel.completeFilter.value && task.isCompleted) ||
-            (taskViewModel.incompleteFilter.value && !task.isCompleted) ||
-            (!taskViewModel.completeFilter.value && !taskViewModel.incompleteFilter.value))
-}
+
 
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
@@ -278,7 +273,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             ) {
                 for (subtask in viewModel.getSubtasks(task)){
                     HorizontalDivider()
-                    ShowSubTask(viewModel, task, subtask)
+                    ShowSubTask(viewModel::changeSubtaskCompletion, task, subtask)
                 }
             }
         }
@@ -311,9 +306,7 @@ fun ShowTaskList (
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     println(screenState.selectedData)
-    val tasks by viewModel.TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(screenState.selectedData.toLocalDate()) && filterTaskItem(task, viewModel) } }.collectAsStateWithLifecycle(
-        initialValue = emptyList()
-    )
+    val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
     Scaffold(
         topBar = {
             TopAppBar(
@@ -423,7 +416,7 @@ fun ShowTaskList (
                                 enter = slideInVertically(),
                                 exit = slideOutVertically()
                             ) {
-                                FilterSection(taskViewModel = viewModel)
+                                FilterSection(taskViewModel = viewModel, state = screenState)
                             }
                         }
                     }
@@ -436,7 +429,6 @@ fun ShowTaskList (
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
                             filteredTasks = tasks,
-                            selectedDate = screenState.selectedData,
                             editTask = onEditTask
                         )
                     }
@@ -450,7 +442,7 @@ fun ShowTaskList (
 }
 
 @Composable
-fun ShowSubTask(viewModel: TaskViewModel,task: Task, subtask : SubTask) {
+fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,task: Task, subtask : SubTask) {
     var checked by remember { mutableStateOf(subtask.completed) }
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -464,7 +456,7 @@ fun ShowSubTask(viewModel: TaskViewModel,task: Task, subtask : SubTask) {
             checked = checked,
             onCheckedChange = {
                 //checked = !checked
-                viewModel.changeSubtaskCompletion(task, subtask)
+                changeSubtaskCompletion(task, subtask)
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
         )

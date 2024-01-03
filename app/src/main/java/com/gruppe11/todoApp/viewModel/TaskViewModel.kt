@@ -34,7 +34,7 @@ class TaskViewModel @Inject constructor (
 
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
 
-    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now()))
+    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now(), false, false))
     val UIState = _UIState.asStateFlow()
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
@@ -135,4 +135,23 @@ class TaskViewModel @Inject constructor (
         }
     }
 
+    fun changeFilter(target: String) {
+        when (target) {
+            "complete" -> _UIState.update { currentState -> currentState.copy(completeFilter = !currentState.completeFilter) }
+            "incomplete" -> _UIState.update { currentState -> currentState.copy(incompleteFilter = !currentState.incompleteFilter) }
+        }
+        if (_UIState.value.completeFilter && _UIState.value.incompleteFilter) {
+            _UIState.update { currentState -> currentState.copy(completeFilter = false, incompleteFilter = false) }
+        }
+    }
+
+    fun filterTask(task: Task): Boolean {
+        return ((_UIState.value.completeFilter && task.isCompleted) ||
+                (_UIState.value.incompleteFilter && !task.isCompleted) ||
+                (!_UIState.value.completeFilter && !_UIState.value.incompleteFilter))
+    }
+
+    fun getTasks(): Flow<List<Task>> {
+        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }
+    }
 }
