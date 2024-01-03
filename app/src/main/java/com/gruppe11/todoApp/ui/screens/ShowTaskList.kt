@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -64,7 +65,10 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.decapitalize
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -254,6 +258,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 text = task.title
             )
             Spacer(Modifier.weight(1f))
+            Text(
+                modifier = Modifier.align(alignment = Alignment.CenterVertically),
+                text = task.priority.name.lowercase().capitalize()
+            )
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
@@ -356,18 +364,6 @@ fun ShowTaskList (
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-//                    SwitchableButton(text = "test subtask adder",
-//                        onClick = {
-//                            if(viewModel.getTaskList().isNotEmpty()) {
-//                                val task = viewModel.getTask(1)
-//                                viewModel.addSubtasks(
-//                                    task,
-//                                    listOf(SubTask("TEST TEST", viewModel.getSubtasks(task).size+1, false))
-//                                )
-//                            }
-//                                  },
-//                        isFilled = true,
-//                        pickedColor = MaterialTheme.colorScheme.tertiary)
                     Box(
                         modifier = Modifier
                             .wrapContentSize()
@@ -405,8 +401,8 @@ fun ShowTaskList (
                     }
                     Box (
                         modifier = Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth()
+                            .wrapContentHeight(unbounded = true)
+                            .fillMaxSize()
                             .background(MaterialTheme.colorScheme.background),
                             contentAlignment = Alignment.TopCenter
                     ) {

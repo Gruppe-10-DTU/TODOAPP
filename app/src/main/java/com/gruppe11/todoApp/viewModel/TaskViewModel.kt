@@ -1,7 +1,9 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
+import androidx.compose.runtime.currentCompositionErrors
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
@@ -32,7 +34,14 @@ class TaskViewModel @Inject constructor (
 
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
 
-    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now(), false, false))
+    private val _UIState = MutableStateFlow(
+        TasksScreenState(
+            selectedData = LocalDateTime.now(),
+            completeFilter = false,
+            incompleteFilter = false,
+            priorities = mutableSetOf()
+        )
+    )
     val UIState = _UIState.asStateFlow()
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
@@ -151,9 +160,21 @@ class TaskViewModel @Inject constructor (
         return ((_UIState.value.completeFilter && task.isCompleted) ||
                 (_UIState.value.incompleteFilter && !task.isCompleted) ||
                 (!_UIState.value.completeFilter && !_UIState.value.incompleteFilter))
+                && (_UIState.value.priorities.isEmpty() || _UIState.value.priorities.contains(task.priority))
     }
 
     fun getTasks(): Flow<List<Task>> {
         return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }
+    }
+
+    fun addPriority(priority: Priority) {
+        val contains = _UIState.value.priorities.contains(priority)
+        val set = _UIState.value.priorities.toMutableSet()
+        if (contains) {
+            set.remove(priority)
+        } else {
+            set.add(priority)
+        }
+        _UIState.update { currentState -> currentState.copy(priorities = set) }
     }
 }
