@@ -29,10 +29,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -191,27 +194,36 @@ fun GenerateLazyRowForDays(
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     filteredTasks: List<Task>,
-    editTask: (Int) -> Unit
+    editTask: (Int) -> Unit,
+    selectedSortingOption: String
 ) {
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 5.dp)
-    ) {
+    val sortedTasks = when (selectedSortingOption) {
+        "Priority Descending" -> filteredTasks.sortedByDescending { it.priority }
+        "Priority Ascending" -> filteredTasks.sortedBy { it.priority }
+        "A-Z" -> filteredTasks.sortedBy { it.title }
+        "Z-A" -> filteredTasks.sortedByDescending { it.title }
+        else -> filteredTasks
+    }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 5.dp)
+            ) {
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(filteredTasks) { task ->
+            items(sortedTasks) { task ->
                 key(task.id) {
                     TaskItem(task = task, viewModel = viewModel, editTask)
                 }
             }
         }
     }
+
 }
 
 
@@ -302,9 +314,12 @@ fun ShowTaskList (
     var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
+    var selectedSortingOption by remember { mutableStateOf("Priority Descending")}
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
+    var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
     println(screenState.selectedData)
     val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
     Scaffold(
@@ -391,6 +406,29 @@ fun ShowTaskList (
                     ) {
                         Column {
                             Row{
+                                IconButton(onClick = { sortingVisible = !sortingVisible }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.SortByAlpha,
+                                        contentDescription = "Open sorting",
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .padding(4.dp)
+                                    )
+                                }
+                                if (sortingVisible) {
+                                    DropdownMenu(
+                                        expanded = sortingVisible,
+                                        onDismissRequest = { sortingVisible = false }
+                                    ) {
+                                        sortingList.forEach { optionLabel ->
+                                            DropdownMenuItem(
+                                                text = { Text(text = optionLabel )},
+                                                onClick = { selectedSortingOption = optionLabel
+                                                    sortingVisible = false})
+
+                                        }
+                                    }
+                                }
                                 IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
                                     Icon(
                                         imageVector = Icons.Filled.Tune,
@@ -420,6 +458,7 @@ fun ShowTaskList (
                             }
                         }
                     }
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -429,7 +468,8 @@ fun ShowTaskList (
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
                             filteredTasks = tasks,
-                            editTask = onEditTask
+                            editTask = onEditTask,
+                            selectedSortingOption = selectedSortingOption
                         )
                     }
                 }
