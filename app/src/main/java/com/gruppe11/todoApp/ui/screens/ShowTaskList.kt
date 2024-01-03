@@ -187,7 +187,9 @@ fun GenerateLazyColumnForTasks(
 ) {
     val filteredTasks =
         viewModel.TaskState.collectAsStateWithLifecycle().value
-            .filter{it.deadline.toLocalDate() == selectedDate.toLocalDate()}
+            .filter {
+                it.deadline.toLocalDate() == selectedDate.toLocalDate() && filterTaskItem(it, viewModel)
+            }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -200,9 +202,9 @@ fun GenerateLazyColumnForTasks(
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(filteredTasks) { task ->
-                key(task.id){
-                TaskItem(task = task, viewModel = viewModel, editTask)
-            }
+                key(task.id) {
+                    TaskItem(task = task, viewModel = viewModel, editTask)
+                }
             }
         }
     }
