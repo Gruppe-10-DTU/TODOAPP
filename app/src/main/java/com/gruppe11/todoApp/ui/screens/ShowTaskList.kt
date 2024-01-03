@@ -2,6 +2,8 @@ package com.gruppe11.todoApp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -28,11 +30,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -48,7 +52,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,9 +74,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.*
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
@@ -78,7 +90,6 @@ import java.util.Locale
 
 @Composable
 fun LinearDeterminateIndicator(progress: Float) {
-    //TODO: Refractor progressbars, make them update automatically.
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -92,7 +103,7 @@ fun LinearDeterminateIndicator(progress: Float) {
                     .height(10.dp)
                     .width(50.dp)
                     .rotate(-90f),
-                progress = progress,
+                progress = {progress},
                 trackColor = MaterialTheme.colorScheme.primaryContainer,
             )
     }
@@ -143,7 +154,7 @@ fun GenerateLazyRowForDays(
                             Spacer(Modifier.height(2.dp))
                                 FilterChip(
                                     shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.dayOfYear == day.dayOfYear,
+                                    selected = selectedDate.toLocalDate() == day,
                                     onClick = {
                                         onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
                                               },
@@ -306,7 +317,7 @@ fun ShowTaskList (
     var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-
+    val showMonthPicker = remember{ mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -401,6 +412,15 @@ fun ShowTaskList (
                                             .padding(4.dp)
                                     )
                                 }
+                                IconButton(onClick = { showMonthPicker.value = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.DateRange,
+                                        contentDescription = "Open YearMonth Picker",
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .padding(4.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -418,6 +438,23 @@ fun ShowTaskList (
                                 exit = slideOutVertically()
                             ) {
                                 FilterSection(taskViewModel = viewModel)
+                            }
+                            AnimatedVisibility(
+                                visible = showMonthPicker.value,
+                                enter = fadeIn(),
+                                exit = fadeOut()
+                            ) {
+                                if(showMonthPicker.value) {
+                                    ElevatedCard {
+                                        DatePickerDialogFunction(
+                                            taskDateTimeMillis = System.currentTimeMillis(),
+                                            onDateSelected = {
+                                                selectedDate = it
+                                                             },
+                                            onDismiss = { showMonthPicker.value = false }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
