@@ -161,11 +161,7 @@ fun EditTaskScreen(
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
                             viewModel.updateTask(
-                                currentTask.id,
-                                taskName.text,
-                                date,
-                                priority,
-                                false,
+                                viewModel.getTask(taskId),
                                 subtaskList
                             )
 

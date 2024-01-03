@@ -42,7 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
+import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
@@ -63,6 +65,12 @@ fun CreateTaskContent(
     viewModel: TaskViewModel = hiltViewModel(),
     taskId: Int? = null
 ) {
+    var currentTask = if (taskId != null) {
+        viewModel.getTask(taskId)
+
+    } else {
+        null
+    }
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
@@ -73,16 +81,20 @@ fun CreateTaskContent(
     var subtaskList by remember { mutableStateOf(listOf<SubTask>()) }
     val subtaskFocusRequester = remember { FocusRequester() }
     var priority by remember { mutableStateOf("MEDIUM") }
-    var date by remember {
-        mutableStateOf(LocalDateTime.now())
-    }
-
+    var date by remember { mutableStateOf(LocalDateTime.now()) }
     var showDatePicker by remember {
         mutableStateOf(false)
     }
 
+//    viewModel.getTaskList().size + 1,
+//    taskName.text,
+//    date,
+//    priority,
+//    false,
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false)) }
 
     val addSubtask: () -> Unit = {
         if (subtaskName.text.isNotEmpty()) {
@@ -90,25 +102,29 @@ fun CreateTaskContent(
             subtaskList = subtaskList + newSubtask
 
             // Update the task's subtask list
-            if (taskId != null) {
-                val currentTask = viewModel.getTask(taskId)
-                if (currentTask != null) {
-                    viewModel.addSubtasks(viewModel.getTask(taskId),subtaskList)
-                }
+            if (taskId != null && currentTask != null) {
+                viewModel.addSubtasks(currentTask,subtaskList)
+            } else {
+                viewModel.addSubtasks(tmpTask,subtaskList)
             }
 
             subtaskName = TextFieldValue("")
         }
     }
 
-    if (taskId != null) {
-        val currentTask = viewModel.getTask(taskId)
-        if (currentTask != null) {
-            taskName = TextFieldValue(currentTask.title)
-            subtaskList = viewModel.getSubtasks(currentTask)
-            priority = currentTask.priority.name
-            date = currentTask.deadline
-        }
+    if (taskId != null && currentTask != null) {
+        taskName = TextFieldValue(currentTask.title)
+        priority = currentTask.priority.name
+        date = currentTask.deadline
+        subtaskList = viewModel.getSubtasks(currentTask)
+    } else {
+        tmpTask = Task(
+            id = viewModel.getTaskList().size+1,
+            title = taskName.text,
+            deadline = date,
+            priority = Priority.valueOf(priority),
+            isCompleted = false
+        )
     }
 
     Scaffold(snackbarHost = {
@@ -155,13 +171,9 @@ fun CreateTaskContent(
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
-                            if(taskId != null){
+                            if(taskId != null && currentTask != null){
                                 viewModel.updateTask(
-                                    taskId,
-                                    taskName.text,
-                                    date,
-                                    priority,
-                                    false,
+                                    currentTask.copy(title = taskName.text, priority = Priority.valueOf(priority), deadline = date),
                                     subtaskList
                                 )
                                 scope.launch {
@@ -169,11 +181,7 @@ fun CreateTaskContent(
                                 }
                             } else {
                                 viewModel.addTask(
-                                    viewModel.getTaskList().size + 1,
-                                    taskName.text,
-                                    date,
-                                    priority,
-                                    false,
+                                    tmpTask,
                                     subtaskList
                                 )
 
