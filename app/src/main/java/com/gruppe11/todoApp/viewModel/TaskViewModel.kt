@@ -2,6 +2,7 @@ package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
@@ -9,9 +10,14 @@ import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -21,8 +27,9 @@ class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
     private val subtaskRepository: ISubtaskRepository
 ) : ViewModel() {
-    private var _TaskState = MutableStateFlow(taskRepository.readAll())
-    val TaskState: StateFlow<List<Task>> get() = _TaskState
+    private var _TaskState = MutableStateFlow<List<Task>>(emptyList())
+    val TaskState: StateFlow<List<Task>> get() = _TaskState.asStateFlow()
+
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
@@ -37,6 +44,11 @@ class TaskViewModel @Inject constructor (
 
     init {
         _DaysMap.value = generateMapOfDays()
+        viewModelScope.launch(Dispatchers.IO) {
+            taskRepository.readAll().collect{
+                tasks -> _TaskState.value = tasks
+            }
+        }
     }
     @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
@@ -46,19 +58,18 @@ class TaskViewModel @Inject constructor (
     fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
         val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
         addSubtasks(task, subtaskList)
-        _TaskState.value = taskRepository.readAll()
-        _DaysMap.value = generateMapOfDays()
-
+        val newDays = generateMapOfDays()
+        if (_DaysMap.compareAndSet(newDays, newDays)) {
+            println("Updated")
+        } else {
+            println("Not updated")
+        }
     }
 
     fun removeTask(task: Task){
         taskRepository.delete(task)
-        _TaskState.value = taskRepository.readAll()
     }
 
-    fun getTaskList(): List<Task> {
-        return TaskState.value
-    }
     @SuppressLint("NewApi")
     fun generateMapOfDays(): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
@@ -73,12 +84,11 @@ class TaskViewModel @Inject constructor (
     @SuppressLint("NewApi")
     fun changeTaskCompletion(task: Task){
         taskRepository.update(task.copy(isCompleted = !task.isCompleted))
-        _TaskState.update{it.map {
-            if(it.id == task.id) {it.copy(isCompleted = !it.isCompleted)}
-            else {it}
-            }
+        val completed = countTaskCompletionsByDay(task.deadline);
+        println("Completed: " + completed)
+        _DaysMap.update {
+            _DaysMap.value.toMutableMap().apply{this.put(task.deadline.toLocalDate(), completed) }
         }
-        _DaysMap.value = _DaysMap.value.toMutableMap().apply{this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline) }
     }
 
     @SuppressLint("NewApi")
@@ -88,6 +98,7 @@ class TaskViewModel @Inject constructor (
         }
         val totComp = _TaskState.value.filter { it.deadline.toLocalDate() == date.toLocalDate() }.count { it.isCompleted }
         val totTask = _TaskState.value.count{ it.deadline.toLocalDate() == date.toLocalDate() }
+        println("Completed days: " + totComp + " and total days: " + totTask)
         if (totTask == 0) return 0f
         return totComp/totTask.toFloat()
     }
@@ -99,7 +110,7 @@ class TaskViewModel @Inject constructor (
         subtaskRepository.delete(task,subTask)
     }
     fun getTask(taskId: Int): Task {
-        return TaskState.value.find{ task -> task.id == taskId }!!
+        return _TaskState.value.find{ task -> task.id == taskId }!!
     }
 
     fun addSubtasks(task: Task, subtasks: List<SubTask>){

@@ -70,6 +70,8 @@ import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -182,12 +184,11 @@ fun GenerateLazyRowForDays(
 @Composable
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
+    filteredTasks: List<Task>,
     selectedDate: LocalDateTime,
     editTask: (Int) -> Unit
 ) {
-    val filteredTasks =
-        viewModel.TaskState.collectAsStateWithLifecycle().value
-            .filter{it.deadline.toLocalDate() == selectedDate.toLocalDate()}
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -216,7 +217,6 @@ fun filterTaskItem(task: Task, taskViewModel: TaskViewModel) : Boolean {
 
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
-    val taskCompletionStatus by viewModel.TaskState.collectAsStateWithLifecycle()
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -293,7 +293,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowTaskList (
-    viewModel : TaskViewModel = hiltViewModel(),
+    viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
     //Change this variable when we want to display different months.
@@ -303,6 +303,7 @@ fun ShowTaskList (
     var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val tasks by viewModel.TaskState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -426,6 +427,7 @@ fun ShowTaskList (
                     ) {
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
+                            filteredTasks = tasks,
                             selectedDate = selectedDate,
                             editTask = onEditTask
                         )
