@@ -12,6 +12,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -91,12 +92,15 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeTaskCompletion(task: Task){
-        taskRepository.update(task.copy(isCompleted = !task.isCompleted))
-        val completed = countTaskCompletionsByDay(task.deadline);
-        println("Completed: " + completed)
-        _DaysMap.update {
-            _DaysMap.value.toMutableMap().apply{this.put(task.deadline.toLocalDate(), completed) }
+        viewModelScope.launch(Dispatchers.IO) {
+            taskRepository.update(task.copy(isCompleted = !task.isCompleted))
+            delay(50)
+            _DaysMap.update {
+                _DaysMap.value.toMutableMap().apply{this.put(task.deadline.toLocalDate(), countTaskCompletionsByDay(task.deadline)) }
+            }
         }
+
+
     }
 
     @SuppressLint("NewApi")
