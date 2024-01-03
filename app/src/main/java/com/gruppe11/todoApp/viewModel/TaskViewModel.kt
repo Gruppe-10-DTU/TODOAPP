@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
@@ -39,9 +38,7 @@ class TaskViewModel @Inject constructor (
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
     private val _filterTags = getFilterTags().toMutableSet()
-    var completeFilter = mutableStateOf(false)
-    var incompleteFilter = mutableStateOf(false)
-
+    
     val tags: Set<Tag>
         get() = _filterTags
 
@@ -62,9 +59,16 @@ class TaskViewModel @Inject constructor (
     fun changeDate(date: LocalDateTime) {
         _UIState.update { currentState -> currentState.copy(selectedData = date)}
     }
+    fun updateTask(task: Task, subtaskList: List<SubTask>){
+        taskRepository.update(task)
+//        addSubtasks(task, subtaskList)
+        _TaskState.value = taskRepository.readAll()
+        _DaysMap.value = generateMapOfDays()
 
-    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
-        val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+    }
+
+    fun addTask(task: Task, subtaskList: List<SubTask>){
+        taskRepository.createTask(task)
         addSubtasks(task, subtaskList)
         val newDays = generateMapOfDays()
         if (_DaysMap.compareAndSet(newDays, newDays)) {
@@ -100,8 +104,6 @@ class TaskViewModel @Inject constructor (
                 }
             }
         }
-
-
     }
 
     @SuppressLint("NewApi")
@@ -117,7 +119,6 @@ class TaskViewModel @Inject constructor (
         }
         val totComp = _TaskState.value.filter { it.deadline.toLocalDate() == date.toLocalDate() }.count { it.isCompleted }
         val totTask = _TaskState.value.count{ it.deadline.toLocalDate() == date.toLocalDate() }
-        println("Completed days: " + totComp + " and total days: " + totTask)
         if (totTask == 0) return 0f
         return totComp/totTask.toFloat()
     }
