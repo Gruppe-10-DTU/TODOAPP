@@ -67,6 +67,7 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
+import com.gruppe11.todoApp.ui.elements.SearchBar
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -388,6 +389,12 @@ fun ShowTaskList (
                             .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.TopEnd
                     ) {
+                        Column (
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            SearchBar()
+                            }
                         Column {
                             Row{
                                 IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
