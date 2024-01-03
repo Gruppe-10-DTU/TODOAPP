@@ -273,7 +273,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             ) {
                 for (subtask in viewModel.getSubtasks(task)){
                     HorizontalDivider()
-                    ShowSubTask(subtask)
+                    ShowSubTask(viewModel, task, subtask)
                 }
             }
         }
@@ -441,7 +441,7 @@ fun ShowTaskList (
 }
 
 @Composable
-fun ShowSubTask(subtask : SubTask) {
+fun ShowSubTask(viewModel: TaskViewModel,task: Task, subtask : SubTask) {
     var checked by remember { mutableStateOf(subtask.completed) }
     Row(modifier = Modifier
         .fillMaxWidth()
