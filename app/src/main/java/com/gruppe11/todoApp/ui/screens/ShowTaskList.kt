@@ -70,7 +70,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.*
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
@@ -191,14 +190,10 @@ fun GenerateLazyRowForDays(
 @Composable
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
-    selectedDate: LocalDateTime,
+    filteredTasks: List<Task>,
     editTask: (Int) -> Unit
 ) {
-    val filteredTasks =
-        viewModel.TaskState.collectAsStateWithLifecycle().value
-            .filter {
-                it.deadline.toLocalDate() == selectedDate.toLocalDate() && filterTaskItem(it, viewModel)
-            }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -219,15 +214,10 @@ fun GenerateLazyColumnForTasks(
     }
 }
 
-fun filterTaskItem(task: Task, taskViewModel: TaskViewModel) : Boolean {
-    return ((taskViewModel.completeFilter.value && task.isCompleted) ||
-            (taskViewModel.incompleteFilter.value && !task.isCompleted) ||
-            (!taskViewModel.completeFilter.value && !taskViewModel.incompleteFilter.value))
-}
+
 
 @Composable
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
-    val taskCompletionStatus by viewModel.TaskState.collectAsStateWithLifecycle()
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -283,7 +273,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             ) {
                 for (subtask in viewModel.getSubtasks(task)){
                     HorizontalDivider()
-                    ShowSubTask(viewModel, task, subtask)
+                    ShowSubTask(viewModel::changeSubtaskCompletion, task, subtask)
                 }
             }
         }
@@ -304,17 +294,19 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowTaskList (
-    viewModel : TaskViewModel = hiltViewModel(),
+    viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
+
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
-    var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
+    val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-
+    println(screenState.selectedData)
+    val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
     Scaffold(
         topBar = {
             TopAppBar(
@@ -332,7 +324,6 @@ fun ShowTaskList (
                             onClick = {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
-                                    selectedDate = LocalDateTime.now()
                                 }
                             },
                             colors = ButtonColors(
@@ -342,7 +333,7 @@ fun ShowTaskList (
                                 disabledContentColor = MaterialTheme.colorScheme.tertiary)
                             ) {
                             Text(
-                                text = LocalDateTime.now().format(formatBigDate).toString(),
+                                text = screenState.selectedData.format(formatBigDate).toString(),
                                 fontSize = 18.sp
                             )
                         }
@@ -386,9 +377,9 @@ fun ShowTaskList (
                         GenerateLazyRowForDays(
                             viewModel = viewModel,
                             listState = listState,
-                            selectedDate = selectedDate,
+                            selectedDate = screenState.selectedData,
                         ) { date ->
-                            selectedDate = date
+                            viewModel.changeDate(date)
                         }
                     }
                     Box(
@@ -425,7 +416,7 @@ fun ShowTaskList (
                                 enter = slideInVertically(),
                                 exit = slideOutVertically()
                             ) {
-                                FilterSection(taskViewModel = viewModel)
+                                FilterSection(taskViewModel = viewModel, state = screenState)
                             }
                         }
                     }
@@ -437,7 +428,7 @@ fun ShowTaskList (
                     ) {
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
-                            selectedDate = selectedDate,
+                            filteredTasks = tasks,
                             editTask = onEditTask
                         )
                     }
@@ -451,7 +442,7 @@ fun ShowTaskList (
 }
 
 @Composable
-fun ShowSubTask(viewModel: TaskViewModel,task: Task, subtask : SubTask) {
+fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,task: Task, subtask : SubTask) {
     var checked by remember { mutableStateOf(subtask.completed) }
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -465,7 +456,7 @@ fun ShowSubTask(viewModel: TaskViewModel,task: Task, subtask : SubTask) {
             checked = checked,
             onCheckedChange = {
                 //checked = !checked
-                viewModel.changeSubtaskCompletion(task, subtask)
+                changeSubtaskCompletion(task, subtask)
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
         )
