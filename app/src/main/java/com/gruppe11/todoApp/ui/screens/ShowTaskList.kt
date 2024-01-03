@@ -5,6 +5,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +50,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,12 +68,15 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
+import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -296,15 +301,18 @@ fun ShowTaskList (
     viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
+
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
-    var selectedDate by remember{mutableStateOf(LocalDateTime.of(selectedYear,selectedMonth,selectedDay,LocalDateTime.now().hour,LocalDateTime.now().minute))}
+    val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val tasks by viewModel.TaskState.collectAsStateWithLifecycle()
-
+    println(screenState.selectedData)
+    val tasks by viewModel.TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(screenState.selectedData.toLocalDate()) && filterTaskItem(task, viewModel) } }.collectAsStateWithLifecycle(
+        initialValue = emptyList()
+    )
     Scaffold(
         topBar = {
             TopAppBar(
@@ -322,7 +330,6 @@ fun ShowTaskList (
                             onClick = {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
-                                    selectedDate = LocalDateTime.now()
                                 }
                             },
                             colors = ButtonColors(
@@ -332,7 +339,7 @@ fun ShowTaskList (
                                 disabledContentColor = MaterialTheme.colorScheme.tertiary)
                             ) {
                             Text(
-                                text = LocalDateTime.now().format(formatBigDate).toString(),
+                                text = screenState.selectedData.format(formatBigDate).toString(),
                                 fontSize = 18.sp
                             )
                         }
@@ -376,9 +383,9 @@ fun ShowTaskList (
                         GenerateLazyRowForDays(
                             viewModel = viewModel,
                             listState = listState,
-                            selectedDate = selectedDate,
+                            selectedDate = screenState.selectedData,
                         ) { date ->
-                            selectedDate = date
+                            viewModel.changeDate(date)
                         }
                     }
                     Box(
@@ -428,7 +435,7 @@ fun ShowTaskList (
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
                             filteredTasks = tasks,
-                            selectedDate = selectedDate,
+                            selectedDate = screenState.selectedData,
                             editTask = onEditTask
                         )
                     }

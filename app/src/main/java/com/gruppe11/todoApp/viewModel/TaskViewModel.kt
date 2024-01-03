@@ -9,6 +9,7 @@ import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -31,6 +33,9 @@ class TaskViewModel @Inject constructor (
     val TaskState: StateFlow<List<Task>> get() = _TaskState.asStateFlow()
 
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
+
+    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now()))
+    val UIState = _UIState.asStateFlow()
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
     private val _filterTags = getFilterTags().toMutableSet()
@@ -50,9 +55,12 @@ class TaskViewModel @Inject constructor (
             }
         }
     }
-    @SuppressLint("NewApi")
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return _TaskState.value.filter {it.deadline.toLocalDate() == date.toLocalDate()}
+    }
+
+    fun changeDate(date: LocalDateTime) {
+        _UIState.update { currentState -> currentState.copy(selectedData = date)}
     }
 
     fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
@@ -120,4 +128,5 @@ class TaskViewModel @Inject constructor (
             subtaskRepository.createSubtask(task, subtask)
         }
     }
+
 }
