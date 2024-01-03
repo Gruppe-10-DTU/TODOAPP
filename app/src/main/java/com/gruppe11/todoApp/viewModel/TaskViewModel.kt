@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -96,7 +95,9 @@ class TaskViewModel @Inject constructor (
             taskRepository.update(task.copy(isCompleted = !task.isCompleted))
             delay(50)
             _DaysMap.update {
-                _DaysMap.value.toMutableMap().apply{this.put(task.deadline.toLocalDate(), countTaskCompletionsByDay(task.deadline)) }
+                _DaysMap.value.toMutableMap().apply{
+                    this[task.deadline.toLocalDate()] = countTaskCompletionsByDay(task.deadline)
+                }
             }
         }
 
