@@ -1,6 +1,7 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
@@ -62,9 +63,6 @@ class TaskViewModel @Inject constructor (
     fun updateTask(task: Task, subtaskList: List<SubTask>){
         taskRepository.update(task)
 //        addSubtasks(task, subtaskList)
-        _TaskState.value = taskRepository.readAll()
-        _DaysMap.value = generateMapOfDays()
-
     }
 
     fun addTask(task: Task, subtaskList: List<SubTask>){
@@ -129,8 +127,8 @@ class TaskViewModel @Inject constructor (
     fun removeSubtask(task: Task, subTask: SubTask){
         subtaskRepository.delete(task,subTask)
     }
-    fun getTask(taskId: Int): Task {
-        return _TaskState.value.find{ task -> task.id == taskId }!!
+    fun getTask(taskId: Int): Task? {
+        return taskRepository.read(taskId)
     }
 
     fun addSubtasks(task: Task, subtasks: List<SubTask>){

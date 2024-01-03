@@ -114,7 +114,7 @@ fun CreateTaskContent(
         subtaskList = viewModel.getSubtasks(currentTask)
     } else {
         tmpTask = Task(
-            id = viewModel.getTaskList().size+1,
+            id = 0,
             title = taskName.text,
             deadline = date,
             priority = Priority.valueOf(priority),
