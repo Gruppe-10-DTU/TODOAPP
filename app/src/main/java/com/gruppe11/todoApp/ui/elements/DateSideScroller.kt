@@ -114,10 +114,10 @@ fun DateSideScroller(
                         },
                         enabled = true,
                         border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = false,
                             borderColor = Color.Transparent,
                             disabledBorderColor = Color.Transparent,
-                            enabled = true,
-                            selected = true
                         )
                     )
                 }

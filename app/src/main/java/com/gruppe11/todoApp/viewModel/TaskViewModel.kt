@@ -43,6 +43,14 @@ class TaskViewModel @Inject constructor (
         return _TaskState.value.filter {it.deadline.toLocalDate() == date.toLocalDate()}
     }
 
+    fun updateTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
+        val task = taskRepository.update(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+//        addSubtasks(task, subtaskList)
+        _TaskState.value = taskRepository.readAll()
+        _DaysMap.value = generateMapOfDays()
+
+    }
+
     fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
         val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
         addSubtasks(task, subtaskList)

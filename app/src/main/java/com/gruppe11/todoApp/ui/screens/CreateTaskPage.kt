@@ -60,7 +60,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun CreateTaskContent(
     returnPage: () -> Unit,
-    viewModel: TaskViewModel = hiltViewModel()
+    viewModel: TaskViewModel = hiltViewModel(),
+    taskId: Int? = null
 ) {
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
@@ -85,8 +86,28 @@ fun CreateTaskContent(
 
     val addSubtask: () -> Unit = {
         if (subtaskName.text.isNotEmpty()) {
-            subtaskList = subtaskList + SubTask(title = subtaskName.text, id = 0, completed = false)
+            val newSubtask = SubTask(title = subtaskName.text, id = 0, completed = false)
+            subtaskList = subtaskList + newSubtask
+
+            // Update the task's subtask list
+            if (taskId != null) {
+                val currentTask = viewModel.getTask(taskId)
+                if (currentTask != null) {
+                    viewModel.addSubtasks(viewModel.getTask(taskId),subtaskList)
+                }
+            }
+
             subtaskName = TextFieldValue("")
+        }
+    }
+
+    if (taskId != null) {
+        val currentTask = viewModel.getTask(taskId)
+        if (currentTask != null) {
+            taskName = TextFieldValue(currentTask.title)
+            subtaskList = viewModel.getSubtasks(currentTask)
+            priority = currentTask.priority.name
+            date = currentTask.deadline
         }
     }
 
@@ -130,21 +151,35 @@ fun CreateTaskContent(
 
             // Create button
             SwitchableButton(
-                text = "Create",
+                text = if (taskId != null) "Save" else "Create",
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
-                            viewModel.addTask(
-                                viewModel.getTaskList().size + 1,
-                                taskName.text,
-                                date,
-                                priority,
-                                false,
-                                subtaskList
-                            )
+                            if(taskId != null){
+                                viewModel.updateTask(
+                                    taskId,
+                                    taskName.text,
+                                    date,
+                                    priority,
+                                    false,
+                                    subtaskList
+                                )
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Task updated")
+                                }
+                            } else {
+                                viewModel.addTask(
+                                    viewModel.getTaskList().size + 1,
+                                    taskName.text,
+                                    date,
+                                    priority,
+                                    false,
+                                    subtaskList
+                                )
 
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Task created")
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Task created")
+                                }
                             }
                             returnPage()
                         } else {
