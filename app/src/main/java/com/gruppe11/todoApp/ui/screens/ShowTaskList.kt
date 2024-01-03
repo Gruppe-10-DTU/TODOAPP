@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.*
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
@@ -272,7 +273,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             ) {
                 for (subtask in viewModel.getSubtasks(task)){
                     HorizontalDivider()
-                    ShowSubTask(subtask)
+                    ShowSubTask(viewModel, task, subtask)
                 }
             }
         }
@@ -440,7 +441,7 @@ fun ShowTaskList (
 }
 
 @Composable
-fun ShowSubTask(subtask : SubTask) {
+fun ShowSubTask(viewModel: TaskViewModel,task: Task, subtask : SubTask) {
     var checked by remember { mutableStateOf(subtask.completed) }
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -453,7 +454,8 @@ fun ShowSubTask(subtask : SubTask) {
         Checkbox(modifier = Modifier.padding(10.dp),
             checked = checked,
             onCheckedChange = {
-                checked = !checked
+                //checked = !checked
+                viewModel.changeSubtaskCompletion(task, subtask)
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
         )
