@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.model.fromString
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,8 +42,16 @@ class TaskViewModel @Inject constructor (
         return _TaskState.value.filter {it.deadline.toLocalDate() == date.toLocalDate()}
     }
 
-    fun addTask(id: Int, title: String, deadline: LocalDateTime, Prio: String, isCompleted: Boolean, subtaskList: List<SubTask>){
-        val task = taskRepository.createTask(Task(id = id,title = title,deadline = deadline, priority = fromString(Prio), isCompleted = isCompleted))
+    fun updateTask(task: Task, subtaskList: List<SubTask>){
+        taskRepository.update(task)
+//        addSubtasks(task, subtaskList)
+        _TaskState.value = taskRepository.readAll()
+        _DaysMap.value = generateMapOfDays()
+
+    }
+
+    fun addTask(task: Task, subtaskList: List<SubTask>){
+        taskRepository.createTask(task)
         addSubtasks(task, subtaskList)
         _TaskState.value = taskRepository.readAll()
         _DaysMap.value = generateMapOfDays()
