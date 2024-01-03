@@ -1,7 +1,5 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
@@ -66,8 +64,8 @@ class TaskViewModel @Inject constructor (
     }
 
     fun addTask(task: Task, subtaskList: List<SubTask>){
-        taskRepository.createTask(task)
-        addSubtasks(task, subtaskList)
+        val tmpTask = taskRepository.createTask(task)
+        addSubtasks(tmpTask, subtaskList)
         val newDays = generateMapOfDays()
         if (_DaysMap.compareAndSet(newDays, newDays)) {
             println("Updated")
