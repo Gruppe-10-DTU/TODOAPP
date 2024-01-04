@@ -210,7 +210,7 @@ fun GenerateLazyColumnForTasks(
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(filteredTasks) { task ->
@@ -312,12 +312,13 @@ fun ShowTaskList (
     onEditTask: (Int) -> Unit) {
 
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
-    println(screenState.selectedData)
+//    println(screenState.selectedData)
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
     val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
+
     Scaffold(
         topBar = {
             TopAppBar(
