@@ -51,6 +51,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -80,6 +81,7 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -305,16 +307,15 @@ fun ShowTaskList (
     viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
-
+    val coroutineScope = rememberCoroutineScope()
     //Change this variable when we want to display different months.
     var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
     var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
     var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
-    val screenState by viewModel.UIState.collectAsStateWithLifecycle()
+    val screenState by viewModel.UIState.collectAsState()
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    println(screenState.selectedData)
-    val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
+    val tasks = viewModel.TaskState.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -357,84 +358,87 @@ fun ShowTaskList (
                 Icon(Icons.Filled.Add, "Add new Task")
             }
         },
-        content = {
-            Surface(modifier = Modifier.padding(top = it.calculateTopPadding(),bottom=it.calculateBottomPadding())) {
-                Column(
-                    modifier = Modifier.wrapContentSize(),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            modifier = Modifier.padding(
+                top = it.calculateTopPadding(),
+                bottom = it.calculateBottomPadding()
+            )
+        ) {
+            Column(
+                modifier = Modifier.wrapContentSize(),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .background(MaterialTheme.colorScheme.secondary),
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .background(MaterialTheme.colorScheme.secondary),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        GenerateLazyRowForDays(
-                            viewModel = viewModel,
-                            listState = listState,
-                            selectedDate = screenState.selectedData,
-                        ) { date ->
-                            viewModel.changeDate(date)
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background),
-                        contentAlignment = Alignment.TopEnd
-                    ) {
-                        Column {
-                            Row{
-                                IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Tune,
-                                        contentDescription = "Open filter selection",
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .padding(4.dp)
-                                    )
-                                }
+                    GenerateLazyRowForDays(
+                        viewModel = viewModel,
+                        listState = listState,
+                        selectedDate = screenState.selectedData,
+                        onSelectedDate = viewModel::changeDate
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    Column {
+                        Row {
+                            IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Tune,
+                                    contentDescription = "Open filter selection",
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .padding(4.dp)
+                                )
                             }
                         }
-                    }
-                    Box (
-                        modifier = Modifier
-                            .wrapContentHeight(unbounded = true)
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.TopCenter
-                    ) {
-                        Column {
-                            AnimatedVisibility(
-                                visible = filterTagsVisible,
-                                enter = slideInVertically(),
-                                exit = slideOutVertically()
-                            ) {
-                                FilterSection(taskViewModel = viewModel, state = screenState)
-                            }
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        GenerateLazyColumnForTasks(
-                            viewModel = viewModel,
-                            filteredTasks = tasks,
-                            editTask = onEditTask
-                        )
                     }
                 }
+                Box(
+                    modifier = Modifier
+                        .wrapContentHeight(unbounded = true)
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Column {
+                        AnimatedVisibility(
+                            visible = filterTagsVisible,
+                            enter = slideInVertically(),
+                            exit = slideOutVertically()
+                        ) {
+                            FilterSection(taskViewModel = viewModel, state = screenState)
+                        }
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    GenerateLazyColumnForTasks(
+                        viewModel = viewModel,
+                        filteredTasks = tasks.value,
+                        editTask = onEditTask
+                    )
+                }
             }
-            LaunchedEffect(true) {
-                listState.scrollToItem(28)
-            }
-        },
-    )
+        }
+        LaunchedEffect(true) {
+            listState.scrollToItem(28)
+        }
+    }
 }
 
 @Composable
