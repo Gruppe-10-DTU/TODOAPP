@@ -57,6 +57,7 @@ class TaskViewModel @Inject constructor (
 
     fun changeDate(date: LocalDateTime) {
         _UIState.update { currentState -> currentState.copy(selectedData = date)}
+        _UIState.tryEmit(_UIState.value)
     }
     fun updateTask(task: Task, subtaskList: List<SubTask>){
         taskRepository.update(task)

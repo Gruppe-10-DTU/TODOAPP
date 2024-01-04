@@ -441,7 +441,8 @@ fun ShowTaskList (
                                         DatePickerDialogFunction(
                                             taskDateTimeMillis = System.currentTimeMillis(),
                                             onDateSelected = {
-                                                selectedDate = it
+                                               viewModel.changeDate(it)
+
                                                              },
                                             onDismiss = { showMonthPicker.value = false }
                                         )
