@@ -29,6 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Tune
@@ -54,6 +56,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -124,7 +127,6 @@ fun GenerateLazyRowForDays(
     onSelectedDate: (LocalDateTime) -> Unit,
     ) {
     val daysMap by viewModel.DaysMap.collectAsStateWithLifecycle()
-    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .wrapContentSize()
@@ -157,7 +159,7 @@ fun GenerateLazyRowForDays(
                             Spacer(Modifier.height(2.dp))
                                 FilterChip(
                                     shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.dayOfYear == day.dayOfYear,
+                                    selected = selectedDate.toLocalDate() == day,
                                     onClick = {
                                         onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
                                               },
@@ -199,16 +201,7 @@ fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     filteredTasks: List<Task>,
     editTask: (Int) -> Unit,
-    selectedSortingOption: String
 ) {
-
-    val sortedTasks = when (selectedSortingOption) {
-        "Priority Descending" -> filteredTasks.sortedByDescending { it.priority }
-        "Priority Ascending" -> filteredTasks.sortedBy { it.priority }
-        "A-Z" -> filteredTasks.sortedBy { it.title }
-        "Z-A" -> filteredTasks.sortedByDescending { it.title }
-        else -> filteredTasks
-    }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -220,7 +213,7 @@ fun GenerateLazyColumnForTasks(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(sortedTasks) { task ->
+            items(filteredTasks) { task ->
                 key(task.id) {
                     TaskItem(task = task, viewModel = viewModel, editTask)
                 }
@@ -318,17 +311,12 @@ fun ShowTaskList (
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
 
-    //Change this variable when we want to display different months.
-    var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
-    var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
-    var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
-    var selectedSortingOption by remember { mutableStateOf("Priority Descending")}
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
+    println(screenState.selectedData)
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
-    println(screenState.selectedData)
     val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
     Scaffold(
         topBar = {
@@ -414,14 +402,24 @@ fun ShowTaskList (
                                 if (sortingVisible) {
                                     DropdownMenu(
                                         expanded = sortingVisible,
-                                        onDismissRequest = { sortingVisible = false }
+                                        onDismissRequest = { sortingVisible = false },
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
                                     ) {
                                         sortingList.forEach { optionLabel ->
                                             DropdownMenuItem(
                                                 text = { Text(text = optionLabel )},
-                                                onClick = { selectedSortingOption = optionLabel
-                                                    sortingVisible = false})
-
+                                                onClick = { viewModel.selectSortingOption(optionLabel)
+                                                    sortingVisible = false},
+                                                trailingIcon = {
+                                                    Icon(
+                                                        imageVector = if(optionLabel == "Priority Descending" || optionLabel == "Z-A" ) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
+                                                        contentDescription = "Trailing icon",
+                                                        modifier = Modifier
+                                                            .size(30.dp)
+                                                            .padding(4.dp)
+                                                    )
+                                                }
+                                            )
                                         }
                                     }
                                 }
@@ -464,8 +462,7 @@ fun ShowTaskList (
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
                             filteredTasks = tasks,
-                            editTask = onEditTask,
-                            selectedSortingOption = selectedSortingOption
+                            editTask = onEditTask
                         )
                     }
                 }
