@@ -139,7 +139,7 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                    val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
+                    val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
                     items(viewModel.DaysMap.value.keys.toList()) { day ->
                             Column(
                             verticalArrangement = Arrangement.SpaceEvenly,
@@ -164,7 +164,8 @@ fun GenerateLazyRowForDays(
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier
                                                 .padding(0.dp)
-                                                .fillMaxWidth()
+                                                .fillMaxWidth(),
+                                            fontSize = 9.8.sp
                                         )
                                     },
                                     enabled = true,
@@ -327,6 +328,7 @@ fun ShowTaskList (
                         TextButton(
                             onClick = {
                                 CoroutineScope(Dispatchers.Main).launch {
+                                    viewModel.changeMonthDate(LocalDateTime.now())
                                     listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
                                 }
                             },
@@ -441,8 +443,7 @@ fun ShowTaskList (
                                         DatePickerDialogFunction(
                                             taskDateTimeMillis = System.currentTimeMillis(),
                                             onDateSelected = {
-                                               viewModel.changeDate(it)
-
+                                               viewModel.changeMonthDate(it)
                                                              },
                                             onDismiss = { showMonthPicker.value = false }
                                         )
