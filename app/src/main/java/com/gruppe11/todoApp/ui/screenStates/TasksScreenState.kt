@@ -7,5 +7,6 @@ data class TasksScreenState(
     val selectedData: LocalDateTime,
     val completeFilter: Boolean,
     val incompleteFilter: Boolean,
-    val priorities: MutableSet<Priority>
+    val priorities: MutableSet<Priority>,
+    val sortedOption: String
 )
