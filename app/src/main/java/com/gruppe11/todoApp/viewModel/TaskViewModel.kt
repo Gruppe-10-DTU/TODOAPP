@@ -32,7 +32,14 @@ class TaskViewModel @Inject constructor (
 
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
 
-    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now(), false, false))
+    private val _UIState = MutableStateFlow(
+        TasksScreenState(
+            selectedData = LocalDateTime.now(),
+            completeFilter = false,
+            incompleteFilter = false,
+            sortedOption = "Priority Descending"
+        )
+    )
     val UIState = _UIState.asStateFlow()
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
@@ -154,6 +161,20 @@ class TaskViewModel @Inject constructor (
     }
 
     fun getTasks(): Flow<List<Task>> {
-        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }
+        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) }}.map { sortTasks(it) }
+    }
+
+    private fun sortTasks(filteredTasks: List<Task>): List<Task> {
+        val sortedTasks = when (_UIState.value.sortedOption) {
+            "Priority Descending" -> filteredTasks.sortedByDescending { it.priority }
+            "Priority Ascending" -> filteredTasks.sortedBy { it.priority }
+            "A-Z" -> filteredTasks.sortedBy { it.title }
+            "Z-A" -> filteredTasks.sortedByDescending { it.title }
+            else -> filteredTasks
+        }
+        return sortedTasks
+    }
+    fun selectSortingOption(sortOption: String) {
+        _UIState.update { currentState -> currentState.copy(sortedOption = sortOption)}
     }
 }
