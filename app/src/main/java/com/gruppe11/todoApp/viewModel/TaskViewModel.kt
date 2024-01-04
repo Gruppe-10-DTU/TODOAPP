@@ -1,7 +1,10 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
+import android.app.DownloadManager.Query
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gruppe11.todoApp.Task.title
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
@@ -10,7 +13,11 @@ import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -30,10 +37,37 @@ class TaskViewModel @Inject constructor (
     var completeFilter = mutableStateOf(false)
     var incompleteFilter = mutableStateOf(false)
 
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    private val _tasksShown = MutableStateFlow(listOf<Task>())
+    val tasksShown = searchText
+        .combine(_TaskState) { text, taskShown ->
+            if (text.isBlank()) {
+                taskShown
+            } else {
+                taskShown.filter {
+                    it.doesMachSearchQuery(text)
+                }
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            _TaskState.value
+        )
+
     val tags: Set<Tag>
         get() = _filterTags
 
     private fun getFilterTags() = emptySet<Tag>()
+
+    fun onSearchTextChange(text: String) {
+        _searchText.value = text
+    }
 
     init {
         _DaysMap.value = generateMapOfDays()

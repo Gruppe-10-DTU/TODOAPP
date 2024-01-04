@@ -1,8 +1,19 @@
 package com.gruppe11.todoApp.model
 
+import com.gruppe11.todoApp.Task
 import java.time.LocalDateTime
 
-data class Task (val id: Int, val title: String, val priority: Priority, val deadline: LocalDateTime, val isCompleted: Boolean)
+data class Task (val id: Int, val title: String, val priority: Priority, val deadline: LocalDateTime, val isCompleted: Boolean) {
+    fun doesMachSearchQuery(query: String): Boolean {
+        val matchingCombinations = listOf(
+            title
+        )
+
+        return matchingCombinations.any{
+            it.contains(query, ignoreCase = true)
+        }
+    }
+}
 
 
 //sealed interface State {

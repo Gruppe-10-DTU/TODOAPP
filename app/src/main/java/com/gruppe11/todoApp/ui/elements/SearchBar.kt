@@ -58,7 +58,7 @@ fun SearchBar() {
         label = { Text("Search") },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         modifier = Modifier
-            .fillMaxWidth()
+            //.fillMaxWidth()
             .border(width = 1.5.dp, color = MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)),
         //border = BorderStroke(2.dp,Color.Red),
         colors = TextFieldDefaults.colors(
