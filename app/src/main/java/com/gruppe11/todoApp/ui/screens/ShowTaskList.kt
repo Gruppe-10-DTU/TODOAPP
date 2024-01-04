@@ -108,19 +108,17 @@ fun LinearDeterminateIndicator(progress: Float) {
             .height(60.dp)
             .padding(7.5.dp)
     ) {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .height(10.dp)
-                    .width(50.dp)
-                    .rotate(-90f),
-                progress = {progress},
-                trackColor = MaterialTheme.colorScheme.primaryContainer,
-            )
+        LinearProgressIndicator(
+            modifier = Modifier
+                .wrapContentSize()
+                .height(10.dp)
+                .width(50.dp)
+                .rotate(-90f),
+            progress = { progress },
+            trackColor = MaterialTheme.colorScheme.primaryContainer,
+        )
     }
 }
-
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,56 +147,61 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                    val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
-                    items(viewModel.DaysMap.value.keys.toList()) { day ->
-                            Column(
-                            verticalArrangement = Arrangement.SpaceEvenly,
-                            modifier = Modifier.wrapContentSize(),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                                daysMap[day]?.let {
-                                    LinearDeterminateIndicator(
-                                        progress = it
-                                    )
-                                }
-                            Spacer(Modifier.height(2.dp))
-                                FilterChip(
-                                    shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.toLocalDate().equals(day),
-                                    onClick = {
-                                        onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
-                                              },
-                                    label = {
-                                        Text(
-                                            text = day.format(formatFilterDate),
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier
-                                                .padding(0.dp)
-                                                .fillMaxWidth(),
-                                            fontSize = 9.8.sp
-                                        )
-                                    },
-                                    enabled = true,
-                                    modifier = Modifier
-                                        .width(65.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.background,
-                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                        selectedLabelColor = MaterialTheme.colorScheme.background
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = false,
-                                        borderColor = Color.Transparent,
-                                        disabledBorderColor = Color.Transparent,
+                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
+                items(viewModel.DaysMap.value.keys.toList()) { day ->
+                    Column(
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.wrapContentSize(),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        daysMap[day]?.let {
+                            LinearDeterminateIndicator(
+                                progress = it
+                            )
+                        }
+                        Spacer(Modifier.height(2.dp))
+                        FilterChip(
+                            shape = MaterialTheme.shapes.small,
+                            selected = selectedDate.toLocalDate().equals(day),
+                            onClick = {
+                                onSelectedDate(
+                                    day.atTime(
+                                        LocalDateTime.now().hour,
+                                        LocalDateTime.now().minute
                                     )
                                 )
-                            }
-                        }
+                            },
+                            label = {
+                                Text(
+                                    text = day.format(formatFilterDate),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .padding(0.dp)
+                                        .fillMaxWidth(),
+                                    fontSize = 9.8.sp
+                                )
+                            },
+                            enabled = true,
+                            modifier = Modifier
+                                .width(65.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.background
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = false,
+                                borderColor = Color.Transparent,
+                                disabledBorderColor = Color.Transparent,
+                            )
+                        )
                     }
+                }
             }
         }
+    }
 }
 
 
@@ -208,19 +211,20 @@ fun GenerateLazyColumnForTasks(
     filteredTasks: List<Task>,
     editTask: (Int) -> Unit
 ) {
-
+    val tasks by viewModel.TaskState.collectAsStateWithLifecycle()
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 5.dp)
     ) {
-        LazyColumn(modifier = Modifier
-            .align(Alignment.TopCenter)
-            .fillMaxSize(),
+        LazyColumn(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(filteredTasks) { task ->
+            items(tasks) { task ->
                 key(task.id) {
                     TaskItem(task = task, viewModel = viewModel, editTask)
                 }
@@ -230,9 +234,8 @@ fun GenerateLazyColumnForTasks(
 }
 
 
-
 @Composable
-fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
+fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit) {
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
     val longPressHandler = Modifier.pointerInput(Unit) {
@@ -251,18 +254,24 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             .fillMaxWidth()
             .clipToBounds()
 
-    ){
-        Row(modifier = Modifier
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(1.dp)
-            .fillMaxWidth()
-            .clipToBounds()) {
-            Checkbox(modifier = Modifier.padding(10.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(1.dp)
+                .fillMaxWidth()
+                .clipToBounds()
+        ) {
+            Checkbox(
+                modifier = Modifier.padding(10.dp),
                 checked = task.isCompleted,
-                onCheckedChange ={
+                onCheckedChange = {
                     viewModel.changeTaskCompletion(task)
                 },
-                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+                colors = CheckboxDefaults.colors(
+                    MaterialTheme.colorScheme.tertiary,
+                    MaterialTheme.colorScheme.tertiary
+                )
             )
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
@@ -271,7 +280,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             Spacer(Modifier.weight(1f))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()}
+                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar() }
             )
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
@@ -286,11 +295,12 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             }
         }
         AnimatedVisibility(visible) {
-            Column(modifier = Modifier
-                .padding(2.dp)
-                .fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .padding(2.dp)
+                    .fillMaxWidth()
             ) {
-                for (subtask in viewModel.getSubtasks(task)){
+                for (subtask in viewModel.getSubtasks(task)) {
                     HorizontalDivider()
                     ShowSubTask(viewModel::changeSubtaskCompletion, task, subtask)
                 }
@@ -304,7 +314,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             deleteTask = {
                 showDialog.value = false
                 viewModel.removeTask(task)
-             },
+            },
             dismissDialog = { showDialog.value = false }
         )
     }
@@ -312,19 +322,20 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowTaskList (
-    viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
+fun ShowTaskList(
+    viewModel: TaskViewModel = hiltViewModel<TaskViewModel>(),
     onFloatingButtonClick: () -> Unit,
-    onEditTask: (Int) -> Unit) {
+    onEditTask: (Int) -> Unit
+) {
 
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
+    val sortingList = listOf("Priority Descending", "Priority Ascending", "A-Z", "Z-A")
 
     val tasks by viewModel.TaskState.collectAsStateWithLifecycle()
-    val showMonthPicker = remember{ mutableStateOf(false) }
+    val showMonthPicker = remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -333,7 +344,8 @@ fun ShowTaskList (
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
                 title = {
-                    Box(modifier = Modifier.fillMaxSize(),
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         val formatBigDate =
@@ -349,8 +361,9 @@ fun ShowTaskList (
                                 contentColor = MaterialTheme.colorScheme.onBackground,
                                 containerColor = MaterialTheme.colorScheme.background,
                                 disabledContainerColor = MaterialTheme.colorScheme.background,
-                                disabledContentColor = MaterialTheme.colorScheme.tertiary)
-                            ) {
+                                disabledContentColor = MaterialTheme.colorScheme.tertiary
+                            )
+                        ) {
                             Text(
                                 text = screenState.selectedData.format(formatBigDate).toString(),
                                 fontSize = 18.sp
@@ -364,12 +377,18 @@ fun ShowTaskList (
             FloatingActionButton(
                 shape = CircleShape,
                 containerColor = MaterialTheme.colorScheme.tertiary,
-                onClick = onFloatingButtonClick) {
+                onClick = onFloatingButtonClick
+            ) {
                 Icon(Icons.Filled.Add, "Add new Task")
             }
         },
         content = {
-            Surface(modifier = Modifier.padding(top = it.calculateTopPadding(),bottom=it.calculateBottomPadding())) {
+            Surface(
+                modifier = Modifier.padding(
+                    top = it.calculateTopPadding(),
+                    bottom = it.calculateBottomPadding()
+                )
+            ) {
                 Column(
                     modifier = Modifier.wrapContentSize(),
                     verticalArrangement = Arrangement.SpaceBetween,
@@ -377,16 +396,18 @@ fun ShowTaskList (
                 ) {
                     Box(
                         modifier = Modifier
-                            .wrapContentSize()
-                            .background(MaterialTheme.colorScheme.secondary),
-                        contentAlignment = Alignment.TopCenter
+                            .wrapContentHeight()
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.TopEnd
                     ) {
                         GenerateLazyRowForDays(
                             viewModel = viewModel,
                             listState = listState,
                             selectedDate = screenState.selectedData,
-                            onSelectedDate = viewModel::changeDate
-                        )
+                        ) { date ->
+                            viewModel.changeDate(date)
+                        }
                     }
                     Box(
                         modifier = Modifier
@@ -396,7 +417,7 @@ fun ShowTaskList (
                         contentAlignment = Alignment.TopEnd
                     ) {
                         Column {
-                            Row{
+                            Row {
                                 IconButton(onClick = { sortingVisible = !sortingVisible }) {
                                     Icon(
                                         imageVector = Icons.Filled.SortByAlpha,
@@ -414,12 +435,14 @@ fun ShowTaskList (
                                     ) {
                                         sortingList.forEach { optionLabel ->
                                             DropdownMenuItem(
-                                                text = { Text(text = optionLabel )},
-                                                onClick = { viewModel.selectSortingOption(optionLabel)
-                                                    sortingVisible = false},
+                                                text = { Text(text = optionLabel) },
+                                                onClick = {
+                                                    viewModel.selectSortingOption(optionLabel)
+                                                    sortingVisible = false
+                                                },
                                                 trailingIcon = {
                                                     Icon(
-                                                        imageVector = if(optionLabel == "Priority Descending" || optionLabel == "Z-A" ) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
+                                                        imageVector = if (optionLabel == "Priority Descending" || optionLabel == "Z-A") Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
                                                         contentDescription = "Trailing icon",
                                                         modifier = Modifier
                                                             .size(30.dp)
@@ -451,12 +474,12 @@ fun ShowTaskList (
                             }
                         }
                     }
-                    Box (
+                    Box(
                         modifier = Modifier
                             .wrapContentHeight()
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.TopCenter
+                        contentAlignment = Alignment.TopCenter
                     ) {
                         Column {
                             AnimatedVisibility(
@@ -471,13 +494,13 @@ fun ShowTaskList (
                                 enter = fadeIn(),
                                 exit = fadeOut()
                             ) {
-                                if(showMonthPicker.value) {
+                                if (showMonthPicker.value) {
                                     ElevatedCard {
                                         DatePickerDialogFunction(
                                             taskDateTimeMillis = System.currentTimeMillis(),
                                             onDateSelected = {
-                                               viewModel.changeMonthDate(it)
-                                                             },
+                                                viewModel.changeMonthDate(it)
+                                            },
                                             onDismiss = { showMonthPicker.value = false }
                                         )
                                     }
@@ -499,34 +522,46 @@ fun ShowTaskList (
                     }
                 }
             }
-            LaunchedEffect(true) {
-                listState.scrollToItem(28)
-            }
-        },
+        }
     )
+    LaunchedEffect(true) {
+        listState.scrollToItem(28)
+    }
 }
 
 @Composable
-fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,task: Task, subtask : SubTask) {
+fun ShowSubTask(
+    changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,
+    task: Task,
+    subtask: SubTask
+) {
     var checked by remember { mutableStateOf(subtask.completed) }
-    Row(modifier = Modifier
-        .fillMaxWidth()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
     ) {
-        Text(modifier = Modifier
-            .align(alignment = Alignment.CenterVertically)
-            .padding(10.dp),
-            text = subtask.title)
+        Text(
+            modifier = Modifier
+                .align(alignment = Alignment.CenterVertically)
+                .padding(10.dp),
+            text = subtask.title
+        )
         Spacer(modifier = Modifier.weight(1f))
-        Checkbox(modifier = Modifier.padding(10.dp),
+        Checkbox(
+            modifier = Modifier.padding(10.dp),
             checked = checked,
             onCheckedChange = {
                 //checked = !checked
                 changeSubtaskCompletion(task, subtask)
             },
-            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+            colors = CheckboxDefaults.colors(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.tertiary
+            )
         )
     }
 }
+
 @Preview
 @Composable
 fun ShowTaskListPreview() {
@@ -534,7 +569,7 @@ fun ShowTaskListPreview() {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
-        ){
+        ) {
             ShowTaskList(
                 onEditTask = { println("editing") },
                 onFloatingButtonClick = { println("Test") }

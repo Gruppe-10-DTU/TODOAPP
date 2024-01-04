@@ -191,7 +191,9 @@ class TaskViewModel @Inject constructor (
         }
     }
 
-
+    fun getTasks(): Flow<List<Task>> {
+        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) }}.map { sortTasks(it) }
+    }
 
     fun addPriority(priority: Priority) {
         viewModelScope.launch {
@@ -217,7 +219,7 @@ class TaskViewModel @Inject constructor (
         }
         return sortedTasks
     }
-    
+
     fun selectSortingOption(sortOption: String) {
         viewModelScope.launch {
             _UIState.update { currentState -> currentState.copy(sortedOption = sortOption)}
