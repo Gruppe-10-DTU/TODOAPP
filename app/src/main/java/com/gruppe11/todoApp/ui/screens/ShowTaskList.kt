@@ -2,6 +2,8 @@ package com.gruppe11.todoApp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -28,11 +30,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -72,6 +76,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
@@ -85,7 +90,6 @@ import java.util.Locale
 
 @Composable
 fun LinearDeterminateIndicator(progress: Float) {
-    //TODO: Refractor progressbars, make them update automatically.
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -99,7 +103,7 @@ fun LinearDeterminateIndicator(progress: Float) {
                     .height(10.dp)
                     .width(50.dp)
                     .rotate(-90f),
-                progress = progress,
+                progress = {progress},
                 trackColor = MaterialTheme.colorScheme.primaryContainer,
             )
     }
@@ -135,7 +139,7 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                    val formatFilterDate = DateTimeFormatter.ofPattern("E\n d.")
+                    val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
                     items(viewModel.DaysMap.value.keys.toList()) { day ->
                             Column(
                             verticalArrangement = Arrangement.SpaceEvenly,
@@ -150,7 +154,7 @@ fun GenerateLazyRowForDays(
                             Spacer(Modifier.height(2.dp))
                                 FilterChip(
                                     shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.dayOfYear == day.dayOfYear,
+                                    selected = selectedDate.toLocalDate() == day,
                                     onClick = {
                                         onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
                                               },
@@ -160,7 +164,8 @@ fun GenerateLazyRowForDays(
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier
                                                 .padding(0.dp)
-                                                .fillMaxWidth()
+                                                .fillMaxWidth(),
+                                            fontSize = 9.8.sp
                                         )
                                     },
                                     enabled = true,
@@ -305,8 +310,8 @@ fun ShowTaskList (
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    println(screenState.selectedData)
     val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
+    val showMonthPicker = remember{ mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -323,6 +328,7 @@ fun ShowTaskList (
                         TextButton(
                             onClick = {
                                 CoroutineScope(Dispatchers.Main).launch {
+                                    viewModel.changeMonthDate(LocalDateTime.now())
                                     listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
                                 }
                             },
@@ -400,6 +406,15 @@ fun ShowTaskList (
                                             .padding(4.dp)
                                     )
                                 }
+                                IconButton(onClick = { showMonthPicker.value = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.DateRange,
+                                        contentDescription = "Open YearMonth Picker",
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .padding(4.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -417,6 +432,23 @@ fun ShowTaskList (
                                 exit = slideOutVertically()
                             ) {
                                 FilterSection(taskViewModel = viewModel, state = screenState)
+                            }
+                            AnimatedVisibility(
+                                visible = showMonthPicker.value,
+                                enter = fadeIn(),
+                                exit = fadeOut()
+                            ) {
+                                if(showMonthPicker.value) {
+                                    ElevatedCard {
+                                        DatePickerDialogFunction(
+                                            taskDateTimeMillis = System.currentTimeMillis(),
+                                            onDateSelected = {
+                                               viewModel.changeMonthDate(it)
+                                                             },
+                                            onDismiss = { showMonthPicker.value = false }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
