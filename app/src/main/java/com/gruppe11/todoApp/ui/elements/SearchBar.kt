@@ -24,6 +24,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextFieldDefaults.shape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,17 +45,22 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.ui.screens.EditTaskScreen
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
+import com.gruppe11.todoApp.viewModel.TaskViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchBar() {
-    var text by remember { mutableStateOf("") }
+    val viewModel = viewModel<TaskViewModel>()
+    val searchText by viewModel.searchText.collectAsState()
+    val tasksShown by viewModel.tasksShown.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
 
     TextField(
-        value = text,
-        onValueChange = { text = it },
+        value = searchText,
+        onValueChange = viewModel::onSearchTextChange,
         label = { Text("Search") },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         modifier = Modifier
