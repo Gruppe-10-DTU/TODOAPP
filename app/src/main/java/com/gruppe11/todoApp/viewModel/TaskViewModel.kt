@@ -1,7 +1,9 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
+import androidx.compose.runtime.currentCompositionErrors
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
@@ -32,12 +34,22 @@ class TaskViewModel @Inject constructor (
 
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
 
-    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now(), false, false))
+    private val _UIState = MutableStateFlow(
+        TasksScreenState(
+            selectedData = LocalDateTime.now(),
+            completeFilter = false,
+            incompleteFilter = false,
+            priorities = mutableSetOf(),
+            sortedOption = "Priority Descending"
+        )
+    )
+
     val UIState = _UIState.asStateFlow()
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
     private val _filterTags = getFilterTags().toMutableSet()
-    
+
+
     val tags: Set<Tag>
         get() = _filterTags
 
@@ -60,7 +72,6 @@ class TaskViewModel @Inject constructor (
     }
     fun updateTask(task: Task, subtaskList: List<SubTask>){
         taskRepository.update(task)
-//        addSubtasks(task, subtaskList)
     }
 
     fun addTask(task: Task, subtaskList: List<SubTask>){
@@ -151,9 +162,35 @@ class TaskViewModel @Inject constructor (
         return ((_UIState.value.completeFilter && task.isCompleted) ||
                 (_UIState.value.incompleteFilter && !task.isCompleted) ||
                 (!_UIState.value.completeFilter && !_UIState.value.incompleteFilter))
+                && (_UIState.value.priorities.isEmpty() || _UIState.value.priorities.contains(task.priority))
     }
 
     fun getTasks(): Flow<List<Task>> {
-        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }
+        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) }}.map { sortTasks(it) }
+    }
+
+    private fun sortTasks(filteredTasks: List<Task>): List<Task> {
+        val sortedTasks = when (_UIState.value.sortedOption) {
+            "Priority Descending" -> filteredTasks.sortedByDescending { it.priority }
+            "Priority Ascending" -> filteredTasks.sortedBy { it.priority }
+            "A-Z" -> filteredTasks.sortedBy { it.title }
+            "Z-A" -> filteredTasks.sortedByDescending { it.title }
+            else -> filteredTasks
+        }
+        return sortedTasks
+    }
+    fun selectSortingOption(sortOption: String) {
+        _UIState.update { currentState -> currentState.copy(sortedOption = sortOption)}
+    }
+
+    fun addPriority(priority: Priority) {
+        val contains = _UIState.value.priorities.contains(priority)
+        val set = _UIState.value.priorities.toMutableSet()
+        if (contains) {
+            set.remove(priority)
+        } else {
+            set.add(priority)
+        }
+        _UIState.update { currentState -> currentState.copy(priorities = set) }
     }
 }
