@@ -148,23 +148,27 @@ fun TaskTable(
         viewModel.getTaskListByDate(state.value.selectedDay.atStartOfDay())
             .filter { it.deadline.toLocalDate() == state.value.selectedDay && !it.isCompleted }
             .sortedBy { it.deadline }
-            //.reversed()
-            .zipWithNext { taskA, taskB ->
-
+            .plus(null)
+            .zipWithNext() { taskA, taskB ->
                 CalendarTask(
-                    task = taskA,
+                    task = taskA!!,
                     offset = 50 + taskOffset,
                     slotHeight = slotHeight,
-                    taskHeight = taskHeight
+                    taskHeight = taskHeight,
+                    taskWidth = taskWidth
                 )
-                if (taskA.deadline <= taskB.deadline) taskOffset += taskWidth * sideFlip
-                else taskOffset -= taskWidth * sideFlip
-                CalendarTask(task = taskB,
-                    offset = 50 + taskOffset,
-                    slotHeight = slotHeight,
-                    taskHeight = taskHeight
-                )
-                sideFlip *= -1
+                if (taskB != null) {
+                    if (taskA.deadline <= taskB.deadline) taskOffset += taskWidth * sideFlip
+                    else taskOffset -= taskWidth * sideFlip
+                    CalendarTask(
+                        task = taskB,
+                        offset = 50 + taskOffset,
+                        slotHeight = slotHeight,
+                        taskHeight = taskHeight,
+                        taskWidth = taskWidth
+                    )
+                    sideFlip *= -1
+                }
             }
     }
 }
@@ -174,7 +178,8 @@ fun CalendarTask(
     task : Task,
     offset: Int,
     slotHeight: Int,
-    taskHeight: Int
+    taskHeight: Int,
+    taskWidth: Int
 ){
     ElevatedCard(
         modifier = Modifier
@@ -185,7 +190,7 @@ fun CalendarTask(
                                 + task.deadline.minute.times(slotHeight / 60))
                         ).dp - taskHeight.dp
             )
-            .size(150.dp, taskHeight.dp)
+            .size(taskWidth.dp, taskHeight.dp)
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.primary,
