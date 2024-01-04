@@ -56,7 +56,10 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,6 +76,7 @@ import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.w3c.dom.Text
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -228,6 +232,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
     val taskCompletionStatus by viewModel.TaskState.collectAsStateWithLifecycle()
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
+    val searchText = viewModel.searchText
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
@@ -257,10 +262,25 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
-            Text(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.title
-            )
+            if(searchText.toString().isBlank()) {
+                Text(
+                    modifier = Modifier.align(alignment = Alignment.CenterVertically),
+                    text = task.title
+                    )
+            } else {
+                val search = searchText.toString()
+                Text(
+                    modifier = Modifier.align(alignment = Alignment.CenterVertically),
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = Color.Blue)) {
+                            append(task.title)
+                        }
+                    }
+
+                    )
+                }
+
+
             Spacer(Modifier.weight(1f))
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
