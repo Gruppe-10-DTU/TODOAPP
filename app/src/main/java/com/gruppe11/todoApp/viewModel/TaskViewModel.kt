@@ -51,7 +51,7 @@ class TaskViewModel @Inject constructor (
     private fun getFilterTags() = emptySet<Tag>()
 
     init {
-        _DaysMap.value = generateMapOfDays()
+        _DaysMap.value = generateMapOfDays(null)
         viewModelScope.launch(Dispatchers.IO) {
             taskRepository.readAll().collect{
                 tasks -> _TaskState.value = tasks
@@ -61,7 +61,10 @@ class TaskViewModel @Inject constructor (
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return _TaskState.value.filter {it.deadline.toLocalDate() == date.toLocalDate()}
     }
-
+    fun changeMonthDate(date:LocalDateTime){
+        changeDate(date)
+        _DaysMap.value = generateMapOfDays(date)
+    }
     fun changeDate(date: LocalDateTime) {
         _UIState.update { currentState -> currentState.copy(selectedData = date)}
     }
@@ -73,7 +76,7 @@ class TaskViewModel @Inject constructor (
     fun addTask(task: Task, subtaskList: List<SubTask>){
         val tmpTask = taskRepository.createTask(task)
         addSubtasks(tmpTask, subtaskList)
-        val newDays = generateMapOfDays()
+        val newDays = generateMapOfDays(null)
         if (_DaysMap.compareAndSet(newDays, newDays)) {
             println("Updated")
         } else {
@@ -86,9 +89,12 @@ class TaskViewModel @Inject constructor (
     }
 
     @SuppressLint("NewApi")
-    fun generateMapOfDays(): MutableMap<LocalDate, Float> {
+    fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
-        var tmp = LocalDateTime.now().minusDays(30)
+        var tmp:LocalDateTime = LocalDateTime.now().minusDays(30)
+        if(date != null) {
+            tmp = date.minusDays(30)
+        }
         for(i in 0 .. 60){
             toReturn[tmp.toLocalDate()] = countTaskCompletionsByDay(tmp)
             tmp = tmp.plusDays(1)
