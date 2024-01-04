@@ -6,29 +6,38 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
@@ -43,9 +52,14 @@ fun SchedulingScreen(
         viewModel: CalendarViewModel,
         taskViewModel: TaskViewModel = hiltViewModel()
 ) {
-    val timeslots =  (2 .. 5).toList() // TODO Fetch list from persistent storage
-    val timeSlotHeight = 180.dp // TODO Proper calculation of slot height
+    val timeslots: List<IntRange> =  listOf((0 .. 5), (6..11), (12..17), (18..23))// TODO Fetch list from persistent storage
+    var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val columnScrollState = rememberScrollState()
+    val taskList = taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
+    val taskHeight = 80.dp
+    val taskWidth = 100.dp
+
 
     Scaffold(
         topBar = {
@@ -55,23 +69,28 @@ fun SchedulingScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .onGloballyPositioned { coordinates ->
+                    timeSlotHeight = coordinates.size.height
+                }
+                //.verticalScroll(columnScrollState)
         ) {
-            items(timeslots) {slot ->
+            timeslots.forEach() {slot ->
                 TimeSlot(
                     timeSlot = slot,
-                    timeSlotHeight = timeSlotHeight
+                    slotHeight = (timeSlotHeight / timeslots.size).dp
                 ) {
-                    LazyHorizontalGrid(rows = GridCells.Fixed(2),
-                        modifier = Modifier.height(timeSlotHeight)) {
-                        items(taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
-                            .sortedBy { it.deadline }
-                            .filter { it.deadline.hour <= slot && it.deadline.hour >= slot }  // TODO implement timeslot data class
+                    LazyVerticalGrid(columns = GridCells.Adaptive(taskWidth)) {
+                        items(taskList.filter { slot.contains(it.deadline.hour) }  // TODO implement timeslot data class
                         ) { task ->
-                            ScheduleTask(task = task)
+                            ScheduleTask(
+                                task = task,
+                                height = taskHeight,
+                                width = taskWidth
+                                )
                         }
                     }
                 }
@@ -83,28 +102,31 @@ fun SchedulingScreen(
 
 @Composable
 fun TimeSlot(
-    timeSlotHeight: Dp,
-    timeSlot: Any,
+    slotHeight: Dp,
+    timeSlot: IntRange,
     content: @Composable () -> Unit
 ){
     HorizontalDivider()
-    Row(modifier = Modifier.height(timeSlotHeight)) {
+    Row(modifier = Modifier
+        .defaultMinSize(minHeight = 150.dp)
+    ) {
         Column(
             modifier = Modifier
-                .width(60.dp)
-                .fillMaxHeight(),
+                .defaultMinSize(minHeight = 150.dp)
+                .padding(5.dp, 10.dp),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(5.dp))
             Text(
-                text = "Slot ".plus(timeSlot),
-                fontSize = 20.sp
+                text = "Slot",
+                fontSize = 18.sp
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Text(text = "start")
+            Text(text = timeSlot.first.toString())
             Text(text = "-")
-            Text(text = "end")
-            Spacer(Modifier.fillMaxHeight())
+            Text(text = timeSlot.last.toString())
+            Spacer(Modifier.height(20.dp))
         }
         content()
     }
@@ -112,7 +134,9 @@ fun TimeSlot(
 
 @Composable
 fun ScheduleTask(
-    task: Task
+    task: Task,
+    height: Dp,
+    width: Dp
 ){
     val prioColor = when (task.priority) {
         Priority.HIGH -> Color.Red
@@ -121,7 +145,7 @@ fun ScheduleTask(
     }
     ElevatedCard(
         modifier = Modifier
-            .width(80.dp)
+            .size(width, height)
             .padding(2.dp)
             .border(
                 width = 1.dp,
