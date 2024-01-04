@@ -85,10 +85,13 @@ class TaskViewModel @Inject constructor (
     }
 
     fun addTask(task: Task, subtaskList: List<SubTask>){
-        val tmpTask = taskRepository.createTask(task)
-        addSubtasks(tmpTask, subtaskList)
-        val newDays = generateMapOfDays(null)
-        _DaysMap.compareAndSet(newDays, newDays)
+        viewModelScope.launch {
+            val tmpTask = taskRepository.createTask(task)
+            updateTasks()
+            addSubtasks(tmpTask, subtaskList)
+            val newDays = generateMapOfDays(null)
+            _DaysMap.compareAndSet(newDays, newDays)
+        }
     }
 
     fun removeTask(task: Task){
