@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gruppe11.todoApp.ui.screens.CalendarScreen
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
+import com.gruppe11.todoApp.ui.screens.SchedulingScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
 import com.gruppe11.todoApp.viewModel.CalendarViewModel
@@ -51,6 +52,10 @@ fun MainNavHost(
             CreateTaskContent(returnPage = {
                 navController.popBackStack()
             })
+        }
+        composable(route = Scheduler.route){
+            val viewModel = hiltViewModel<CalendarViewModel>()
+            SchedulingScreen(viewModel = viewModel)
         }
         composable(
             route = EditTask.route,
