@@ -62,7 +62,7 @@ fun FilterSection(
                         taskViewModel.addPriority(priority)
                     },
                     label = {
-                        Text(priority.name.lowercase())
+                        Text(priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()})
                     },
                     selected = state.priorities.contains(priority),
                     modifier = Modifier

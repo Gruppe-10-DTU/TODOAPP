@@ -260,7 +260,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             Spacer(Modifier.weight(1f))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.priority.name.lowercase().capitalize()
+                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar() }
             )
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
