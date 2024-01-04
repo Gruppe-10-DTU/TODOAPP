@@ -2,20 +2,27 @@ package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -32,7 +39,15 @@ class TaskViewModel @Inject constructor (
 
     private var _DaysMap = MutableStateFlow(emptyMap<LocalDate,Float>())
 
-    private val _UIState = MutableStateFlow(TasksScreenState(LocalDateTime.now(), false, false))
+    private val _UIState = MutableStateFlow(
+        TasksScreenState(
+            selectedData = LocalDateTime.now(),
+            completeFilter = false,
+            incompleteFilter = false,
+            priorities = mutableSetOf(),
+            sortedOption = "Priority Descending"
+        )
+    )
     val UIState = _UIState.asStateFlow()
     val DaysMap : StateFlow<Map<LocalDate,Float>> get() = _DaysMap
 
@@ -44,7 +59,7 @@ class TaskViewModel @Inject constructor (
     private fun getFilterTags() = emptySet<Tag>()
 
     init {
-        _DaysMap.value = generateMapOfDays()
+        _DaysMap.value = generateMapOfDays(null)
         viewModelScope.launch(Dispatchers.IO) {
             taskRepository.readAll().collect{
                 tasks -> _TaskState.value = tasks
@@ -54,9 +69,15 @@ class TaskViewModel @Inject constructor (
     fun getTaskListByDate(date: LocalDateTime): List<Task>{
         return _TaskState.value.filter {it.deadline.toLocalDate() == date.toLocalDate()}
     }
-
+    fun changeMonthDate(date:LocalDateTime){
+        changeDate(date)
+        _DaysMap.value = generateMapOfDays(date)
+    }
     fun changeDate(date: LocalDateTime) {
-        _UIState.update { currentState -> currentState.copy(selectedData = date)}
+        viewModelScope.launch {
+            _UIState.update { currentState -> currentState.copy(selectedData = date)}
+            updateTasks()
+        }
     }
     fun updateTask(task: Task, subtaskList: List<SubTask>){
         taskRepository.update(task)
@@ -64,13 +85,12 @@ class TaskViewModel @Inject constructor (
     }
 
     fun addTask(task: Task, subtaskList: List<SubTask>){
-        val tmpTask = taskRepository.createTask(task)
-        addSubtasks(tmpTask, subtaskList)
-        val newDays = generateMapOfDays()
-        if (_DaysMap.compareAndSet(newDays, newDays)) {
-            println("Updated")
-        } else {
-            println("Not updated")
+        viewModelScope.launch {
+            val tmpTask = taskRepository.createTask(task)
+            updateTasks()
+            addSubtasks(tmpTask, subtaskList)
+            val newDays = generateMapOfDays(null)
+            _DaysMap.compareAndSet(newDays, newDays)
         }
     }
 
@@ -79,9 +99,12 @@ class TaskViewModel @Inject constructor (
     }
 
     @SuppressLint("NewApi")
-    fun generateMapOfDays(): MutableMap<LocalDate, Float> {
+    fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
-        var tmp = LocalDateTime.now().minusDays(30)
+        var tmp:LocalDateTime = LocalDateTime.now().minusDays(30)
+        if(date != null) {
+            tmp = date.minusDays(30)
+        }
         for(i in 0 .. 60){
             toReturn[tmp.toLocalDate()] = countTaskCompletionsByDay(tmp)
             tmp = tmp.plusDays(1)
@@ -138,12 +161,20 @@ class TaskViewModel @Inject constructor (
     }
 
     fun changeFilter(target: String) {
-        when (target) {
-            "complete" -> _UIState.update { currentState -> currentState.copy(completeFilter = !currentState.completeFilter) }
-            "incomplete" -> _UIState.update { currentState -> currentState.copy(incompleteFilter = !currentState.incompleteFilter) }
-        }
-        if (_UIState.value.completeFilter && _UIState.value.incompleteFilter) {
-            _UIState.update { currentState -> currentState.copy(completeFilter = false, incompleteFilter = false) }
+        viewModelScope.launch {
+            when (target) {
+                "complete" -> _UIState.update { currentState -> currentState.copy(completeFilter = !currentState.completeFilter) }
+                "incomplete" -> _UIState.update { currentState -> currentState.copy(incompleteFilter = !currentState.incompleteFilter) }
+            }
+            if (_UIState.value.completeFilter && _UIState.value.incompleteFilter) {
+                _UIState.update { currentState ->
+                    currentState.copy(
+                        completeFilter = false,
+                        incompleteFilter = false
+                    )
+                }
+            }
+            updateTasks()
         }
     }
 
@@ -151,9 +182,46 @@ class TaskViewModel @Inject constructor (
         return ((_UIState.value.completeFilter && task.isCompleted) ||
                 (_UIState.value.incompleteFilter && !task.isCompleted) ||
                 (!_UIState.value.completeFilter && !_UIState.value.incompleteFilter))
+                && (_UIState.value.priorities.isEmpty() || _UIState.value.priorities.contains(task.priority))
     }
 
-    fun getTasks(): Flow<List<Task>> {
-        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }
+    suspend fun updateTasks() {
+        taskRepository.readAll().map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }.map { sortTasks(it) }.collect{
+            _TaskState.emit(it)
+        }
+    }
+
+
+
+    fun addPriority(priority: Priority) {
+        viewModelScope.launch {
+            val contains = _UIState.value.priorities.contains(priority)
+            val set = _UIState.value.priorities.toMutableSet()
+            if (contains) {
+                set.remove(priority)
+            } else {
+                set.add(priority)
+            }
+            _UIState.update { currentState -> currentState.copy(priorities = set) }
+            updateTasks()
+        }
+    }
+
+    private fun sortTasks(filteredTasks: List<Task>): List<Task> {
+        val sortedTasks = when (_UIState.value.sortedOption) {
+            "Priority Descending" -> filteredTasks.sortedByDescending { it.priority }
+            "Priority Ascending" -> filteredTasks.sortedBy { it.priority }
+            "A-Z" -> filteredTasks.sortedBy { it.title }
+            "Z-A" -> filteredTasks.sortedByDescending { it.title }
+            else -> filteredTasks
+        }
+        return sortedTasks
+    }
+    
+    fun selectSortingOption(sortOption: String) {
+        viewModelScope.launch {
+            _UIState.update { currentState -> currentState.copy(sortedOption = sortOption)}
+            updateTasks()
+        }
     }
 }
