@@ -30,8 +30,8 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     override fun update(task: Task): Task {
         val index: Int = tasks.value.indexOfFirst { it.id == task.id }
         if (index >= 0) {
-            tasks.update{ taskList ->
-                taskList.toMutableList().apply { this[index] = task }
+            tasks.update{
+                tasks.value.toMutableList().apply { this[index] = task }
             }
         }
 
