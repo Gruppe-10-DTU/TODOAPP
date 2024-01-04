@@ -210,7 +210,7 @@ fun GenerateLazyColumnForTasks(
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(filteredTasks) { task ->
