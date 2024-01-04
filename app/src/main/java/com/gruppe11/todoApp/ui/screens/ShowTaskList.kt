@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,16 +28,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -56,7 +50,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -71,10 +64,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.decapitalize
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -127,6 +117,7 @@ fun GenerateLazyRowForDays(
     onSelectedDate: (LocalDateTime) -> Unit,
     ) {
     val daysMap by viewModel.DaysMap.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .wrapContentSize()
@@ -159,7 +150,7 @@ fun GenerateLazyRowForDays(
                             Spacer(Modifier.height(2.dp))
                                 FilterChip(
                                     shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.toLocalDate() == day,
+                                    selected = selectedDate.dayOfYear == day.dayOfYear,
                                     onClick = {
                                         onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
                                               },
@@ -200,13 +191,14 @@ fun GenerateLazyRowForDays(
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
     filteredTasks: List<Task>,
-    editTask: (Int) -> Unit,
+    editTask: (Int) -> Unit
 ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 5.dp)
-            ) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 5.dp)
+    ) {
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxSize(),
@@ -220,7 +212,6 @@ fun GenerateLazyColumnForTasks(
             }
         }
     }
-
 }
 
 
@@ -263,10 +254,6 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 text = task.title
             )
             Spacer(Modifier.weight(1f))
-            Text(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar() }
-            )
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
@@ -311,12 +298,14 @@ fun ShowTaskList (
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
 
+    //Change this variable when we want to display different months.
+    var selectedMonth by remember{mutableIntStateOf(LocalDateTime.now().monthValue)}
+    var selectedDay by remember{ mutableIntStateOf(LocalDateTime.now().dayOfMonth) }
+    var selectedYear by remember{mutableIntStateOf(LocalDateTime.now().year)}
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
-    println(screenState.selectedData)
     var filterTagsVisible by remember { mutableStateOf(false) }
-    var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
+    println(screenState.selectedData)
     val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
     Scaffold(
         topBar = {
@@ -367,6 +356,18 @@ fun ShowTaskList (
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+//                    SwitchableButton(text = "test subtask adder",
+//                        onClick = {
+//                            if(viewModel.getTaskList().isNotEmpty()) {
+//                                val task = viewModel.getTask(1)
+//                                viewModel.addSubtasks(
+//                                    task,
+//                                    listOf(SubTask("TEST TEST", viewModel.getSubtasks(task).size+1, false))
+//                                )
+//                            }
+//                                  },
+//                        isFilled = true,
+//                        pickedColor = MaterialTheme.colorScheme.tertiary)
                     Box(
                         modifier = Modifier
                             .wrapContentSize()
@@ -390,39 +391,6 @@ fun ShowTaskList (
                     ) {
                         Column {
                             Row{
-                                IconButton(onClick = { sortingVisible = !sortingVisible }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.SortByAlpha,
-                                        contentDescription = "Open sorting",
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .padding(4.dp)
-                                    )
-                                }
-                                if (sortingVisible) {
-                                    DropdownMenu(
-                                        expanded = sortingVisible,
-                                        onDismissRequest = { sortingVisible = false },
-                                        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
-                                    ) {
-                                        sortingList.forEach { optionLabel ->
-                                            DropdownMenuItem(
-                                                text = { Text(text = optionLabel )},
-                                                onClick = { viewModel.selectSortingOption(optionLabel)
-                                                    sortingVisible = false},
-                                                trailingIcon = {
-                                                    Icon(
-                                                        imageVector = if(optionLabel == "Priority Descending" || optionLabel == "Z-A" ) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
-                                                        contentDescription = "Trailing icon",
-                                                        modifier = Modifier
-                                                            .size(30.dp)
-                                                            .padding(4.dp)
-                                                    )
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
                                 IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
                                     Icon(
                                         imageVector = Icons.Filled.Tune,
@@ -437,8 +405,8 @@ fun ShowTaskList (
                     }
                     Box (
                         modifier = Modifier
-                            .wrapContentHeight(unbounded = true)
-                            .fillMaxSize()
+                            .wrapContentHeight()
+                            .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background),
                             contentAlignment = Alignment.TopCenter
                     ) {
@@ -452,7 +420,6 @@ fun ShowTaskList (
                             }
                         }
                     }
-
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
