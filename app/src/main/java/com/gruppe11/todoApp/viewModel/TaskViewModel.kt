@@ -7,15 +7,21 @@ import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -37,6 +43,7 @@ class TaskViewModel @Inject constructor (
             selectedData = LocalDateTime.now(),
             completeFilter = false,
             incompleteFilter = false,
+            priorities = mutableSetOf(),
             sortedOption = "Priority Descending"
         )
     )
@@ -66,7 +73,10 @@ class TaskViewModel @Inject constructor (
         _DaysMap.value = generateMapOfDays(date)
     }
     fun changeDate(date: LocalDateTime) {
-        _UIState.update { currentState -> currentState.copy(selectedData = date)}
+        viewModelScope.launch {
+            _UIState.update { currentState -> currentState.copy(selectedData = date)}
+         updateTasks()
+        }
     }
     fun updateTask(task: Task, subtaskList: List<SubTask>){
         taskRepository.update(task)
@@ -151,12 +161,20 @@ class TaskViewModel @Inject constructor (
     }
 
     fun changeFilter(target: String) {
-        when (target) {
-            "complete" -> _UIState.update { currentState -> currentState.copy(completeFilter = !currentState.completeFilter) }
-            "incomplete" -> _UIState.update { currentState -> currentState.copy(incompleteFilter = !currentState.incompleteFilter) }
-        }
-        if (_UIState.value.completeFilter && _UIState.value.incompleteFilter) {
-            _UIState.update { currentState -> currentState.copy(completeFilter = false, incompleteFilter = false) }
+        viewModelScope.launch {
+            when (target) {
+                "complete" -> _UIState.update { currentState -> currentState.copy(completeFilter = !currentState.completeFilter) }
+                "incomplete" -> _UIState.update { currentState -> currentState.copy(incompleteFilter = !currentState.incompleteFilter) }
+            }
+            if (_UIState.value.completeFilter && _UIState.value.incompleteFilter) {
+                _UIState.update { currentState ->
+                    currentState.copy(
+                        completeFilter = false,
+                        incompleteFilter = false
+                    )
+                }
+            }
+            updateTasks()
         }
     }
 
@@ -164,8 +182,32 @@ class TaskViewModel @Inject constructor (
         return ((_UIState.value.completeFilter && task.isCompleted) ||
                 (_UIState.value.incompleteFilter && !task.isCompleted) ||
                 (!_UIState.value.completeFilter && !_UIState.value.incompleteFilter))
+                && (_UIState.value.priorities.isEmpty() || _UIState.value.priorities.contains(task.priority))
     }
 
+    suspend fun updateTasks() {
+        taskRepository.readAll().map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) } }.collect{
+            _TaskState.emit(it)
+        }
+    }
+
+    fun getTasks(): Flow<List<Task>> {
+        return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) }}.map { sortTasks(it) }
+    }
+
+    fun addPriority(priority: Priority) {
+        viewModelScope.launch {
+            val contains = _UIState.value.priorities.contains(priority)
+            val set = _UIState.value.priorities.toMutableSet()
+            if (contains) {
+                set.remove(priority)
+            } else {
+                set.add(priority)
+            }
+            _UIState.update { currentState -> currentState.copy(priorities = set) }
+            updateTasks()
+        }
+    }
     fun getTasks(): Flow<List<Task>> {
         return TaskState.map { it.filter { task -> task.deadline.toLocalDate().equals(_UIState.value.selectedData.toLocalDate()) && filterTask(task) }}.map { sortTasks(it) }
     }

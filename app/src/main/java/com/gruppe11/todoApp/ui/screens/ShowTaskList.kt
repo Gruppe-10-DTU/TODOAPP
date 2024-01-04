@@ -91,6 +91,7 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -268,6 +269,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 text = task.title
             )
             Spacer(Modifier.weight(1f))
+            Text(
+                modifier = Modifier.align(alignment = Alignment.CenterVertically),
+                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar() }
+            )
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
