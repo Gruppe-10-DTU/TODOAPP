@@ -202,11 +202,12 @@ fun GenerateLazyColumnForTasks(
     filteredTasks: List<Task>,
     editTask: (Int) -> Unit,
 ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 5.dp)
-            ) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 5.dp)
+    ) {
         LazyColumn(modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxSize(),
