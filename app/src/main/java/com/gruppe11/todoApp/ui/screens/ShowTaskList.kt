@@ -91,6 +91,7 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -163,7 +164,7 @@ fun GenerateLazyRowForDays(
                             Spacer(Modifier.height(2.dp))
                                 FilterChip(
                                     shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.toLocalDate() == day,
+                                    selected = selectedDate.toLocalDate().equals(day),
                                     onClick = {
                                         onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
                                               },
@@ -268,6 +269,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 text = task.title
             )
             Spacer(Modifier.weight(1f))
+            Text(
+                modifier = Modifier.align(alignment = Alignment.CenterVertically),
+                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()}
+            )
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
@@ -313,12 +318,12 @@ fun ShowTaskList (
     onEditTask: (Int) -> Unit) {
 
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
-    println(screenState.selectedData)
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
-    val tasks by viewModel.getTasks().collectAsStateWithLifecycle(initialValue = emptyList())
+
+    val tasks by viewModel.TaskState.collectAsStateWithLifecycle()
     val showMonthPicker = remember{ mutableStateOf(false) }
     Scaffold(
         topBar = {
@@ -380,9 +385,8 @@ fun ShowTaskList (
                             viewModel = viewModel,
                             listState = listState,
                             selectedDate = screenState.selectedData,
-                        ) { date ->
-                            viewModel.changeDate(date)
-                        }
+                            onSelectedDate = viewModel::changeDate
+                        )
                     }
                     Box(
                         modifier = Modifier
