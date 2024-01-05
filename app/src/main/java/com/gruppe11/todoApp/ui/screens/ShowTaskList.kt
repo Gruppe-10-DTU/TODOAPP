@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,13 +59,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,10 +71,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.decapitalize
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -91,10 +84,10 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -131,7 +124,7 @@ fun GenerateLazyRowForDays(
     selectedDate: LocalDateTime,
     onSelectedDate: (LocalDateTime) -> Unit,
 ) {
-    val daysMap by viewModel.DaysMap.collectAsStateWithLifecycle()
+    val daysMap by viewModel.DaysMap.collectAsStateWithLifecycle(initialValue = emptyMap<LocalDate, Float>())
     Box(
         modifier = Modifier
             .wrapContentSize()
@@ -150,7 +143,7 @@ fun GenerateLazyRowForDays(
 
                 ) {
                     val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
-                    items(viewModel.DaysMap.value.keys.toList()) { day ->
+                    items(daysMap.keys.toList()) { day ->
                             Column(
                             verticalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier.wrapContentSize(),
@@ -323,7 +316,7 @@ fun ShowTaskList (
     val listState = rememberLazyListState()
     val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
 
-    val tasks by viewModel.TaskState.collectAsStateWithLifecycle()
+    val tasks by viewModel.TaskState.collectAsStateWithLifecycle(initialValue = emptyList())
     val showMonthPicker = remember{ mutableStateOf(false) }
     Scaffold(
         topBar = {
@@ -341,7 +334,7 @@ fun ShowTaskList (
                         TextButton(
                             onClick = {
                                 CoroutineScope(Dispatchers.Main).launch {
-                                    viewModel.changeMonthDate(LocalDateTime.now())
+                                    viewModel.changeDate(LocalDateTime.now())
                                     listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
                                 }
                             },
@@ -352,7 +345,7 @@ fun ShowTaskList (
                                 disabledContentColor = MaterialTheme.colorScheme.tertiary)
                             ) {
                             Text(
-                                text = screenState.selectedData.format(formatBigDate).toString(),
+                                text = screenState.selectedDate.format(formatBigDate).toString(),
                                 fontSize = 18.sp
                             )
                         }
@@ -384,7 +377,7 @@ fun ShowTaskList (
                         GenerateLazyRowForDays(
                             viewModel = viewModel,
                             listState = listState,
-                            selectedDate = screenState.selectedData,
+                            selectedDate = screenState.selectedDate,
                             onSelectedDate = viewModel::changeDate
                         )
                     }
@@ -475,9 +468,7 @@ fun ShowTaskList (
                                     ElevatedCard {
                                         DatePickerDialogFunction(
                                             taskDateTimeMillis = System.currentTimeMillis(),
-                                            onDateSelected = {
-                                               viewModel.changeMonthDate(it)
-                                                             },
+                                            onDateSelected = viewModel::changeDate,
                                             onDismiss = { showMonthPicker.value = false }
                                         )
                                     }

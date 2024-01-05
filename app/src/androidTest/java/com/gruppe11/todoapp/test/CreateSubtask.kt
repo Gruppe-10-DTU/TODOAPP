@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.test
 
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
@@ -18,19 +19,24 @@ class CreateSubtask {
     private lateinit var task : Task;
     @Given("I have created a task")
     fun iHaveCreatedATask() {
-        viewModel.addTask(1, "new task", LocalDateTime.now(), "HIGH", false, listOf())
-        task = viewModel.getTask(1);
+
+        task = Task(1,"test", Priority.MEDIUM, LocalDateTime.now(), false)
+        viewModel.addTask(
+            task,
+            emptyList()
+        )
+        viewModel.getTaskListByDate(LocalDateTime.now())
     }
 
     @When("I fill out a subtask and save it")
     fun iFillOutASubtaskAndSaveIt() {
-        subtask = SubTask("Subtask", 1);
-        viewModel.addSubtasks(viewModel.getTask(1), listOf(subtask));
+        subtask = SubTask("Subtask", 1)
+        viewModel.addSubtasks(viewModel.getTaskListByDate(LocalDateTime.now())[0], listOf(subtask))
     }
 
     @Then("The subtask is saved to the database")
     fun theSubtaskIsSavedToTheDatabase() {
-        val subtasks : List<SubTask> =viewModel.getSubtasks(task);
-        assertEquals(1, subtasks.size);
+        val subtasks : List<SubTask> =viewModel.getSubtasks(task)
+        assertEquals(1, subtasks.size)
     }
 }
