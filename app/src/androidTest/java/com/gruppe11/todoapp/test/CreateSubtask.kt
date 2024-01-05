@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.test
 
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
@@ -18,8 +19,10 @@ class CreateSubtask {
     private lateinit var task : Task;
     @Given("I have created a task")
     fun iHaveCreatedATask() {
+
+        task = Task(1,"test", Priority.MEDIUM, LocalDateTime.now(), false)
         viewModel.addTask(
-            task.copy(task.id,task.title,task.priority,task.deadline,task.isCompleted),
+            task,
             emptyList()
         )
         viewModel.getTaskListByDate(LocalDateTime.now())
