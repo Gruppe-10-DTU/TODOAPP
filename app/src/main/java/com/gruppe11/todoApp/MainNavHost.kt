@@ -38,8 +38,7 @@ fun MainNavHost(
         composable(route = Calendar.route) {
             // Creates a ViewModel from the current BackStackEntry
             // Available in the androidx.hilt:hilt-navigation-compose artifact
-            val viewModel = hiltViewModel<CalendarViewModel>()
-            CalendarScreen(viewModel)
+            CalendarScreen()
         }
 
         composable(route = Settings.route) {
