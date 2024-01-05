@@ -413,7 +413,7 @@ fun ShowTaskList (
                             modifier = Modifier
                                 .fillMaxWidth()
                         ) {
-                            SearchBar()
+                            SearchBar(screenState)
                             }
                         Column {
                             Row{

@@ -46,16 +46,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SearchBar() {
+fun SearchBar(
+    state: TasksScreenState
+) {
     val viewModel = viewModel<TaskViewModel>()
-    val searchText by viewModel.searchText.collectAsState()
-    val tasksShown by viewModel.tasksShown.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
+    val searchText = state.searchText
 
     TextField(
         value = searchText,
@@ -75,16 +76,5 @@ fun SearchBar() {
     )
 }
 
-@Preview
-@Composable
-fun SearchBarPreview() {
-    TODOAPPTheme() {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ){
-            SearchBar()
-        }
-    }
-}
+
 
