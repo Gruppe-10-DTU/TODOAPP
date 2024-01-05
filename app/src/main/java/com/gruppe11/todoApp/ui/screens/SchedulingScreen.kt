@@ -76,7 +76,7 @@ fun SchedulingScreen(
             state = columnScrollState
         ) {
             items(timeslots.value){slot ->
-                val slotHeight = (24 / (slot.end.hour - slot.start.hour)).times(50).dp
+                val slotHeight = (24 / (slot.end.hour - slot.start.hour)).times(30).dp
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = slotHeight
@@ -109,7 +109,7 @@ fun SchedulingScreen(
 }
 
 @Composable
-fun TimeSlot(
+fun TimeSlot (
     slotHeight: Dp,
     timeSlot: TimeSlot, // TODO Change type to match timeslot implementation
     content: @Composable () -> Unit
@@ -127,7 +127,7 @@ fun TimeSlot(
         ) {
             Spacer(Modifier.height(5.dp))
             Text(
-                text = "Slot",
+                text = timeSlot.name,
                 fontSize = 18.sp
             )
             Spacer(modifier = Modifier.height(10.dp))
