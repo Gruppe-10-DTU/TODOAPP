@@ -57,7 +57,7 @@ class ScheduleViewModel(
             timeSlotRepository.create(
                 TimeSlot(
                     id = 0,
-                    name = "Slot $it",
+                    name = "Slot ".plus(it + 1),
                     start = time,
                     end = time.plusHours(3L),
                     tasks = emptyList()
