@@ -1,5 +1,7 @@
 package com.gruppe11.todoApp.test
 
+import com.gruppe11.todoApp.model.Priority
+import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
 import com.gruppe11.todoApp.repository.TaskRepositoryImpl
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -8,22 +10,27 @@ import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import org.junit.Assert
 import java.time.LocalDateTime
-
 class RemoveTasksTest {
     private val viewModel: TaskViewModel = TaskViewModel(TaskRepositoryImpl(), SubtaskRepositoryImpl())
+    private lateinit var task : Task
 
     @Given("A task already exists, and I want to remove it")
     fun aTaskAlreadyExistsAndIWantToRemoveIt() {
-        viewModel.addTask(1,"TaskToRemove", LocalDateTime.now(),"HIGH",false, listOf())
+        task = Task(0,"Hej", Priority.MEDIUM,LocalDateTime.now(),false)
+        viewModel.addTask(
+            task = task,
+            listOf()
+        )
+
     }
 
     @When("Clicking the task, a menu should appear allowing me to edit or remove the task")
     fun clickingTheTaskAMenuShouldAppearAllowingMeToEditOrRemoveTheTask() {
-        viewModel.removeTask(viewModel.getTask(1))
+        viewModel.removeTask(task)
     }
 
     @Then("The task should now disappear from the list")
     fun theMenuDisappearsACuratedSelectionOfTasksWithTheCorrespondingSelectedDateShouldAppear() {
-        Assert.assertTrue(viewModel.getTaskList().isEmpty())
+        Assert.assertTrue(viewModel.getTask(task.id) == null)
     }
 }
