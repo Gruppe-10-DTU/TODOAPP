@@ -1,8 +1,5 @@
 package com.gruppe11.todoApp.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import java.time.LocalTime
 
 data class TimeSlot(
@@ -10,5 +7,5 @@ data class TimeSlot(
     val name: String,
     val start: LocalTime,
     val end: LocalTime,
-    val tasks: List<Int>?
+    val tasks: List<Task> = emptyList()
 )
