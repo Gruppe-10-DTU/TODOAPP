@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import com.gruppe11.todoApp.repository.TimeSlotRepositoryImpl
 import com.gruppe11.todoApp.ui.screens.CalendarScreen
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
+import com.gruppe11.todoApp.ui.screens.ManageTimeSlots
 import com.gruppe11.todoApp.ui.screens.SchedulingScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
@@ -24,7 +25,8 @@ fun MainNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-
+    val scheduleViewModel = ScheduleViewModel(TimeSlotRepositoryImpl())
+    scheduleViewModel.generateTestingTimeSlots() // TODO REMOVE BEFORE SHIPPING
     NavHost(
         navController = navController,
         startDestination = Task.route,
@@ -45,7 +47,9 @@ fun MainNavHost(
         }
 
         composable(route = Settings.route) {
-            SettingsPage()
+            SettingsPage(
+                manageTimeSlot = {navController.navigate(ManageTimeSlots.route)}
+            )
         }
 
         // Task destinations
@@ -55,9 +59,7 @@ fun MainNavHost(
             })
         }
         composable(route = Scheduler.route){
-            val viewModel = ScheduleViewModel(TimeSlotRepositoryImpl())
-            viewModel.generateTestingTimeSlots() // TODO REMOVE BEFORE SHIPPING
-            SchedulingScreen(viewModel = viewModel)
+            SchedulingScreen(viewModel = scheduleViewModel)
         }
         composable(
             route = EditTask.route,
@@ -73,6 +75,11 @@ fun MainNavHost(
                 returnPage = { navController.popBackStack() },
                 taskId = it.arguments?.getInt("taskId")
             )
+        }
+        composable(route = ManageTimeSlots.route){
+            ManageTimeSlots(
+                returnPage = { navController.popBackStack() },
+                viewModel = scheduleViewModel)
         }
     }
 }
