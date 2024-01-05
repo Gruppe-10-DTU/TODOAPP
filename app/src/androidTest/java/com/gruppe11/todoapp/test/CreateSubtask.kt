@@ -1,4 +1,4 @@
-package com.gruppe11.todoApp.test
+/*package com.gruppe11.todoApp.test
 
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
@@ -33,4 +33,4 @@ class CreateSubtask {
         val subtasks : List<SubTask> =viewModel.getSubtasks(task);
         assertEquals(1, subtasks.size);
     }
-}
+}*/

@@ -206,13 +206,6 @@ fun GenerateLazyColumnForTasks(
     filteredTasks: List<Task>,
     editTask: (Int) -> Unit
 ) {
-    //Maybe delete
-    val filteredTasks =
-        viewModel.TaskState.collectAsStateWithLifecycle().value
-            .filter{it.deadline.toLocalDate() == selectedDate.toLocalDate()}
-
-    val taskShown = viewModel.tasksShown.collectAsStateWithLifecycle().value
-        .filter{it.deadline.toLocalDate() == selectedDate.toLocalDate()}
 
     Box(
         modifier = Modifier
