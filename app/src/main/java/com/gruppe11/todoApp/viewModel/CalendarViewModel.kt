@@ -2,7 +2,6 @@ package com.gruppe11.todoApp.viewModel
 
 import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
-import dagger.assisted.Assisted
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
