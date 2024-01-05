@@ -1,46 +1,28 @@
 package com.gruppe11.todoApp.repository
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.gruppe11.todoApp.model.Task
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
+import com.gruppe11.todoApp.network.TodoApi
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
-    private var id = 1
-    private val tasks: MutableStateFlow<List<Task>> = MutableStateFlow(emptyList());
 
-    override fun createTask(task: Task): Task {
-        val newTask = task.copy(id = id++)
-        tasks.value = tasks.value + newTask
-        return newTask
+    override suspend fun createTask(task: Task): Task {
+        return TodoApi.taskServiceImpl.createTask(task)
     }
 
-    override fun read(id: Int): Task? {
-        return tasks.value.find { task: Task -> task.id == id }
+    override suspend fun read(id: Int): Task? {
+        return TodoApi.taskServiceImpl.read(id)
     }
 
-    override fun readAll(): Flow<List<Task>> {
-        return tasks
+    override suspend fun readAll(): List<Task> {
+        return TodoApi.taskServiceImpl.readAll()
     }
 
-    override fun update(task: Task): Task {
-        val index: Int = tasks.value.indexOfFirst { it.id == task.id }
-        if (index >= 0) {
-            tasks.update{
-                tasks.value.toMutableList().apply { this[index] = task }
-            }
-        }
-
-        return task
+    override suspend fun update(task: Task): Task {
+        return TodoApi.taskServiceImpl.update(task.id, task)
     }
 
-    override fun delete(task: Task) {
-        tasks.update {
-            tasks.value.toMutableList().apply { remove(task) }
-        }
+    override suspend fun delete(task: Task) {
+        return TodoApi.taskServiceImpl.delete(task.id)
     }
 }
