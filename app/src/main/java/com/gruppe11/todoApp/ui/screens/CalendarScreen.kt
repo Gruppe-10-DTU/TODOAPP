@@ -32,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.DateSideScroller
-import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
 import com.gruppe11.todoApp.viewModel.CalendarViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -142,7 +141,7 @@ fun TaskTable(
         val taskHeight = 60
         val taskWidth = 150
         var sideFlip = 1
-            tasks.value
+        tasks.value
             .plus(null)
             .zipWithNext { taskA, taskB ->
                 CalendarTask(
