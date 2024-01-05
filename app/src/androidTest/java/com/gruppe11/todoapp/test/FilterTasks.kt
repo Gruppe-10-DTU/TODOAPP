@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.test
 
+import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
 import com.gruppe11.todoApp.repository.TaskRepositoryImpl
@@ -9,6 +10,7 @@ import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertFalse
 import java.time.LocalDateTime
 
 class FilterTasks {
@@ -21,12 +23,13 @@ class FilterTasks {
     fun iHaveCreatedMultipleTasksAndIWantToQuicklyBeAbleToGroupThemByDay() {
         for (i in 1.. 5){
             viewModel.addTask(
-                task.copy(0,task.title,task.priority,selectedDate,task.isCompleted),
-                emptyList()
+                Task(i,"test", Priority.MEDIUM,LocalDateTime.now(),false),
+                listOf()
             )
         }
         val latedate : LocalDateTime = LocalDateTime.now().minusDays(5);
-        viewModel.addTask(task.copy(0,task.title,task.priority,latedate,task.isCompleted),
+        viewModel.addTask(Task(6,"test", Priority.MEDIUM,latedate,false)
+        ,
         emptyList())
     }
 
@@ -40,14 +43,14 @@ class FilterTasks {
         val tasks : List<Task> = viewModel.getTaskListByDate(selectedDate);
         assertEquals(5, tasks.size);
         for (task : Task in tasks){
-            //assertEquals(task.deadline.toLocalDate(), selectedDate.toLocalDate());
+            assertEquals(task.deadline.toLocalDate(), selectedDate.toLocalDate());
         }
     }
 
     @And("All the tasks that do not have the associated date should not be displayed")
     fun allTheTasksThatDoNotHaveTheAssociatedDateShouldNotBeDisplayed() {
         val tasks : List<Task> = viewModel.getTaskListByDate(selectedDate)
-        //assertEquals(6, tasks.size);
+        assertFalse(tasks.size == 6);
 
     }
 }
