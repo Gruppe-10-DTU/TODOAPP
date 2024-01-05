@@ -18,6 +18,7 @@ import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -121,8 +122,9 @@ fun DateSideScroller(
                         )
                     )
                 }
-            }
-            )
+            })
+        }
+        LaunchedEffect(key1 = uiState.value.currentDay){
             CoroutineScope(Dispatchers.Main).launch {
                 listState.scrollToItem(
                     index = 5,
