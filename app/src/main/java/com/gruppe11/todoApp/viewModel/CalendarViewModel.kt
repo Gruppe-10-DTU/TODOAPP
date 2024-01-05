@@ -1,13 +1,21 @@
 package com.gruppe11.todoApp.viewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -15,6 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
+    taskRepository : ITaskRepository
 ) : ViewModel() {
     private val state: CalendarScreenState = CalendarScreenState()
 
@@ -30,6 +39,21 @@ class CalendarViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(state)
     val uiState = _uiState.asStateFlow()
+
+    private val _tasks = MutableStateFlow<List<Task>>(emptyList())
+
+    val tasks = _tasks.combine(_uiState) { tasks, uiState ->
+        tasks.filter { it.deadline.toLocalDate() == uiState.selectedDay && !it.isCompleted }
+            .sortedBy { it.deadline }
+    }.distinctUntilChanged()
+
+    init {
+        viewModelScope.launch {
+            taskRepository.readAll().collect{
+                _tasks.value = it
+            }
+        }
+    }
 
 
     private fun getCalendarFlow():Flow<List<LocalDate>> {
