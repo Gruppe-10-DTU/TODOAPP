@@ -80,11 +80,6 @@ dependencies {
     androidTestImplementation("io.cucumber:cucumber-picocontainer:7.14.1")
     // Compose navigation
     implementation 'androidx.navigation:navigation-compose:{latest_version}'
-
-    // Room database
-    implementation "androidx.room:room-runtime:2.6.1"
-    annotationProcessor "androidx.room:room-compiler:2.6.1"
-
     
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:32.3.1')

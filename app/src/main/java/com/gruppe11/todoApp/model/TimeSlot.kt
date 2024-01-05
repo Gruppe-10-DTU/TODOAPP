@@ -5,10 +5,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalTime
 
-@Entity
 data class TimeSlot(
-    @PrimaryKey val name: String,
-    @ColumnInfo(name = "start") val start: LocalTime,
-    @ColumnInfo(name = "end") val end: LocalTime,
-    @ColumnInfo(name = "tasks") val tasks: List<Int>?
+    val id: Int,
+    val name: String,
+    val start: LocalTime,
+    val end: LocalTime,
+    val tasks: List<Int>?
 )
