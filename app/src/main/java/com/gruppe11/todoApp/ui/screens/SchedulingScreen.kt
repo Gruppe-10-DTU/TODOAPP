@@ -32,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,12 +55,12 @@ fun SchedulingScreen(
         taskViewModel: TaskViewModel = hiltViewModel()
 ) {
     val timeslots: List<IntRange> =  listOf((0 .. 5), (6..11), (12..17), (18..23))// TODO Fetch list from persistent storage
-    var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
+    //var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val columnScrollState = rememberLazyListState()
     val taskList = taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
-    val taskHeight = 60.dp
-    val taskWidth = 60.dp
+    val taskHeight = 75.dp
+    val taskWidth = 75.dp
 
 
     Scaffold(
@@ -79,10 +78,7 @@ fun SchedulingScreen(
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize()
-                .onGloballyPositioned { coordinates ->
-                    timeSlotHeight = coordinates.size.height
-                },
+                .fillMaxSize(),
             state = columnScrollState
         ) {
             items(timeslots){slot ->
@@ -128,7 +124,7 @@ fun TimeSlot(
     ) {
         Column(
             modifier = Modifier
-                .defaultMinSize(minHeight = slotHeight)
+                .defaultMinSize(minHeight = slotHeight, minWidth = 50.dp)
                 .padding(5.dp, 10.dp),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -187,8 +183,10 @@ suspend fun  scrollToCurrentTime(
     state: LazyListState,
     slots: List<IntRange> // TODO Change type to match timeslot implementation
 ){
-    slots.forEach{
-        if (it.contains(LocalDateTime.now().hour))
-        state.scrollToItem(slots.indexOf(it))
+    slots.forEach {
+        if (it.contains(LocalDateTime.now().hour)) {
+            state.scrollToItem(slots.indexOf(it))
+
+        }
     }
 }
