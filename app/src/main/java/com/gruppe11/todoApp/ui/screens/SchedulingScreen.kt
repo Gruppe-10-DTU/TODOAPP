@@ -25,40 +25,34 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DateSideScroller
-import com.gruppe11.todoApp.viewModel.CalendarViewModel
-import com.gruppe11.todoApp.viewModel.TaskViewModel
+import com.gruppe11.todoApp.viewModel.ScheduleViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 
 @Composable
 fun SchedulingScreen(
-        viewModel: CalendarViewModel,
-        taskViewModel: TaskViewModel = hiltViewModel()
+    viewModel: ScheduleViewModel,
 ) {
-    val timeslots: List<IntRange> =  listOf((0 .. 5), (6..11), (12..17), (18..23))// TODO Fetch list from persistent storage
+    val timeslots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     //var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val columnScrollState = rememberLazyListState()
-    val taskList = taskViewModel.getTaskListByDate(uiState.value.selectedDay.atStartOfDay())
     val taskHeight = 75.dp
     val taskWidth = 75.dp
 
@@ -69,7 +63,7 @@ fun SchedulingScreen(
                 viewModel = viewModel,
                 onTitleClick = {
                     CoroutineScope(Dispatchers.Main).launch {
-                        scrollToCurrentTime(state = columnScrollState, slots = timeslots)
+                        scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
                     }
                 }
             )
@@ -81,24 +75,26 @@ fun SchedulingScreen(
                 .fillMaxSize(),
             state = columnScrollState
         ) {
-            items(timeslots){slot ->
-                val slotHeight = (24 / (slot.last - slot.first)).times(50).dp
+            items(timeslots.value){slot ->
+                val slotHeight = (24 / (slot.end.hour - slot.start.hour)).times(50).dp
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = slotHeight
                 ) {
                     LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
-                        items(items = taskList // TODO implement timeslot data class
-                            .filter { slot.contains(it.deadline.hour) }
-                            .sortedBy { it.priority }
-                            .reversed()
-                        ) { task ->
-                            ScheduleTask(
-                                task = task,
-                                height = taskHeight,
-                                width = taskWidth
-                                )
-                        }
+                        slot.tasks // TODO implement timeslot data class
+                            ?.filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
+                            ?.sortedBy { it.priority }?.let {
+                                items(items = it
+                                    .reversed()
+                                ) { task ->
+                                    ScheduleTask(
+                                        task = task,
+                                        height = taskHeight,
+                                        width = taskWidth
+                                    )
+                                }
+                            }
                     }
                 }
                 HorizontalDivider()
@@ -106,7 +102,7 @@ fun SchedulingScreen(
         }
         LaunchedEffect(key1 = LocalDateTime.now().hour) {
             if (uiState.value.selectedDay == LocalDate.now()) {
-                scrollToCurrentTime(state = columnScrollState, slots = timeslots)
+                scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
             }
         }
     }
@@ -115,7 +111,7 @@ fun SchedulingScreen(
 @Composable
 fun TimeSlot(
     slotHeight: Dp,
-    timeSlot: IntRange, // TODO Change type to match timeslot implementation
+    timeSlot: TimeSlot, // TODO Change type to match timeslot implementation
     content: @Composable () -> Unit
 ){
     HorizontalDivider()
@@ -135,9 +131,9 @@ fun TimeSlot(
                 fontSize = 18.sp
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Text(text = timeSlot.first.toString())
+            Text(text = timeSlot.start.toString())
             Text(text = "-")
-            Text(text = timeSlot.last.toString())
+            Text(text = timeSlot.end.toString())
             Spacer(Modifier.height(20.dp))
         }
         content()
@@ -181,11 +177,11 @@ fun ScheduleTask(
 
 suspend fun  scrollToCurrentTime(
     state: LazyListState,
-    slots: List<IntRange> // TODO Change type to match timeslot implementation
+    slots: List<TimeSlot> // TODO Change type to match timeslot implementation
 ){
     slots.forEach {
-        if (it.contains(LocalDateTime.now().hour)) {
-            state.scrollToItem(slots.indexOf(it))
+        if (LocalTime.now().isAfter(it.start)) {
+            state.scrollToItem(slots.indexOf(it) + 1)
 
         }
     }

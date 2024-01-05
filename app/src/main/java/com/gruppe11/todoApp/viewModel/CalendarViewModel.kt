@@ -4,16 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.ITaskRepository
-import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
+import com.gruppe11.todoApp.ui.screenStates.ScheduleScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -24,21 +22,21 @@ import javax.inject.Inject
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     taskRepository : ITaskRepository
-) : ViewModel() {
-    private val state: CalendarScreenState = CalendarScreenState()
+) : ScheduleApi, ViewModel()  {
+    private val state = ScheduleScreenState()
 
     private val dayPeriod = Period.of(0, 0, 1)
 
     val startDay: LocalDate = LocalDate.now().minusDays(7)
     private var dateList: List<LocalDate> = emptyList()
-    val dates: Flow<List<LocalDate>> = getCalendarFlow()
+    override val dates = getCalendarFlow()
 
     var currentTime: LocalDateTime = LocalDateTime.MIN
     private var timeIntervalList: List<LocalDateTime> = emptyList()
     val time = getTimeFlow()
 
     private val _uiState = MutableStateFlow(state)
-    val uiState = _uiState.asStateFlow()
+    override val uiState = _uiState.asStateFlow()
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
 
@@ -85,7 +83,7 @@ class CalendarViewModel @Inject constructor(
         return times
     }
 
-    fun onSelectedDayChange(day: LocalDate){
+    override fun onSelectedDayChange(day: LocalDate){
         _uiState.update { currentState ->
             currentState.copy(
                 selectedDay = day

@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gruppe11.todoApp.viewModel.CalendarViewModel
+import com.gruppe11.todoApp.viewModel.ScheduleApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,7 +35,7 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateSideScroller(
-    viewModel: CalendarViewModel,
+    viewModel: ScheduleApi,
     onTitleClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
