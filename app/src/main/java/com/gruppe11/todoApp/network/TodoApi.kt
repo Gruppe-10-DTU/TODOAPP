@@ -1,15 +1,15 @@
 package com.gruppe11.todoApp.network
 
+import android.content.res.Resources
+import com.gruppe11.todoApp.R
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 
-private const val apiUrl = "http://10.0.2.2:8080"
-
 private val retrofit = Retrofit.Builder()
     .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
-    .baseUrl(apiUrl)
+    .baseUrl(Resources.getSystem().getString(R.string.apiUrl))
     .build()
 
 object TodoApi {
