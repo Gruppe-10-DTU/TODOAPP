@@ -114,5 +114,5 @@ fun EditTaskDialog(
 @Preview
 @Composable
 fun EditTaskDialogPreview(){
-    EditTaskDialog(Task(1, "Task: 1", Priority.HIGH, LocalDateTime.now(),false), {}, {}, {})
+    EditTaskDialog(Task(1, "Task: 1", Priority.HIGH, LocalDateTime.now(),false, emptyList()), {}, {}, {})
 }

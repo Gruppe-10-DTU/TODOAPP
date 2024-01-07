@@ -89,7 +89,7 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false)) }
+    var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false, emptyList())) }
 
     val addSubtask: () -> Unit = {
         if (subtaskName.text.isNotEmpty()) {
@@ -118,7 +118,8 @@ fun CreateTaskContent(
             title = taskName.text,
             deadline = date,
             priority = Priority.valueOf(priority),
-            isCompleted = false
+            isCompleted = false,
+            subtasks = emptyList()
         )
     }
 

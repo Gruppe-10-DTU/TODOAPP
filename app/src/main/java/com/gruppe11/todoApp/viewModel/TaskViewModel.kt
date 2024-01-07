@@ -70,7 +70,10 @@ class TaskViewModel @Inject constructor (
         }
     }
     fun updateTask(task: Task, subtaskList: List<SubTask>){
-        taskRepository.update(task)
+        viewModelScope.launch {
+            taskRepository.update(task)
+        }
+
 //        addSubtasks(task, subtaskList)
     }
 
@@ -83,7 +86,9 @@ class TaskViewModel @Inject constructor (
     }
 
     fun removeTask(task: Task){
-        taskRepository.delete(task)
+        viewModelScope.launch {
+            taskRepository.delete(task)
+        }
     }
 
     @SuppressLint("NewApi")
@@ -110,8 +115,9 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
-        subtaskRepository.update(task, subtask.copy(completed = !subtask.completed));
-
+        viewModelScope.launch {
+            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed));
+        }
     }
 
     fun countTaskCompletionsByDay( date: LocalDateTime): Float {
@@ -126,21 +132,26 @@ class TaskViewModel @Inject constructor (
         return totComp/totTask.toFloat()
     }
 
-    fun getSubtasks(currentTask: Task): List<SubTask> {
+    suspend fun getSubtasks(currentTask: Task): List<SubTask> {
         return subtaskRepository.readAll(currentTask)
+
     }
     fun removeSubtask(task: Task, subTask: SubTask){
-        subtaskRepository.delete(task,subTask)
+        viewModelScope.launch {
+            subtaskRepository.delete(task, subTask)
+        }
     }
-    fun getTask(taskId: Int): Task? {
+    suspend fun getTask(taskId: Int): Task? {
         return taskRepository.read(taskId)
     }
 
     fun addSubtasks(task: Task, subtasks: List<SubTask>){
-        val existingSubtasks = subtaskRepository.readAll(task)
-        val newSubtasks = subtasks.filterNot { existingSubtasks.contains(it) }
-        for (subtask in newSubtasks) {
-            subtaskRepository.createSubtask(task, subtask)
+        viewModelScope.launch {
+            val existingSubtasks = subtaskRepository.readAll(task)
+            val newSubtasks = subtasks.filterNot { existingSubtasks.contains(it) }
+            for (subtask in newSubtasks) {
+                subtaskRepository.createSubtask(task, subtask)
+            }
         }
     }
 
@@ -161,7 +172,7 @@ class TaskViewModel @Inject constructor (
         }
     }
 
-    fun filterTask(task: Task): Boolean {
+    private fun filterTask(task: Task): Boolean {
         return  (task.deadline.toLocalDate() == _UIState.value.selectedDate.toLocalDate()) &&
                 ((_UIState.value.completeFilter && task.isCompleted) ||
                 (_UIState.value.incompleteFilter && !task.isCompleted) ||
