@@ -87,7 +87,7 @@ dependencies {
     androidTestImplementation("io.cucumber:cucumber-picocontainer:7.14.1")
     // Compose navigation
     implementation 'androidx.navigation:navigation-compose:{latest_version}'
-
+    
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:32.3.1')
 

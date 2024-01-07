@@ -18,6 +18,7 @@ import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gruppe11.todoApp.viewModel.CalendarViewModel
+import com.gruppe11.todoApp.viewModel.ScheduleApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,7 +35,7 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateSideScroller(
-    viewModel: CalendarViewModel,
+    viewModel: ScheduleApi,
     onTitleClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -121,8 +122,9 @@ fun DateSideScroller(
                         )
                     )
                 }
-            }
-            )
+            })
+        }
+        LaunchedEffect(key1 = uiState.value.currentDay){
             CoroutineScope(Dispatchers.Main).launch {
                 listState.scrollToItem(
                     index = 5,
