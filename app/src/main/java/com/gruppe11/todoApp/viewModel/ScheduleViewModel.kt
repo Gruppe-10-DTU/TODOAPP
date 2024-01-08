@@ -9,26 +9,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 
 
 class ScheduleViewModel(
     private val timeSlotRepository: ITimeSlotRepository,
-    ): ScheduleApi, ViewModel() {
+    ): ViewModel() {
 
     val timeSlots = timeSlotRepository.readAll()
     private val _uiState = MutableStateFlow(ScheduleScreenState())
-    override val uiState = _uiState.asStateFlow()
-    override val dates = getCalendarFlow()
+    val uiState = _uiState.asStateFlow()
+    val dates = getCalendarFlow()
 
-    override fun onSelectedDayChange(day: LocalDate){
-        _uiState.update { currentState ->
-            currentState.copy(
-                selectedDay = day
-            )
-        }
-    }
     private fun getCalendarFlow(): Flow<List<LocalDate>> {
 
         val dates = flow {
@@ -57,7 +49,7 @@ class ScheduleViewModel(
             timeSlotRepository.create(
                 TimeSlot(
                     id = 0,
-                    name = "Slot $it",
+                    name = "Slot ".plus(it + 1),
                     start = time,
                     end = time.plusHours(3L),
                     tasks = emptyList()
