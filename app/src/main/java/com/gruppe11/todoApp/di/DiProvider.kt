@@ -30,7 +30,7 @@ object DiProvider {
 
     @Provides
     @Singleton
-    fun providesTimeSlotRepository() : ITimeSlotRepository {
+    fun providesTimeSlotRepository(): ITimeSlotRepository {
         return TimeSlotRepositoryImpl()
     }
 }

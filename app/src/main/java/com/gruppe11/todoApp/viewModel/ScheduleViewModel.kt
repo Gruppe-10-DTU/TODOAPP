@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.ui.screenStates.ScheduleScreenState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
 import javax.inject.Inject
 
-
+@HiltViewModel
 class ScheduleViewModel @Inject constructor(
     private val timeSlotRepository: ITimeSlotRepository,
     ): ViewModel() {
@@ -47,7 +48,7 @@ class ScheduleViewModel @Inject constructor(
         var time = LocalDate.now().atStartOfDay().toLocalTime().plusHours(6L)
 
         repeat(3) {
-            timeSlotRepository.create(
+            createTimeSlot(
                 TimeSlot(
                     id = 0,
                     name = "Slot ".plus(it + 1),

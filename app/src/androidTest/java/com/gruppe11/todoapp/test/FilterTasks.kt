@@ -11,6 +11,7 @@ import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
+import kotlinx.coroutines.test.runTest
 import java.time.LocalDateTime
 
 class FilterTasks {
@@ -20,7 +21,7 @@ class FilterTasks {
     private lateinit var task : Task
 
     @Given("I have created multiple tasks, and I want to quickly be able to group them by day.")
-    fun iHaveCreatedMultipleTasksAndIWantToQuicklyBeAbleToGroupThemByDay() {
+    fun iHaveCreatedMultipleTasksAndIWantToQuicklyBeAbleToGroupThemByDay() = runTest {
         for (i in 1.. 5){
             viewModel.addTask(
                 Task(i,"test", Priority.MEDIUM,LocalDateTime.now(),false),
@@ -34,12 +35,12 @@ class FilterTasks {
     }
 
     @When("I select a date in the date selector.")
-    fun iSelectADateInTheDateSelector() {
+    fun iSelectADateInTheDateSelector() = runTest {
         selectedDate = LocalDateTime.now();
     }
 
     @Then("A curated selection of tasks with the corresponding selected date should appear")
-    fun aCuratedSelectionOfTasksWithTheCorrespondingSelectedDateShouldAppear() {
+    fun aCuratedSelectionOfTasksWithTheCorrespondingSelectedDateShouldAppear() = runTest {
         val tasks : List<Task> = viewModel.getTaskListByDate(selectedDate);
         assertEquals(5, tasks.size);
         for (task : Task in tasks){
@@ -48,7 +49,7 @@ class FilterTasks {
     }
 
     @And("All the tasks that do not have the associated date should not be displayed")
-    fun allTheTasksThatDoNotHaveTheAssociatedDateShouldNotBeDisplayed() {
+    fun allTheTasksThatDoNotHaveTheAssociatedDateShouldNotBeDisplayed() = runTest {
         val tasks : List<Task> = viewModel.getTaskListByDate(selectedDate)
         assertFalse(tasks.size == 6);
 
