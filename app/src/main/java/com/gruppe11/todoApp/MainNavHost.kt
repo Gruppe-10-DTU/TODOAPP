@@ -1,9 +1,7 @@
 package com.gruppe11.todoApp
 
-import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,11 +9,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gruppe11.todoApp.ui.screens.CalendarScreen
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
+import com.gruppe11.todoApp.ui.screens.SchedulingScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
-import com.gruppe11.todoApp.viewModel.CalendarViewModel
 
-@SuppressLint("NewApi")
 @Composable
 fun MainNavHost(
     navController: NavHostController,
@@ -38,8 +35,7 @@ fun MainNavHost(
         composable(route = Calendar.route) {
             // Creates a ViewModel from the current BackStackEntry
             // Available in the androidx.hilt:hilt-navigation-compose artifact
-            val viewModel = hiltViewModel<CalendarViewModel>()
-            CalendarScreen(viewModel)
+            CalendarScreen()
         }
 
         composable(route = Settings.route) {
@@ -51,6 +47,9 @@ fun MainNavHost(
             CreateTaskContent(returnPage = {
                 navController.popBackStack()
             })
+        }
+        composable(route = Scheduler.route){
+            SchedulingScreen()
         }
         composable(
             route = EditTask.route,
