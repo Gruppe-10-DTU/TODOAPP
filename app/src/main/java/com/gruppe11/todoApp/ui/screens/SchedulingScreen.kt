@@ -77,7 +77,7 @@ fun SchedulingScreen(
             state = columnScrollState
         ) {
             items(timeslots.value){slot ->
-                val slotHeight = (24 / (slot.end.hour - slot.start.hour)).times(30).dp
+                val slotHeight = 250.dp
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = slotHeight

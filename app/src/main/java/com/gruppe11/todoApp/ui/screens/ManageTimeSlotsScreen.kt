@@ -48,7 +48,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ManageTimeSlots(
+fun ManageTimeSlotsScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
     returnPage: () -> Unit
 ) {
@@ -90,7 +90,14 @@ fun ManageTimeSlots(
             item {
                 TextButton(
                     modifier = Modifier.padding(vertical = 10.dp),
-                    onClick = { /*TODO*/ },
+                    onClick = { viewModel.createTimeSlot(
+                        TimeSlot(
+                            id = 0,
+                            name = "new time slot",
+                            start = LocalTime.now(),
+                            end = LocalTime.now().plusHours(1)
+                        )
+                    ) },
                     colors = ButtonColors(
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         containerColor = MaterialTheme.colorScheme.primary,

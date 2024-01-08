@@ -73,11 +73,15 @@ fun TimePickerDialog(
                     .fillMaxWidth()
                     .padding(10.dp, 0.dp),
                 horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically) {
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 TextButton(onClick = { dismiss() }) {
                     Text(text = "Cancel", fontSize = 18.sp)
                 }
-                TextButton(onClick = { confirm(state.hour, state.minute) }) {
+                TextButton(onClick = {
+                    confirm(state.hour, state.minute)
+                    dismiss()
+                }) {
                     Text(text = "Save", fontSize = 18.sp)
                 }
             }
