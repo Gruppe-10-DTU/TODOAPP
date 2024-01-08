@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
@@ -47,7 +48,7 @@ import java.time.LocalTime
 
 @Composable
 fun SchedulingScreen(
-    viewModel: ScheduleViewModel,
+    viewModel: ScheduleViewModel = hiltViewModel(),
 ) {
     val timeslots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     //var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
@@ -82,7 +83,7 @@ fun SchedulingScreen(
                     slotHeight = slotHeight
                 ) {
                     LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
-                        slot.tasks // TODO implement timeslot data class
+                        slot.tasks
                             .filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
                             .sortedBy { it.priority }.let {
                                 items(items = it
@@ -111,7 +112,7 @@ fun SchedulingScreen(
 @Composable
 fun TimeSlot (
     slotHeight: Dp,
-    timeSlot: TimeSlot, // TODO Change type to match timeslot implementation
+    timeSlot: TimeSlot,
     content: @Composable () -> Unit
 ){
     HorizontalDivider()

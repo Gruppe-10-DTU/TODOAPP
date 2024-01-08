@@ -1,17 +1,15 @@
 package com.gruppe11.todoApp.repository
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+
 import com.gruppe11.todoApp.model.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     private var id = 1
-    private val tasks: MutableStateFlow<List<Task>> = MutableStateFlow(emptyList());
+    private val tasks: MutableStateFlow<List<Task>> = MutableStateFlow(emptyList())
 
     override fun createTask(task: Task): Task {
         val newTask = task.copy(id = id++)

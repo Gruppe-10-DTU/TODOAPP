@@ -40,13 +40,15 @@ class ScheduleViewModel(
     fun createTimeSlot(timeSlot: TimeSlot){
         timeSlotRepository.create(timeSlot)
     }
-
+    fun updateTimeSlot(timeSlot: TimeSlot) {
+        timeSlotRepository.update(timeSlot)
+    }
     // TODO Remove before shipping
     fun generateTestingTimeSlots() {
         var time = LocalDate.now().atStartOfDay().toLocalTime().plusHours(6L)
 
         repeat(3) {
-            timeSlotRepository.create(
+            createTimeSlot(
                 TimeSlot(
                     id = 0,
                     name = "Slot ".plus(it + 1),
@@ -58,4 +60,6 @@ class ScheduleViewModel(
             time = time.plusHours(6L)
         }
     }
+
+
 }

@@ -10,39 +10,51 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.TimeSlot
-import com.gruppe11.todoApp.ui.elements.SwitchableButton
+import com.gruppe11.todoApp.ui.elements.TimePickerDialog
 import com.gruppe11.todoApp.viewModel.ScheduleViewModel
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageTimeSlots(
-    viewModel: ScheduleViewModel,
+    viewModel: ScheduleViewModel = hiltViewModel(),
     returnPage: () -> Unit
 ) {
     val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
-    var tmpList = emptyList<TimeSlot>()
-    timeSlots.value.forEach{ tmpList = tmpList.plus(it.copy())}
+    val deleteModalVisible = remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
         topBar = {
@@ -62,63 +74,58 @@ fun ManageTimeSlots(
                     }
                 },
             )
-        },
-        bottomBar = {
-            HorizontalDivider()
-            BottomAppBar(
-                containerColor = MaterialTheme.colorScheme.background,
-            ) {
-                //Cancel button
-                SwitchableButton(
-                    text = "Cancel",
-                    onClick = { returnPage() },
-                    isFilled = false,
-                    pickedColor = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                )
-
-                // Save button
-                SwitchableButton(
-                    text = "Save",
-                    onClick = { /*TODO*/ },
-                    isFilled = true,
-                    pickedColor = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                )
-            }
-        }
-    ) {padding ->
+        }) {padding ->
         LazyColumn(
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(tmpList.sortedBy { it.start }){
+            items(items = timeSlots.value, itemContent = {slot ->
                 EditableTimeSlot(
-                    timeSlot = it,
-                    onDelete = { tmpList = tmpList.filterNot { element -> element.id == it.id } },
+                    timeSlot = slot,
+                    onChanges = { viewModel.updateTimeSlot(it) },
+                    onDelete = {  },
                 )
                 HorizontalDivider(thickness = 1.dp)
+            })
+            item {
+                TextButton(
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    onClick = { /*TODO*/ },
+                    colors = ButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = Color.Transparent,
+                        disabledContentColor = Color.Transparent
+                    )
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                    Text(text = "Create new timeslot", fontSize = 20.sp)
+                }
             }
-
         }
-
+        if (deleteModalVisible.value){
+            // TODO DELETE DIALOG
+            Dialog(onDismissRequest = { /*TODO*/ }) {
+                Text(text = "NOT IMPLEMENTED")
+            }
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditableTimeSlot(
     timeSlot: TimeSlot,
+    onChanges: (TimeSlot) -> Unit,
     onDelete: () -> Unit,
 ){
+    val changeStart = remember{ mutableStateOf(false) }
+    val changeEnd = remember{ mutableStateOf(false) }
+
     Row(modifier = Modifier.padding(15.dp,5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onDelete) {
+        IconButton(onClick = { onDelete() } ) {
             Icon(
                 imageVector = Icons.Default.RemoveCircleOutline,
                 contentDescription = null,
@@ -127,8 +134,9 @@ fun EditableTimeSlot(
         Column(modifier = Modifier.padding(5.dp,0.dp)) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
                 value = timeSlot.name,
-                onValueChange = { /*TODO*/ },
+                onValueChange = { onChanges(timeSlot.copy(name = it)) },
                 label = { Text(text = "Name")}
             )
             Row(
@@ -136,22 +144,57 @@ fun EditableTimeSlot(
                     .fillMaxWidth()
                     .padding(0.dp, 5.dp),
                 horizontalArrangement = Arrangement.SpaceBetween) {
-                OutlinedTextField(
-                    modifier = Modifier.width(150.dp),
-                    value = timeSlot.start.format(DateTimeFormatter.ofPattern("HH:mm")),
-                    onValueChange = { /*TODO*/ },
-                    label = { Text(text = "Start")}
-                )
-                OutlinedTextField(
-                    modifier = Modifier.width(150.dp),
-                    value = timeSlot.end.format(DateTimeFormatter.ofPattern("HH:mm")),
-                    onValueChange = { /*TODO*/ },
-                    label = { Text(text = "End")}
-                )
+                OutlinedButton(
+                    onClick = { changeStart.value = true },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = Color.Transparent,
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .width(140.dp)
+                ) {
+                    Text(
+                        text = timeSlot.start.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        fontSize = 18.sp
+                    )
+                }
+                OutlinedButton(
+                    onClick = { changeEnd.value = true },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = Color.Transparent,
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .width(140.dp)
+                ) {
+                    Text(
+                        text = timeSlot.end.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        fontSize = 18.sp
+                    )
+                }
+                if (changeStart.value) {
+                    TimePickerDialog(
+                        dismiss = { changeStart.value = false },
+                        confirm = {hours, minutes ->
+                            val newTime = LocalTime.of(hours, minutes)
+                            onChanges(timeSlot.copy(start = newTime))
+                        }
+                    )
+                }
+                if (changeEnd.value) {
+                    TimePickerDialog(
+                        dismiss = { changeEnd.value = false },
+                        confirm = {hours, minutes ->
+                            val newTime = LocalTime.of(hours, minutes)
+                            onChanges(timeSlot.copy(end = newTime))
+                        }
+                    )
+                }
 
             }
         }
     }
-
-
 }
+
