@@ -409,6 +409,9 @@ fun CreateTaskContent(
                                 .padding(4.dp)
                         )
                     }
+                    Row {
+                        Text(text = "Select time slot")
+                    }
                     DropdownMenu(expanded = timeSlotVisible, onDismissRequest = { timeSlotVisible = false }) {
                         timeSlots.value.forEach{
                             timeSlot ->
