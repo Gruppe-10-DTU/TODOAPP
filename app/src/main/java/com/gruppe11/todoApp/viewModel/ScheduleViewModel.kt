@@ -5,30 +5,24 @@ import androidx.lifecycle.ViewModel
 import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.ui.screenStates.ScheduleScreenState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.update
 import java.time.LocalDate
+import javax.inject.Inject
 
-
-class ScheduleViewModel(
+@HiltViewModel
+class ScheduleViewModel @Inject constructor(
     private val timeSlotRepository: ITimeSlotRepository,
-    ): ScheduleApi, ViewModel() {
+    ): ViewModel() {
 
     val timeSlots = timeSlotRepository.readAll()
     private val _uiState = MutableStateFlow(ScheduleScreenState())
-    override val uiState = _uiState.asStateFlow()
-    override val dates = getCalendarFlow()
+    val uiState = _uiState.asStateFlow()
+    val dates = getCalendarFlow()
 
-    override fun onSelectedDayChange(day: LocalDate){
-        _uiState.update { currentState ->
-            currentState.copy(
-                selectedDay = day
-            )
-        }
-    }
     private fun getCalendarFlow(): Flow<List<LocalDate>> {
 
         val dates = flow {
@@ -54,7 +48,7 @@ class ScheduleViewModel(
         var time = LocalDate.now().atStartOfDay().toLocalTime().plusHours(6L)
 
         repeat(3) {
-            timeSlotRepository.create(
+            createTimeSlot(
                 TimeSlot(
                     id = 0,
                     name = "Slot ".plus(it + 1),

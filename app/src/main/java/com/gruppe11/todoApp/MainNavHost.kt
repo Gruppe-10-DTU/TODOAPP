@@ -1,24 +1,18 @@
 package com.gruppe11.todoApp
 
-import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.gruppe11.todoApp.repository.TimeSlotRepositoryImpl
 import com.gruppe11.todoApp.ui.screens.CalendarScreen
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
 import com.gruppe11.todoApp.ui.screens.SchedulingScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
-import com.gruppe11.todoApp.viewModel.CalendarViewModel
-import com.gruppe11.todoApp.viewModel.ScheduleViewModel
 
-@SuppressLint("NewApi")
 @Composable
 fun MainNavHost(
     navController: NavHostController,
@@ -55,9 +49,7 @@ fun MainNavHost(
             })
         }
         composable(route = Scheduler.route){
-            val viewModel = ScheduleViewModel(TimeSlotRepositoryImpl())
-            viewModel.generateTestingTimeSlots() // TODO REMOVE BEFORE SHIPPING
-            SchedulingScreen(viewModel = viewModel)
+            SchedulingScreen()
         }
         composable(
             route = EditTask.route,

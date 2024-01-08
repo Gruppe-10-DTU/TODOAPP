@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
@@ -47,7 +48,7 @@ import java.time.LocalTime
 
 @Composable
 fun SchedulingScreen(
-    viewModel: ScheduleViewModel,
+    viewModel: ScheduleViewModel = hiltViewModel(),
 ) {
     val timeslots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     //var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
@@ -60,13 +61,13 @@ fun SchedulingScreen(
     Scaffold(
         topBar = {
             DateSideScroller(
-                viewModel = viewModel,
-                onTitleClick = {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
-                    }
+                currentDate = uiState.value.currentDay,
+                dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
+            ) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
                 }
-            )
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -83,8 +84,8 @@ fun SchedulingScreen(
                 ) {
                     LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
                         slot.tasks // TODO implement timeslot data class
-                            ?.filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
-                            ?.sortedBy { it.priority }?.let {
+                            .filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
+                            .sortedBy { it.priority }.let {
                                 items(items = it
                                     .reversed()
                                 ) { task ->
@@ -103,6 +104,14 @@ fun SchedulingScreen(
         LaunchedEffect(key1 = LocalDateTime.now().hour) {
             if (uiState.value.selectedDay == LocalDate.now()) {
                 scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
+            }
+        }
+        LaunchedEffect(key1 = timeslots.value){
+            CoroutineScope(Dispatchers.Main).launch {
+                // TODO REMOVE BEFORE SHIPPING
+                if (timeslots.value.isEmpty()) {
+                    viewModel.generateTestingTimeSlots()
+                }
             }
         }
     }
