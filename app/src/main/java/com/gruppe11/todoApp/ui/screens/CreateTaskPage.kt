@@ -99,11 +99,16 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
-    var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0,"", LocalTime.now(), LocalTime.now(),
-        emptyList()
-    )) }
+    var selectedTimeSlot by remember {
+        mutableStateOf(
+            TimeSlot(
+                0, "", LocalTime.now(), LocalTime.now(),
+                emptyList()
+            )
+        )
+    }
     var timeSlotVisible by remember { mutableStateOf(false) }
-    val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
 
 
     var tmpTask by remember {
@@ -215,15 +220,18 @@ fun CreateTaskContent(
                                         deadline = date
                                     )
                                 )
+
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Task updated")
                                 }
                             } else {
-                                viewModel.addTask(
+                                val taskHolder = viewModel.addTask(
                                     tmpTask,
                                     subtaskList
                                 )
-
+                                if (selectedTimeSlot != null) {
+                                    viewModel.addToTimeslot(selectedTimeSlot.copy(tasks = selectedTimeSlot.tasks + taskHolder))
+                                }
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Task created")
                                 }
@@ -395,42 +403,34 @@ fun CreateTaskContent(
                     Switch(
                         modifier = Modifier.scale(0.8f),
                         checked = scheduleChecked,
-                        onCheckedChange = {scheduleChecked = it},
+                        onCheckedChange = { scheduleChecked = it },
                         thumbContent = switchIcon
                     )
                 }
-                if (scheduleChecked){
-                    Text(text = "test")
-                    IconButton(onClick = { timeSlotVisible != timeSlotVisible }) {
-                        Icon(
-                            imageVector = Icons.Filled.SortByAlpha,
-                            contentDescription = "Open sorting",
-                            modifier = Modifier
-                                .size(44.dp)
-                                .padding(4.dp)
-                        )
-                    }
+                if (scheduleChecked) {
                     Row {
+//                        Text(text = "Select Timeslot:")
                         TextButton(
-                            onClick = { timeSlotVisible != timeSlotVisible},
+                            onClick = { timeSlotVisible = !timeSlotVisible },
                             colors = ButtonDefaults.textButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
-                            ) {
-
+                                containerColor = MaterialTheme.colorScheme.background
+                            ),
+                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text(if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot")
                         }
                     }
-                    DropdownMenu(expanded = timeSlotVisible, onDismissRequest = { timeSlotVisible = false }) {
-                        timeSlots.value.forEach{
-                            timeSlot ->
+                    DropdownMenu(
+                        expanded = timeSlotVisible,
+                        onDismissRequest = { timeSlotVisible = false }) {
+                        timeSlots.value.forEach { timeSlot ->
                             DropdownMenuItem(
                                 text = { Text(text = timeSlot.name) },
-                                onClick = { selectedTimeSlot = timeSlot})
+                                onClick = {
+                                    selectedTimeSlot = timeSlot
+                                    timeSlotVisible = !timeSlotVisible
+                                })
                         }
-                    }
-                    timeSlots.value.forEach{
-                        timeSlot ->  
-                        Text(text = timeSlot.name)
                     }
                 }
                 if (showDatePicker) {
