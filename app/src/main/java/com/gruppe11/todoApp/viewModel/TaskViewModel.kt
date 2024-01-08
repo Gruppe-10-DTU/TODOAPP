@@ -69,23 +69,9 @@ class TaskViewModel @Inject constructor (
             _UIState.update { currentState -> currentState.copy(selectedDate = date)}
         }
     }
-    fun updateTask(task: Task, subtaskList: List<SubTask>){
-        taskRepository.update(task)
-//        addSubtasks(task, subtaskList)
-    }
-
-    fun addTask(task: Task, subtaskList: List<SubTask>){
-        viewModelScope.launch {
-            val tmpTask = taskRepository.createTask(task)
-            addSubtasks(tmpTask, subtaskList)
-
-        }
-    }
-
     fun removeTask(task: Task){
         taskRepository.delete(task)
     }
-
     @SuppressLint("NewApi")
     suspend fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
@@ -129,21 +115,6 @@ class TaskViewModel @Inject constructor (
     fun getSubtasks(currentTask: Task): List<SubTask> {
         return subtaskRepository.readAll(currentTask)
     }
-    fun removeSubtask(task: Task, subTask: SubTask){
-        subtaskRepository.delete(task,subTask)
-    }
-    fun getTask(taskId: Int): Task? {
-        return taskRepository.read(taskId)
-    }
-
-    fun addSubtasks(task: Task, subtasks: List<SubTask>){
-        val existingSubtasks = subtaskRepository.readAll(task)
-        val newSubtasks = subtasks.filterNot { existingSubtasks.contains(it) }
-        for (subtask in newSubtasks) {
-            subtaskRepository.createSubtask(task, subtask)
-        }
-    }
-
     fun changeFilter(target: String) {
         viewModelScope.launch {
             when (target) {

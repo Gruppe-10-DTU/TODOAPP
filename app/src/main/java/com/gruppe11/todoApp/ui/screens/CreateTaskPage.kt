@@ -9,10 +9,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -24,6 +28,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
@@ -42,19 +48,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
 import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
-import com.gruppe11.todoApp.viewModel.TaskViewModel
+import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
@@ -62,7 +71,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun CreateTaskContent(
     returnPage: () -> Unit,
-    viewModel: TaskViewModel = hiltViewModel(),
+    viewModel: CreateTaskViewModel = hiltViewModel(),
     taskId: Int? = null
 ) {
     var currentTask = if (taskId != null) {
@@ -88,8 +97,39 @@ fun CreateTaskContent(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    var scheduleChecked by remember { mutableStateOf(false) }
+    var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0,"", LocalTime.now(), LocalTime.now(),
+        emptyList()
+    )) }
+    var timeSlotVisible by remember { mutableStateOf(false) }
+    val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
 
-    var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false)) }
+
+    var tmpTask by remember {
+        mutableStateOf(
+            Task(
+                0,
+                "",
+                Priority.MEDIUM,
+                LocalDateTime.now(),
+                false
+            )
+        )
+    }
+
+    val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
+        {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                modifier = Modifier.size(SwitchDefaults.IconSize),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    } else {
+        null
+    }
+
 
     val addSubtask: () -> Unit = {
         if (subtaskName.text.isNotEmpty()) {
@@ -98,9 +138,9 @@ fun CreateTaskContent(
 
             // Update the task's subtask list
             if (taskId != null && currentTask != null) {
-                viewModel.addSubtasks(currentTask,subtaskList)
+                viewModel.addSubtasks(currentTask, subtaskList)
             } else {
-                viewModel.addSubtasks(tmpTask,subtaskList)
+                viewModel.addSubtasks(tmpTask, subtaskList)
             }
 
             subtaskName = TextFieldValue("")
@@ -166,10 +206,13 @@ fun CreateTaskContent(
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
-                            if(taskId != null && currentTask != null){
+                            if (taskId != null && currentTask != null) {
                                 viewModel.updateTask(
-                                    currentTask.copy(title = taskName.text, priority = Priority.valueOf(priority), deadline = date),
-                                    subtaskList
+                                    currentTask.copy(
+                                        title = taskName.text,
+                                        priority = Priority.valueOf(priority),
+                                        deadline = date
+                                    )
                                 )
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Task updated")
@@ -252,7 +295,7 @@ fun CreateTaskContent(
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.focusRequester(subtaskFocusRequester)
-                        )
+                    )
                     LaunchedEffect(Unit) {
                         subtaskFocusRequester.requestFocus()
                     }
@@ -338,6 +381,43 @@ fun CreateTaskContent(
                             )
                         }
                     )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.padding(10.dp, 10.dp)
+                ) {
+                    Text(
+                        text = "Schedule ",
+                        fontWeight = FontWeight.Bold,
+                        //fontSize = ,
+                    )
+                    Switch(
+                        modifier = Modifier.scale(0.8f),
+                        checked = scheduleChecked,
+                        onCheckedChange = {scheduleChecked = it},
+                        thumbContent = switchIcon
+                    )
+                }
+                if (scheduleChecked){
+                    Text(text = "test")
+                    IconButton(onClick = { timeSlotVisible != timeSlotVisible }) {
+                        Icon(
+                            imageVector = Icons.Filled.SortByAlpha,
+                            contentDescription = "Open sorting",
+                            modifier = Modifier
+                                .size(44.dp)
+                                .padding(4.dp)
+                        )
+                    }
+                    DropdownMenu(expanded = timeSlotVisible, onDismissRequest = { timeSlotVisible = false }) {
+                        timeSlots.value.forEach{
+                            timeSlot ->
+                            DropdownMenuItem(
+                                text = { Text(text = timeSlot.name) },
+                                onClick = { selectedTimeSlot = timeSlot})
+                        }
+
+                    }
                 }
                 if (showDatePicker) {
                     DatePickerDialogFunction(

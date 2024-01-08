@@ -10,9 +10,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
+import javax.inject.Inject
 
 
-class ScheduleViewModel(
+class ScheduleViewModel @Inject constructor(
     private val timeSlotRepository: ITimeSlotRepository,
     ): ViewModel() {
 

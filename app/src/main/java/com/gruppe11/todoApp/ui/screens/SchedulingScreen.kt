@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
@@ -47,7 +48,7 @@ import java.time.LocalTime
 
 @Composable
 fun SchedulingScreen(
-    viewModel: ScheduleViewModel,
+    viewModel: ScheduleViewModel = hiltViewModel(),
 ) {
     val timeslots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     //var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
