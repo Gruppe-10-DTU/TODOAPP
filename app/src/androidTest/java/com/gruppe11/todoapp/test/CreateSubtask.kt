@@ -10,6 +10,7 @@ import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import java.time.LocalDateTime
 
 class CreateSubtask {
@@ -18,7 +19,7 @@ class CreateSubtask {
     private lateinit var subtask : SubTask;
     private lateinit var task : Task;
     @Given("I have created a task")
-    fun iHaveCreatedATask() {
+    fun iHaveCreatedATask() = runTest {
 
         task = Task(1,"test", Priority.MEDIUM, LocalDateTime.now(), false)
         viewModel.addTask(
@@ -29,13 +30,13 @@ class CreateSubtask {
     }
 
     @When("I fill out a subtask and save it")
-    fun iFillOutASubtaskAndSaveIt() {
+    fun iFillOutASubtaskAndSaveIt() = runTest {
         subtask = SubTask("Subtask", 1)
         viewModel.addSubtasks(viewModel.getTaskListByDate(LocalDateTime.now())[0], listOf(subtask))
     }
 
     @Then("The subtask is saved to the database")
-    fun theSubtaskIsSavedToTheDatabase() {
+    fun theSubtaskIsSavedToTheDatabase() = runTest {
         val subtasks : List<SubTask> =viewModel.getSubtasks(task)
         assertEquals(1, subtasks.size)
     }
