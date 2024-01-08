@@ -31,6 +31,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -102,7 +103,7 @@ fun CreateTaskContent(
         emptyList()
     )) }
     var timeSlotVisible by remember { mutableStateOf(false) }
-    val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
 
 
     var tmpTask by remember {
@@ -410,7 +411,14 @@ fun CreateTaskContent(
                         )
                     }
                     Row {
-                        Text(text = "Select time slot")
+                        TextButton(
+                            onClick = { timeSlotVisible != timeSlotVisible},
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                            ) {
+
+                        }
                     }
                     DropdownMenu(expanded = timeSlotVisible, onDismissRequest = { timeSlotVisible = false }) {
                         timeSlots.value.forEach{
@@ -419,7 +427,10 @@ fun CreateTaskContent(
                                 text = { Text(text = timeSlot.name) },
                                 onClick = { selectedTimeSlot = timeSlot})
                         }
-
+                    }
+                    timeSlots.value.forEach{
+                        timeSlot ->  
+                        Text(text = timeSlot.name)
                     }
                 }
                 if (showDatePicker) {

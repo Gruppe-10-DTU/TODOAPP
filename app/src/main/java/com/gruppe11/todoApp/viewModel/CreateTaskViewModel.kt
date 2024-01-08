@@ -4,12 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,6 +17,7 @@ class CreateTaskViewModel @Inject constructor (
     private val subtaskRepository: ISubtaskRepository,
     private val timeSlotRepository: ITimeSlotRepository
 ) : ViewModel() {
+    val timeSlots = timeSlotRepository.readAll()
     fun getSubtasks(currentTask: Task): List<SubTask> {
         return subtaskRepository.readAll(currentTask)
     }
@@ -46,7 +45,7 @@ class CreateTaskViewModel @Inject constructor (
 
         }
     }
-    fun getTimeSlots(): Flow<List<TimeSlot>> {
-        return timeSlotRepository.readAll()
-    }
+//    fun getTimeSlots(): Flow<List<TimeSlot>> {
+//        return timeSlotRepository.readAll()
+//    }
 }
