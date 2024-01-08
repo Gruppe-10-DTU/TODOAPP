@@ -12,13 +12,13 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     private val tasks: MutableStateFlow<List<Task>> = MutableStateFlow(emptyList())
 
     override suspend fun createTask(task: Task): Task {
-        val newTask = TodoApi.taskServiceImpl.createTask(task)
+        val newTask = TodoApi.taskService.createTask(task)
         tasks.update { tasks -> tasks.toMutableList().apply { add(newTask) } }
         return newTask
     }
 
     override suspend fun read(id: Int): Task? {
-        val task = TodoApi.taskServiceImpl.read(id)
+        val task = TodoApi.taskService.read(id)
         if (task != null) {
             val index: Int = tasks.value.indexOfFirst { it.id == id }
             if (index >= 0) {
@@ -33,12 +33,12 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     }
 
     override suspend fun readAll(): Flow<List<Task>> {
-        tasks.value = TodoApi.taskServiceImpl.readAll()
+        tasks.value = TodoApi.taskService.readAll()
         return tasks
     }
 
     override suspend fun update(task: Task): Task {
-        val updatedTask = TodoApi.taskServiceImpl.update(task.id, task)
+        val updatedTask = TodoApi.taskService.update(task.id, task)
         val index: Int = tasks.value.indexOfFirst { it.id == task.id }
         if (index >= 0) {
             tasks.update{
@@ -49,7 +49,7 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     }
 
     override suspend fun delete(task: Task) {
-        TodoApi.taskServiceImpl.delete(task.id)
+        TodoApi.taskService.delete(task.id)
         tasks.update {
             tasks.value.toMutableList().apply { remove(task) }
         }

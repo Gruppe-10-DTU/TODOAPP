@@ -42,6 +42,10 @@ class TaskViewModel @Inject constructor (
         )
     )
 
+    private val _editingTask = MutableStateFlow<Task?>(null)
+
+    val editingTask = _editingTask.asStateFlow()
+
     val UIState = _UIState.asStateFlow()
 
     val DaysMap = _TaskState.combine(_UIState) { tasks, state -> generateMapOfDays(state.selectedDate)}.distinctUntilChanged()
@@ -141,8 +145,10 @@ class TaskViewModel @Inject constructor (
             subtaskRepository.delete(task, subTask)
         }
     }
-    suspend fun getTask(taskId: Int): Task? {
-        return taskRepository.read(taskId)
+    fun getTask(taskId: Int) {
+        viewModelScope.launch {
+            _editingTask.value = taskRepository.read(taskId)
+        }
     }
 
     fun addSubtasks(task: Task, subtasks: List<SubTask>){
