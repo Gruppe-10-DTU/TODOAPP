@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
@@ -17,11 +18,9 @@ class MainCoroutineRule constructor(
     val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 ) : TestWatcher() {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun starting(description: Description) {
         Dispatchers.setMain(testDispatcher)
     }
 
-    override fun finished(description: Description) {
-        Dispatchers.resetMain()
-    }
 }

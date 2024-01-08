@@ -40,6 +40,10 @@ class TaskViewModelTest() {
     @MockK(relaxed = true)
     lateinit var mockTaskRepository: ITaskRepository
 
+    @Before
+    fun setUp() {
+
+    }
     private fun getTasks() : List<Task> {
         return listOf(
             Task(1, "test 1", Priority.LOW, LocalDateTime.now().minusDays(1), false),
@@ -55,11 +59,12 @@ class TaskViewModelTest() {
     private fun getTasksFlow(
         deferred: CompletableDeferred<Unit>? = null
     ) : Flow<List<Task>> {
+        println("MOcking flows")
         val tasksList = getTasks()
-        val tasksFlow : Flow<List<Task>> = flow {
-            deferred?.await()
+        val tasksFlow = flow {
             emit(tasksList)
         }
+
         return tasksFlow
     }
 
@@ -71,14 +76,11 @@ class TaskViewModelTest() {
 
         every { mockTaskRepository.readAll() } returns getTasksFlow(deferred)
 
-
         val viewmodel = TaskViewModel(mockTaskRepository, SubtaskRepositoryImpl())
-
-        getTasksFlow(deferred)
 
         val defaultTasks = viewmodel.TaskState.first()
 
-        assertEquals(3, defaultTasks)
+        assertEquals(3, defaultTasks.size)
 
         viewmodel.addPriority(Priority.HIGH)
 
