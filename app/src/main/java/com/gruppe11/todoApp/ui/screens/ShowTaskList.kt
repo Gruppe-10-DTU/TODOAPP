@@ -269,12 +269,13 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 val startOfSearch : Int = task.title.indexOf(searchText.value)
                 val endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
 
-                if (endOfSearchPlus1 <= task.title.length) {
+
                     Text(
                         buildAnnotatedString {
                             append(task.title.substring(0,startOfSearch))
 
-                            withStyle(style = SpanStyle(color = Color.Blue)) {
+                            withStyle(style = SpanStyle(
+                                background = MaterialTheme.colorScheme.secondary)) {
                                 append(task.title.substring(startOfSearch,endOfSearchPlus1))
                             }
 
@@ -282,17 +283,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
 
                         }
                     )
-                } else {
-                    Text(
-                        buildAnnotatedString {
-                            append(task.title.substring(0,startOfSearch))
 
-                            withStyle(style = SpanStyle(color = Color.Blue)) {
-                                append(task.title.substring(startOfSearch))
-                            }
-                        }
-                    )
-                }
             } else {
                 val search = searchText.toString()
                 Text(
@@ -352,6 +343,7 @@ fun ShowTaskList (
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
 
+    val testList by viewModel.tasksShown.collectAsStateWithLifecycle()
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
@@ -532,7 +524,7 @@ fun ShowTaskList (
                     ) {
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
-                            filteredTasks = tasks,
+                            filteredTasks = testList,
                             editTask = onEditTask
                         )
                     }
