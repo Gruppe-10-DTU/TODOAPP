@@ -265,22 +265,38 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
             if(task.title.contains(searchText.value, ignoreCase = true)) {
-                val nrOfCharactersInSearch : Int = searchText.value.length
-                val startOfSearch : Int = task.title.indexOf(searchText.value)
-                val endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
+
 
 
                     Text(
                         buildAnnotatedString {
-                            append(task.title.substring(0,startOfSearch))
+                            val nrOfCharactersInSearch : Int = searchText.value.length
+                            var startOfText = 0
+                            var startOfSearch : Int = task.title.indexOf(searchText.value)
+                            var endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
+                            var moreInstances = true
 
-                            withStyle(style = SpanStyle(
-                                background = MaterialTheme.colorScheme.secondary)) {
-                                append(task.title.substring(startOfSearch,endOfSearchPlus1))
+                            while (moreInstances) {
+
+                                append(task.title.substring(startOfText,startOfSearch))
+
+                                withStyle(style = SpanStyle(
+                                    background = MaterialTheme.colorScheme.secondary)) {
+                                    append(task.title.substring(startOfSearch,endOfSearchPlus1))
+                                }
+
+                                startOfSearch = task.title.indexOf(searchText.value, endOfSearchPlus1)
+
+                                if (startOfSearch > 0) {
+                                    startOfText = endOfSearchPlus1
+                                    endOfSearchPlus1 = startOfSearch + nrOfCharactersInSearch
+                                } else {
+                                    moreInstances = false
+                                }
+
                             }
 
                             append(task.title.substring(endOfSearchPlus1))
-
                         }
                     )
 
