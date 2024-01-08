@@ -22,21 +22,21 @@ import javax.inject.Inject
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     taskRepository : ITaskRepository
-) : ScheduleApi, ViewModel()  {
+) : ViewModel()  {
     private val state = ScheduleScreenState()
 
     private val dayPeriod = Period.of(0, 0, 1)
 
     val startDay: LocalDate = LocalDate.now().minusDays(7)
     private var dateList: List<LocalDate> = emptyList()
-    override val dates = getCalendarFlow()
+    val dates = getCalendarFlow()
 
     var currentTime: LocalDateTime = LocalDateTime.MIN
     private var timeIntervalList: List<LocalDateTime> = emptyList()
     val time = getTimeFlow()
 
     private val _uiState = MutableStateFlow(state)
-    override val uiState = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
 
@@ -83,13 +83,6 @@ class CalendarViewModel @Inject constructor(
         return times
     }
 
-    override fun onSelectedDayChange(day: LocalDate){
-        _uiState.update { currentState ->
-            currentState.copy(
-                selectedDay = day
-            )
-        }
-    }
     fun onScrollStateChange(value: Float){
         _uiState.update { currentState ->
             currentState.copy(

@@ -60,13 +60,13 @@ fun SchedulingScreen(
     Scaffold(
         topBar = {
             DateSideScroller(
-                viewModel = viewModel,
-                onTitleClick = {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
-                    }
+                currentDate = uiState.value.currentDay,
+                dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
+            ) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
                 }
-            )
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -83,8 +83,8 @@ fun SchedulingScreen(
                 ) {
                     LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
                         slot.tasks // TODO implement timeslot data class
-                            ?.filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
-                            ?.sortedBy { it.priority }?.let {
+                            .filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
+                            .sortedBy { it.priority }.let {
                                 items(items = it
                                     .reversed()
                                 ) { task ->

@@ -52,16 +52,16 @@ fun CalendarScreen(
     Scaffold(
         topBar = {
             DateSideScroller(
-                viewModel = calendarViewModel,
-                onTitleClick = {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        columnState.scrollTo(
-                            uiState.value.scrollState.toInt() -
-                                    (getSystem().displayMetrics.densityDpi)
-                        )
-                    }
+                currentDate = uiState.value.currentDay,
+                dates = calendarViewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
+            ) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    columnState.scrollTo(
+                        uiState.value.scrollState.toInt() -
+                                (getSystem().displayMetrics.densityDpi)
+                    )
                 }
-            )
+            }
         }
     ) { padding ->
         Box(
