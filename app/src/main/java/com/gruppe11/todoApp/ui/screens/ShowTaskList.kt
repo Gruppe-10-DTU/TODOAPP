@@ -73,6 +73,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -263,22 +264,42 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
-            if(searchText.toString().isBlank()) {
-                Text(
-                    modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                    text = task.title
+            if(task.title.contains(searchText.value, ignoreCase = true)) {
+                val nrOfCharactersInSearch : Int = searchText.value.length
+                val startOfSearch : Int = task.title.indexOf(searchText.value)
+                val endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
+
+                if (endOfSearchPlus1 <= task.title.length) {
+                    Text(
+                        buildAnnotatedString {
+                            append(task.title.substring(0,startOfSearch))
+
+                            withStyle(style = SpanStyle(color = Color.Blue)) {
+                                append(task.title.substring(startOfSearch,endOfSearchPlus1))
+                            }
+
+                            append(task.title.substring(endOfSearchPlus1))
+
+                        }
                     )
+                } else {
+                    Text(
+                        buildAnnotatedString {
+                            append(task.title.substring(0,startOfSearch))
+
+                            withStyle(style = SpanStyle(color = Color.Blue)) {
+                                append(task.title.substring(startOfSearch))
+                            }
+                        }
+                    )
+                }
             } else {
                 val search = searchText.toString()
                 Text(
                     modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color.Blue)) {
-                            append(task.title)
-                        }
-                    }
+                    text = task.title
+                )
 
-                    )
                 }
 
 
