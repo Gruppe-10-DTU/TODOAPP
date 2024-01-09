@@ -54,11 +54,11 @@ fun SchedulingScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
 ) {
     val timeslots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
-    //var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val columnScrollState = rememberLazyListState()
-    val taskHeight = 75.dp
-    val taskWidth = 75.dp
+    val minSlotHeight = 200.dp
+    val minTaskHeight = 75.dp
+    val minTaskWidth = 75.dp
 
 
     Scaffold(
@@ -93,10 +93,9 @@ fun SchedulingScreen(
                 }
             }
             items(timeslots.value) { slot ->
-                val slotHeight = 200.dp
                 TimeSlot(
                     timeSlot = slot,
-                    slotHeight = slotHeight
+                    slotHeight = minSlotHeight
                 ) {
                     FlowRow(maxItemsInEachRow = 5) {
                         slot.tasks
@@ -106,8 +105,8 @@ fun SchedulingScreen(
                             .forEach { task ->
                                 ScheduleTask(
                                     task = task,
-                                    height = taskHeight,
-                                    width = taskWidth,
+                                    height = minTaskHeight,
+                                    width = minTaskWidth,
                                     toggleCompletion = {
                                         CoroutineScope(Dispatchers.IO).launch {
                                             viewModel.toggleTaskCompletion(it)}
@@ -226,7 +225,7 @@ fun ScheduleTask(
 
 suspend fun  scrollToCurrentTime(
     state: LazyListState,
-    slots: List<TimeSlot> // TODO Change type to match timeslot implementation
+    slots: List<TimeSlot>
 ){
     slots.forEach {
         if (LocalTime.now().isAfter(it.start)) {
