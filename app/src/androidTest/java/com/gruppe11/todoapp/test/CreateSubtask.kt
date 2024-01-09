@@ -21,7 +21,7 @@ class CreateSubtask {
     @Given("I have created a task")
     fun iHaveCreatedATask() = runTest {
 
-        task = Task(1,"test", Priority.MEDIUM, LocalDateTime.now(), false)
+        task = Task(1,"test", Priority.MEDIUM, LocalDateTime.now(), false, emptyList())
         viewModel.addTask(
             task,
             emptyList()
