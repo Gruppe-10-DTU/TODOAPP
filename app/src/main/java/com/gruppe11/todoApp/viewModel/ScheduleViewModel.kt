@@ -42,7 +42,9 @@ class ScheduleViewModel @Inject constructor(
     fun createTimeSlot(timeSlot: TimeSlot){
         timeSlotRepository.create(timeSlot)
     }
-
+    fun updateTimeSlot(timeSlot: TimeSlot) {
+        timeSlotRepository.update(timeSlot)
+    }
     // TODO Remove before shipping
     fun generateTestingTimeSlots() {
         var time = LocalDate.now().atStartOfDay().toLocalTime().plusHours(6L)
@@ -59,5 +61,9 @@ class ScheduleViewModel @Inject constructor(
             )
             time = time.plusHours(6L)
         }
+    }
+
+    fun deleteTimeSlot(timeSlot: TimeSlot) {
+        timeSlotRepository.delete(timeSlot)
     }
 }

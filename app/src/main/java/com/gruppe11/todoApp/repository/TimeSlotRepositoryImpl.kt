@@ -13,6 +13,7 @@ class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
     override fun create(timeSlot: TimeSlot): TimeSlot {
         timeslots.update {list ->
             list.plus(timeSlot.copy(id = id++))
+
         }
         return timeSlot
     }
@@ -26,7 +27,8 @@ class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
         if (tmp.isNotEmpty()) {
             timeslots.update { list ->
                 list.toMutableList().apply {
-                    this[list.indexOfFirst { it.id == timeSlot.id }]  = timeSlot}
+                    this[list.indexOfFirst { it.id == timeSlot.id }]  = timeSlot
+                }.sortedBy { it.start }
             }
             return timeSlot
         }
@@ -34,6 +36,8 @@ class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
     }
 
     override fun delete(timeSlot: TimeSlot) {
-        TODO("Not yet implemented")
+        timeslots.update {list ->
+            list.filterNot { it == timeSlot }
+        }
     }
 }
