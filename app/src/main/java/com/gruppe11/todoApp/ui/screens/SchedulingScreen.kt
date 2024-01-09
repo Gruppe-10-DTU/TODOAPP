@@ -4,19 +4,19 @@ package com.gruppe11.todoApp.ui.screens
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
@@ -46,6 +46,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SchedulingScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
@@ -76,40 +77,51 @@ fun SchedulingScreen(
                 .fillMaxSize(),
             state = columnScrollState
         ) {
-            items(timeslots.value){slot ->
+            if (timeslots.value.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(40.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "You haven't created any timeslots.", fontSize = 20.sp)
+                    }
+                }
+            }
+            items(timeslots.value) { slot ->
                 val slotHeight = 250.dp
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = slotHeight
                 ) {
-                    LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
+                    FlowRow(maxItemsInEachRow = 3) {
                         slot.tasks
-                            .filter { task -> task.deadline.toLocalDate() == uiState.value.selectedDay}
-                            .sortedBy { it.priority }.let {
-                                items(items = it.reversed()) { task ->
-                                    ScheduleTask(
-                                        task = task,
-                                        height = taskHeight,
-                                        width = taskWidth
-                                    )
-                                }
+                            .filter { task -> task.deadline.toLocalDate() == uiState.value.selectedDay }
+                            .sortedBy { it.priority }
+                            .reversed()
+                            .forEach { task ->
+                                ScheduleTask(
+                                    task = task,
+                                    height = taskHeight,
+                                    width = taskWidth
+                                )
                             }
                     }
                 }
                 HorizontalDivider()
             }
         }
-        LaunchedEffect(key1 = LocalDateTime.now().hour) {
-            if (uiState.value.selectedDay == LocalDate.now()) {
-                scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
-            }
+    }
+    LaunchedEffect(key1 = LocalDateTime.now().hour) {
+        if (uiState.value.selectedDay == LocalDate.now()) {
+            scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
         }
-        LaunchedEffect(key1 = timeslots.value){
-            CoroutineScope(Dispatchers.Main).launch {
-                // TODO REMOVE BEFORE SHIPPING
-                if (timeslots.value.isEmpty()) {
-                    viewModel.generateTestingTimeSlots()
-                }
+    }
+    LaunchedEffect(key1 = timeslots.value) {
+        CoroutineScope(Dispatchers.Main).launch {
+            // TODO REMOVE BEFORE SHIPPING
+            if (timeslots.value.isEmpty()) {
+                viewModel.generateTestingTimeSlots()
             }
         }
     }
