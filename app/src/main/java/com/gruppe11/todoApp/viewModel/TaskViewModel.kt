@@ -47,7 +47,8 @@ class TaskViewModel @Inject constructor (
             completeFilter = false,
             incompleteFilter = false,
             priorities = mutableSetOf(),
-            sortedOption = "Priority Descending"
+            sortedOption = "Priority Descending",
+            searchText = ""
         )
     )
 
@@ -56,38 +57,33 @@ class TaskViewModel @Inject constructor (
     val DaysMap = _TaskState.combine(_UIState) { tasks, state -> generateMapOfDays(state.selectedDate)}.distinctUntilChanged()
     private val _filterTags = getFilterTags().toMutableSet()
 
-    val TaskState: Flow<List<Task>> = UIState.flatMapLatest { states -> _TaskState.map { it.filter { task -> filterTask(task) } } }.map { sortTasks(it) }.distinctUntilChanged()
+    val TaskState: Flow<List<Task>> = UIState
+        .flatMapLatest { states -> _TaskState.map { it.filter { task -> filterTask(task) && doesMachSearchQuery(task) } } }
+        .map { sortTasks(it) }
+        .distinctUntilChanged()
 
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
-
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
-
-    private val _tasksShown = MutableStateFlow(listOf<Task>())
-    val tasksShown = searchText
-        .combine(_TaskState) { text, taskShown ->
-            if (text.isBlank()) {
-                taskShown
-            } else {
-                taskShown.filter {
-                    it.doesMachSearchQuery(text)
-                }
-            }
-        }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            _TaskState.value
-        )
 
     val tags: Set<Tag>
         get() = _filterTags
 
     private fun getFilterTags() = emptySet<Tag>()
 
+    fun doesMachSearchQuery(task: Task): Boolean {
+        val matchingCombinations = listOf(
+            task.title
+        )
+
+        return matchingCombinations.any{
+            it.contains(_UIState.value.searchText, ignoreCase = true)
+        }
+    }
+
     fun onSearchTextChange(text: String) {
-        _searchText.value = text
+        viewModelScope.launch {
+            _UIState.update { currentState -> currentState.copy(searchText = text) }
+        }
     }
 
     init {
