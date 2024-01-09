@@ -2,15 +2,17 @@ package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.BottomAppBar
@@ -37,14 +39,17 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -109,7 +114,7 @@ fun CreateTaskContent(
     }
     var timeSlotVisible by remember { mutableStateOf(false) }
     val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
-
+    val focusManager = LocalFocusManager.current
 
     var tmpTask by remember {
         mutableStateOf(
@@ -229,7 +234,7 @@ fun CreateTaskContent(
                                     tmpTask,
                                     subtaskList
                                 )
-                                if (selectedTimeSlot != null) {
+                                if (selectedTimeSlot.name != "") {
                                     viewModel.addToTimeslot(selectedTimeSlot.copy(tasks = selectedTimeSlot.tasks + taskHolder))
                                 }
                                 scope.launch {
@@ -255,33 +260,46 @@ fun CreateTaskContent(
         }
 
     }) { padding ->
-        LazyColumn(modifier = Modifier.padding(16.dp)) {
+        LazyColumn(modifier = Modifier
+            .padding(16.dp)
+            .noRippleClickable { focusManager?.clearFocus() }) {
             item {
                 Spacer(modifier = Modifier.height(60.dp))
                 // Main task Input
+
                 OutlinedTextField(
                     value = taskName,
                     onValueChange = { taskName = it },
                     label = { Text("Task name") },
                     textStyle = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                 )
                 HorizDividerWithSpacer(10.dp)
                 Text(
                     text = "Choose priority",
-                    fontWeight = FontWeight.Bold,
-                    //fontSize = ,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
                 PriorityFC(
                     selectedPriority = priority,
                     onClick = { newPriority -> priority = newPriority }
                 )
                 HorizDividerWithSpacer(10.dp)
-                Row {
-                    Text(text = "Add Subtask")
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.padding(10.dp, 10.dp)
+                ){
+
+                    Text(
+                        text = "Add Subtask",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                     IconButton(
                         onClick = {
                             showSubTaskDialog = true
@@ -290,8 +308,8 @@ fun CreateTaskContent(
                         content = {
                             Icon(
                                 imageVector = Icons.Filled.AddCircleOutline,
-                                contentDescription = "Cancel",
-                                tint = MaterialTheme.colorScheme.primary
+                                contentDescription = "Add Subtask",
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     )
@@ -303,7 +321,12 @@ fun CreateTaskContent(
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.focusRequester(subtaskFocusRequester)
+                        modifier = Modifier.focusRequester(subtaskFocusRequester),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                     )
                     LaunchedEffect(Unit) {
                         subtaskFocusRequester.requestFocus()
@@ -354,8 +377,8 @@ fun CreateTaskContent(
                 HorizDividerWithSpacer(10.dp)
                 Text(
                     text = "Select date",
-                    fontWeight = FontWeight.Bold,
-                    //fontSize = ,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -391,19 +414,30 @@ fun CreateTaskContent(
                         }
                     )
                 }
+
+                HorizDividerWithSpacer(dividerHeight = 10.dp)
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
 //                    modifier = Modifier.padding(10.dp, 10.dp)
                 ) {
                     Text(
                         text = "Schedule ",
-                        fontWeight = FontWeight.Bold,
-                        //fontSize = ,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
                     )
                     Switch(
                         modifier = Modifier.scale(0.8f),
                         checked = scheduleChecked,
-                        onCheckedChange = { scheduleChecked = it },
+                        onCheckedChange = {
+                            scheduleChecked = it
+                            if(!scheduleChecked){
+                                selectedTimeSlot = TimeSlot(
+                                    0, "", LocalTime.now(), LocalTime.now(),
+                                    emptyList()
+                                )
+                            }
+                                          },
                         thumbContent = switchIcon
                     )
                 }
@@ -415,9 +449,16 @@ fun CreateTaskContent(
                             colors = ButtonDefaults.textButtonColors(
                                 containerColor = MaterialTheme.colorScheme.background
                             ),
-                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                         ) {
-                            Text(if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot")
+                            Text(
+                                text = (if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot"),
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .height(20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
                     }
                     DropdownMenu(
@@ -440,6 +481,7 @@ fun CreateTaskContent(
                         onDismiss = { showDatePicker = false }
                     )
                 }
+                Box(modifier = Modifier.padding(padding))
             }
         }
     }
@@ -461,7 +503,15 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
     }
 }
 
-
+fun Modifier.noRippleClickable(
+    onClick: () -> Unit
+): Modifier = composed {
+    clickable(
+        indication = null,
+        interactionSource = remember { MutableInteractionSource() }) {
+        onClick()
+    }
+}
 
 
 
