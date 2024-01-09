@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -80,7 +82,9 @@ fun SchedulingScreen(
             if (timeslots.value.isEmpty()) {
                 item {
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(40.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(40.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -89,21 +93,25 @@ fun SchedulingScreen(
                 }
             }
             items(timeslots.value) { slot ->
-                val slotHeight = 250.dp
+                val slotHeight = 200.dp
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = slotHeight
                 ) {
-                    FlowRow(maxItemsInEachRow = 3) {
+                    FlowRow(maxItemsInEachRow = 5) {
                         slot.tasks
                             .filter { task -> task.deadline.toLocalDate() == uiState.value.selectedDay }
-                            .sortedBy { it.priority }
+                            .sortedBy { it.priority }//.sortedBy { !it.isCompleted }
                             .reversed()
                             .forEach { task ->
                                 ScheduleTask(
                                     task = task,
                                     height = taskHeight,
-                                    width = taskWidth
+                                    width = taskWidth,
+                                    toggleCompletion = {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            viewModel.toggleTaskCompletion(it)}
+                                        }
                                 )
                             }
                     }
@@ -135,7 +143,7 @@ fun TimeSlot (
 ){
     HorizontalDivider()
     Row(modifier = Modifier
-        .height(slotHeight)
+        .defaultMinSize(minHeight = slotHeight)
     ) {
         Column(
             modifier = Modifier
@@ -163,34 +171,56 @@ fun TimeSlot (
 fun ScheduleTask(
     task: Task,
     height: Dp,
-    width: Dp
+    width: Dp,
+    toggleCompletion: (Task) -> Unit
 ){
+    //TODO Change colors to match ColorScheme
     val priorityColor = when (task.priority) {
         Priority.HIGH -> Color.Red
         Priority.MEDIUM -> MaterialTheme.colorScheme.primary
         Priority.LOW -> Color.Green
     }
+    //TODO Change colors to match ColorScheme
+    val completionColor = when (task.isCompleted) {
+        false -> MaterialTheme.colorScheme.tertiaryContainer
+        true -> MaterialTheme.colorScheme.primaryContainer
+    }
     ElevatedCard(
         modifier = Modifier
             .defaultMinSize(minWidth = width, minHeight = height)
             .padding(2.dp)
-            .fillMaxSize()
             .border(
                 width = 1.dp,
                 color = priorityColor,
                 shape = RoundedCornerShape(10.dp)
-            )
+            ),
+        colors = CardColors(
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            containerColor = completionColor,
+            disabledContainerColor = Color.Black,
+            disabledContentColor = Color.Black)
 
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = task.title, fontSize = 18.sp)
-            // TODO add relevant info such as priority etc.
-        }
+        Row() {
+            Column(
+                modifier = Modifier.padding(vertical = 10.dp, horizontal = 10.dp),
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(text = task.title.uppercase(), fontSize = 19.sp)
+                Column(modifier = Modifier.padding(10.dp, 1.dp)) {
+                    task.subtasks.forEach {
+                        Text(text = it.title, fontSize = 14.sp)
+                    }
+                // TODO add more relevant info such as priority etc.
+                }
 
+            }
+            Checkbox(
+                checked = task.isCompleted,
+                onCheckedChange = { toggleCompletion(task.copy(isCompleted = !task.isCompleted)) }
+            )
+        }
     }
 }
 

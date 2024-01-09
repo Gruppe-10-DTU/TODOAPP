@@ -2,7 +2,9 @@ package com.gruppe11.todoApp.viewModel
 
 
 import androidx.lifecycle.ViewModel
+import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
+import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.ui.screenStates.ScheduleScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
     private val timeSlotRepository: ITimeSlotRepository,
+    private val taskRepository: ITaskRepository
     ): ViewModel() {
 
     val timeSlots = timeSlotRepository.readAll()
@@ -65,5 +68,9 @@ class ScheduleViewModel @Inject constructor(
 
     fun deleteTimeSlot(timeSlot: TimeSlot) {
         timeSlotRepository.delete(timeSlot)
+    }
+
+    suspend fun toggleTaskCompletion(task: Task) {
+        taskRepository.update(task)
     }
 }
