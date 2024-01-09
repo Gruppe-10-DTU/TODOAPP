@@ -4,8 +4,9 @@ import com.gruppe11.todoApp.model.TimeSlot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
-class TimeSlotRepositoryImpl: ITimeSlotRepository {
+class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
 
     private val timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
     private var id = 1

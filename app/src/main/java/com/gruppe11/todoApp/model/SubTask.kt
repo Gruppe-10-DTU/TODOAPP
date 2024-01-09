@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SubTask(
-    var title: String,
+    val title: String,
     val id: Int,
     val completed: Boolean = false
 )

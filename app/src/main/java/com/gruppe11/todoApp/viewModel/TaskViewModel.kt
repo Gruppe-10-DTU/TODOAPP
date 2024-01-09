@@ -94,7 +94,6 @@ class TaskViewModel @Inject constructor (
             taskRepository.delete(task)
         }
     }
-
     @SuppressLint("NewApi")
     suspend fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
@@ -138,7 +137,6 @@ class TaskViewModel @Inject constructor (
 
     suspend fun getSubtasks(currentTask: Task): List<SubTask> {
         return subtaskRepository.readAll(currentTask)
-
     }
     fun removeSubtask(task: Task, subTask: SubTask){
         viewModelScope.launch {
