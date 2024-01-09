@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -32,19 +33,26 @@ fun SearchBar(
     val viewModel = viewModel<TaskViewModel>()
     var searchText = state.searchText
 
+    val trailingIconView = @Composable {
+        IconButton(
+            onClick = {
+                viewModel.onSearchTextChange("")
+            },
+        ) {
+            Icon(
+                Icons.Default.Clear,
+                contentDescription = "",
+                tint = Color.Black
+            )
+        }
+    }
+
     TextField(
         value = searchText,
         onValueChange = viewModel::onSearchTextChange,
         label = { Text("Search") },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-        trailingIcon = {
-                       Icon(Icons.Default.Clear,
-                           contentDescription = "clear text",
-                           modifier = Modifier
-                               .clickable {
-                                   viewModel.onSearchTextChange("")
-                               })
-        },
+        trailingIcon = if (searchText.isNotBlank()) trailingIconView else null,
         singleLine = true,
         modifier = Modifier
             .width(250.dp)
@@ -56,7 +64,6 @@ fun SearchBar(
             disabledContainerColor = Color.Transparent,
             disabledTextColor = Color.Transparent,
         )
-
     )
 }
 
