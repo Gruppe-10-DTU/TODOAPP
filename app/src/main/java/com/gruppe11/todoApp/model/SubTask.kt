@@ -1,6 +1,13 @@
 package com.gruppe11.todoApp.model
 
-data class SubTask(var title: String, val id: Int, val completed: Boolean = false)
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class SubTask(
+    var title: String,
+    val id: Int,
+    val completed: Boolean = false
+)
 
 
 
