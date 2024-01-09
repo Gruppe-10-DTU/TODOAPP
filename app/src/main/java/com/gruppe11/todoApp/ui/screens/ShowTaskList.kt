@@ -266,8 +266,6 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             )
             if(task.title.contains(searchText.value, ignoreCase = true)) {
 
-
-
                     Text(
                         buildAnnotatedString {
                             val nrOfCharactersInSearch : Int = searchText.value.length
@@ -359,7 +357,6 @@ fun ShowTaskList (
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
 
-    val testList by viewModel.tasksShown.collectAsStateWithLifecycle()
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
@@ -540,7 +537,7 @@ fun ShowTaskList (
                     ) {
                         GenerateLazyColumnForTasks(
                             viewModel = viewModel,
-                            filteredTasks = testList,
+                            filteredTasks = tasks,
                             editTask = onEditTask
                         )
                     }
