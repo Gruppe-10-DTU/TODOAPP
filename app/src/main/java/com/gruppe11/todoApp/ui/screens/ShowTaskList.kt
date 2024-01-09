@@ -264,13 +264,12 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
-            if(task.title.contains(searchText.value, ignoreCase = true)) {
-
                     Text(
-                        buildAnnotatedString {
-                            val nrOfCharactersInSearch : Int = searchText.value.length
+                        buildAnnotatedString (
+                        ) {
+                            val nrOfCharactersInSearch : Int = viewModel.UIState.value.searchText.length
                             var startOfText = 0
-                            var startOfSearch : Int = task.title.indexOf(searchText.value)
+                            var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText)
                             var endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
                             var moreInstances = true
 
@@ -283,7 +282,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                                     append(task.title.substring(startOfSearch,endOfSearchPlus1))
                                 }
 
-                                startOfSearch = task.title.indexOf(searchText.value, endOfSearchPlus1)
+                                startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1)
 
                                 if (startOfSearch > 0) {
                                     startOfText = endOfSearchPlus1
@@ -295,17 +294,9 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                             }
 
                             append(task.title.substring(endOfSearchPlus1))
-                        }
+                        },
+                        modifier = Modifier.align(alignment = Alignment.CenterVertically)
                     )
-
-            } else {
-                val search = searchText.toString()
-                Text(
-                    modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                    text = task.title
-                )
-
-                }
 
 
             Spacer(Modifier.weight(1f))
