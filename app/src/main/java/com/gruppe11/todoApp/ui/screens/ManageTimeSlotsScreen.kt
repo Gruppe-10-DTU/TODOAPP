@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -53,7 +54,6 @@ fun ManageTimeSlotsScreen(
     returnPage: () -> Unit
 ) {
     val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
-    val deleteModalVisible = remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
@@ -76,14 +76,16 @@ fun ManageTimeSlotsScreen(
             )
         }) {padding ->
         LazyColumn(
-            modifier = Modifier.padding(padding),
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(items = timeSlots.value, itemContent = {slot ->
                 EditableTimeSlot(
                     timeSlot = slot,
                     onChanges = { viewModel.updateTimeSlot(it) },
-                    onDelete = {  },
+                    onDelete = { viewModel.deleteTimeSlot(it) },
                 )
                 HorizontalDivider(thickness = 1.dp)
             })
@@ -94,8 +96,8 @@ fun ManageTimeSlotsScreen(
                         TimeSlot(
                             id = 0,
                             name = "new time slot",
-                            start = LocalTime.now(),
-                            end = LocalTime.now().plusHours(1)
+                            start = LocalTime.of(LocalTime.now().hour, 0),
+                            end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0)
                         )
                     ) },
                     colors = ButtonColors(
@@ -110,12 +112,6 @@ fun ManageTimeSlotsScreen(
                 }
             }
         }
-        if (deleteModalVisible.value){
-            // TODO DELETE DIALOG
-            Dialog(onDismissRequest = { /*TODO*/ }) {
-                Text(text = "NOT IMPLEMENTED")
-            }
-        }
     }
 }
 
@@ -124,15 +120,16 @@ fun ManageTimeSlotsScreen(
 fun EditableTimeSlot(
     timeSlot: TimeSlot,
     onChanges: (TimeSlot) -> Unit,
-    onDelete: () -> Unit,
+    onDelete: (TimeSlot) -> Unit,
 ){
     val changeStart = remember{ mutableStateOf(false) }
     val changeEnd = remember{ mutableStateOf(false) }
+    val deleteModalVisible = remember { mutableStateOf(false) }
 
     Row(modifier = Modifier.padding(15.dp,5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { onDelete() } ) {
+        IconButton(onClick = { deleteModalVisible.value = true } ) {
             Icon(
                 imageVector = Icons.Default.RemoveCircleOutline,
                 contentDescription = null,
@@ -183,6 +180,7 @@ fun EditableTimeSlot(
                 }
                 if (changeStart.value) {
                     TimePickerDialog(
+                        initialTime = timeSlot.start,
                         dismiss = { changeStart.value = false },
                         confirm = {hours, minutes ->
                             val newTime = LocalTime.of(hours, minutes)
@@ -192,12 +190,34 @@ fun EditableTimeSlot(
                 }
                 if (changeEnd.value) {
                     TimePickerDialog(
+                        initialTime = timeSlot.end,
                         dismiss = { changeEnd.value = false },
                         confirm = {hours, minutes ->
                             val newTime = LocalTime.of(hours, minutes)
                             onChanges(timeSlot.copy(end = newTime))
                         }
                     )
+                }
+                if (deleteModalVisible.value){
+                    Dialog(onDismissRequest = { deleteModalVisible.value = false }) {
+                        ElevatedCard() {
+                            Column(modifier = Modifier.padding(15.dp)) {
+                                Text(text = "Are you sure you want to delete this timeslot?")
+                                Row(modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End) {
+                                    TextButton(onClick = { deleteModalVisible.value = false }) {
+                                        Text(text = "Cancel", fontSize = 18.sp)
+                                    }
+                                    TextButton(onClick = {
+                                        onDelete(timeSlot)
+                                        deleteModalVisible.value = false
+                                    }) {
+                                        Text(text = "Delete", fontSize = 18.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
             }

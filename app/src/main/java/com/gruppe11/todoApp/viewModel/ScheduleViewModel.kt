@@ -63,5 +63,7 @@ class ScheduleViewModel @Inject constructor(
         }
     }
 
-
+    fun deleteTimeSlot(timeSlot: TimeSlot) {
+        timeSlotRepository.delete(timeSlot)
+    }
 }

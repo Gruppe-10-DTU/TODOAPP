@@ -3,7 +3,6 @@ package com.gruppe11.todoApp.repository
 import com.gruppe11.todoApp.model.TimeSlot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class TimeSlotRepositoryImpl: ITimeSlotRepository {
@@ -13,6 +12,7 @@ class TimeSlotRepositoryImpl: ITimeSlotRepository {
     override fun create(timeSlot: TimeSlot): TimeSlot {
         timeslots.update {list ->
             list.plus(timeSlot.copy(id = id++))
+
         }
         return timeSlot
     }
@@ -26,7 +26,8 @@ class TimeSlotRepositoryImpl: ITimeSlotRepository {
         if (tmp.isNotEmpty()) {
             timeslots.update { list ->
                 list.toMutableList().apply {
-                    this[list.indexOfFirst { it.id == timeSlot.id }]  = timeSlot}
+                    this[list.indexOfFirst { it.id == timeSlot.id }]  = timeSlot
+                }.sortedBy { it.start }
             }
             return timeSlot
         }
@@ -34,6 +35,8 @@ class TimeSlotRepositoryImpl: ITimeSlotRepository {
     }
 
     override fun delete(timeSlot: TimeSlot) {
-        TODO("Not yet implemented")
+        timeslots.update {list ->
+            list.filterNot { it == timeSlot }
+        }
     }
 }

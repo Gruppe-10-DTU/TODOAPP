@@ -22,15 +22,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import java.time.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(
+    initialTime: LocalTime,
     dismiss: () -> Unit,
-    confirm: (Int, Int) -> Unit
+    confirm: (Int, Int) -> Unit,
 
 ) {
-    val state = rememberTimePickerState()
+    val state = rememberTimePickerState(
+        initialHour = initialTime.hour,
+        initialMinute = initialTime.minute,
+        is24Hour = true)
     Dialog(
         onDismissRequest = dismiss,
         properties = DialogProperties(

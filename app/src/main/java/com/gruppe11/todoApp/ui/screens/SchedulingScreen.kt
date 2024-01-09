@@ -84,11 +84,9 @@ fun SchedulingScreen(
                 ) {
                     LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
                         slot.tasks
-                            .filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
+                            .filter { task -> task.deadline.toLocalDate() == uiState.value.selectedDay}
                             .sortedBy { it.priority }.let {
-                                items(items = it
-                                    .reversed()
-                                ) { task ->
+                                items(items = it.reversed()) { task ->
                                     ScheduleTask(
                                         task = task,
                                         height = taskHeight,
