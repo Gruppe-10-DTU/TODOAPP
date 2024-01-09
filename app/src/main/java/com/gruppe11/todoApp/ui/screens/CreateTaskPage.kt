@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
@@ -65,12 +66,10 @@ fun CreateTaskContent(
     viewModel: TaskViewModel = hiltViewModel(),
     taskId: Int? = null
 ) {
-    var currentTask = if (taskId != null) {
+    if (taskId != null) {
         viewModel.getTask(taskId)
-
-    } else {
-        null
     }
+    val currentTask = viewModel.editingTask.collectAsStateWithLifecycle()
     var taskName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
@@ -89,7 +88,7 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false)) }
+    var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false, emptyList())) }
 
     val addSubtask: () -> Unit = {
         if (subtaskName.text.isNotEmpty()) {
@@ -97,9 +96,9 @@ fun CreateTaskContent(
             subtaskList = subtaskList + newSubtask
 
             // Update the task's subtask list
-            if (taskId != null && currentTask != null) {
-                viewModel.addSubtasks(currentTask,subtaskList)
-            } else {
+            currentTask.value?.let {
+                viewModel.addSubtasks(it, subtaskList)
+            } ?: run {
                 viewModel.addSubtasks(tmpTask,subtaskList)
             }
 
@@ -107,18 +106,19 @@ fun CreateTaskContent(
         }
     }
 
-    if (taskId != null && currentTask != null) {
-        taskName = TextFieldValue(currentTask.title)
-        priority = currentTask.priority.name
-        date = currentTask.deadline
-        subtaskList = viewModel.getSubtasks(currentTask)
-    } else {
+    currentTask.value?.let {
+        taskName = TextFieldValue(it.title)
+        priority = it.priority.name
+        date = it.deadline
+        subtaskList = it.subtasks
+    } ?: run {
         tmpTask = Task(
             id = 0,
             title = taskName.text,
             deadline = date,
             priority = Priority.valueOf(priority),
-            isCompleted = false
+            isCompleted = false,
+            subtasks = emptyList()
         )
     }
 
@@ -166,15 +166,15 @@ fun CreateTaskContent(
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (taskName.text.isNotEmpty()) {
-                            if(taskId != null && currentTask != null){
+                            currentTask.value?.let {
                                 viewModel.updateTask(
-                                    currentTask.copy(title = taskName.text, priority = Priority.valueOf(priority), deadline = date),
+                                    it.copy(title = taskName.text, priority = Priority.valueOf(priority), deadline = date),
                                     subtaskList
                                 )
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Task updated")
                                 }
-                            } else {
+                            } ?: run {
                                 viewModel.addTask(
                                     tmpTask,
                                     subtaskList

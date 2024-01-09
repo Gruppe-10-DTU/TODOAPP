@@ -39,9 +39,9 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -283,7 +283,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 .padding(2.dp)
                 .fillMaxWidth()
             ) {
-                for (subtask in viewModel.getSubtasks(task)){
+                for (subtask in task.subtasks){
                     HorizontalDivider()
                     ShowSubTask(viewModel::changeSubtaskCompletion, task, subtask)
                 }
