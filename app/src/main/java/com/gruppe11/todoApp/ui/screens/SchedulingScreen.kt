@@ -77,18 +77,16 @@ fun SchedulingScreen(
             state = columnScrollState
         ) {
             items(timeslots.value){slot ->
-                val slotHeight = (24 / (slot.end.hour - slot.start.hour)).times(30).dp
+                val slotHeight = 250.dp
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = slotHeight
                 ) {
                     LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
-                        slot.tasks // TODO implement timeslot data class
-                            .filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
+                        slot.tasks
+                            .filter { task -> task.deadline.toLocalDate() == uiState.value.selectedDay}
                             .sortedBy { it.priority }.let {
-                                items(items = it
-                                    .reversed()
-                                ) { task ->
+                                items(items = it.reversed()) { task ->
                                     ScheduleTask(
                                         task = task,
                                         height = taskHeight,
@@ -120,7 +118,7 @@ fun SchedulingScreen(
 @Composable
 fun TimeSlot (
     slotHeight: Dp,
-    timeSlot: TimeSlot, // TODO Change type to match timeslot implementation
+    timeSlot: TimeSlot,
     content: @Composable () -> Unit
 ){
     HorizontalDivider()

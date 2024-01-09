@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gruppe11.todoApp.ui.screens.CalendarScreen
 import com.gruppe11.todoApp.ui.screens.CreateTaskContent
+import com.gruppe11.todoApp.ui.screens.ManageTimeSlotsScreen
 import com.gruppe11.todoApp.ui.screens.SchedulingScreen
 import com.gruppe11.todoApp.ui.screens.SettingsPage
 import com.gruppe11.todoApp.ui.screens.ShowTaskList
@@ -39,7 +40,7 @@ fun MainNavHost(
         }
 
         composable(route = Settings.route) {
-            SettingsPage()
+            SettingsPage(manageTimeSlot = {navController.navigate(ManageTimeSlots.route)})
         }
 
         // Task destinations
@@ -50,6 +51,9 @@ fun MainNavHost(
         }
         composable(route = Scheduler.route){
             SchedulingScreen()
+        }
+        composable(route = ManageTimeSlots.route){
+            ManageTimeSlotsScreen(returnPage = {navController.popBackStack()})
         }
         composable(
             route = EditTask.route,
