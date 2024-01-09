@@ -42,17 +42,14 @@ fun SearchBar(
                            contentDescription = "clear text",
                            modifier = Modifier
                                .clickable {
-                                   searchText = ""
+                                   viewModel.onSearchTextChange("")
                                })
         },
         singleLine = true,
         modifier = Modifier
-            //.fillMaxWidth()
             .width(250.dp)
             .verticalScroll(rememberScrollState())
-            //.height(44.dp)
             .border(width = 1.5.dp, color = MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)),
-        //border = BorderStroke(2.dp,Color.Red),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
