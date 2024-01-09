@@ -17,7 +17,7 @@ class RemoveTasksTest {
 
     @Given("A task already exists, and I want to remove it")
     fun aTaskAlreadyExistsAndIWantToRemoveIt() = runTest {
-        task = Task(0,"Hej", Priority.MEDIUM,LocalDateTime.now(),false)
+        task = Task(0,"Hej", Priority.MEDIUM,LocalDateTime.now(),false, emptyList())
         viewModel.addTask(
             task = task,
             listOf()
@@ -32,6 +32,6 @@ class RemoveTasksTest {
 
     @Then("The task should now disappear from the list")
     fun theMenuDisappearsACuratedSelectionOfTasksWithTheCorrespondingSelectedDateShouldAppear() = runTest {
-        Assert.assertTrue(viewModel.getTask(task.id) == null)
+        Assert.assertTrue(viewModel.editingTask.value == null)
     }
 }

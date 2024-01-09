@@ -24,12 +24,12 @@ class FilterTasks {
     fun iHaveCreatedMultipleTasksAndIWantToQuicklyBeAbleToGroupThemByDay() = runTest {
         for (i in 1.. 5){
             viewModel.addTask(
-                Task(i,"test", Priority.MEDIUM,LocalDateTime.now(),false),
+                Task(i,"test", Priority.MEDIUM,LocalDateTime.now(),false, emptyList()),
                 listOf()
             )
         }
         val latedate : LocalDateTime = LocalDateTime.now().minusDays(5);
-        viewModel.addTask(Task(6,"test", Priority.MEDIUM,latedate,false)
+        viewModel.addTask(Task(6,"test", Priority.MEDIUM,latedate,false, emptyList())
         ,
         emptyList())
     }
