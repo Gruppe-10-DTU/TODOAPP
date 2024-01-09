@@ -26,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -113,18 +112,6 @@ fun CreateTaskContent(
     var timeSlotVisible by remember { mutableStateOf(false) }
     val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
-
-    var tmpTask by remember {
-        mutableStateOf(
-            Task(
-                0,
-                "",
-                Priority.MEDIUM,
-                LocalDateTime.now(),
-                false
-            )
-        )
-    }
 
     var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false, emptyList())) }
     val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
@@ -360,13 +347,14 @@ fun CreateTaskContent(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        OutlinedTextField(
-                            value = subtask.title,
-                            onValueChange = { subtask.title = it },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
+                        Text(text = subtask.title)
+//                        OutlinedTextField(
+//                            value = subtask.title,
+//                            onValueChange = { subtaskName = it },
+//                            colors = OutlinedTextFieldDefaults.colors(
+//                                unfocusedBorderColor = MaterialTheme.colorScheme.primary
+//                            )
+//                        )
                     }
                 }
                 HorizDividerWithSpacer(10.dp)
