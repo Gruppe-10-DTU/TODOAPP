@@ -47,6 +47,7 @@ fun MainApp() {
 
         isMainDestination = when (backStackEntry?.destination?.route) {
             Task.route -> true
+            Scheduler.route -> true
             Calendar.route -> true
             Settings.route -> true
             else -> false
@@ -71,7 +72,7 @@ fun MainApp() {
 @Composable
 fun BottomBar(navController : NavHostController) {
     val screens = listOf(
-        Calendar,
+        Scheduler,
         Task,
         Settings
     )

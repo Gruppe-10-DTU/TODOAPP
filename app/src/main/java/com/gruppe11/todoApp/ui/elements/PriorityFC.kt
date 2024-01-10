@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,18 +31,36 @@ fun PriorityFC(
             selected = selectedPriority == "LOW",
             onClick = { onClick("LOW") },
             label = { Text("Low") },
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                selectedLabelColor = MaterialTheme.colorScheme.background,
+                selectedContainerColor = MaterialTheme.colorScheme.primary
+            ),
             enabled = true
         )
         FilterChip(
             selected = selectedPriority == "MEDIUM",
             onClick = { onClick("MEDIUM") },
             label = { Text("Medium") },
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                selectedLabelColor = MaterialTheme.colorScheme.background,
+                selectedContainerColor = MaterialTheme.colorScheme.primary
+            ),
             enabled = true
         )
         FilterChip(
             selected = selectedPriority == "HIGH",
             onClick = { onClick("HIGH") },
             label = { Text("High") },
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                selectedLabelColor = MaterialTheme.colorScheme.background,
+                selectedContainerColor = MaterialTheme.colorScheme.primary
+            ),
             enabled = true
         )
         Spacer(modifier = Modifier.width(20.dp))

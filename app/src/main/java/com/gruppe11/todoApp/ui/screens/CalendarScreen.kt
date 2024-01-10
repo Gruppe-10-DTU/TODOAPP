@@ -32,9 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.DateSideScroller
-import com.gruppe11.todoApp.ui.screenStates.CalendarScreenState
 import com.gruppe11.todoApp.viewModel.CalendarViewModel
-import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,27 +41,27 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun CalendarScreen(
-    viewModel: CalendarViewModel,
-    taskViewModel: TaskViewModel = hiltViewModel()
+    calendarViewModel: CalendarViewModel = hiltViewModel<CalendarViewModel>(),
 ) {
+    val tasks = calendarViewModel.tasks.collectAsStateWithLifecycle(initialValue = emptyList())
     val timeSlotHeight = 120
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val timeIntervals = viewModel.time.collectAsStateWithLifecycle(initialValue = emptyList())
+    val uiState = calendarViewModel.uiState.collectAsStateWithLifecycle()
+    val timeIntervals = calendarViewModel.time.collectAsStateWithLifecycle(initialValue = emptyList())
     val columnState = rememberScrollState()
 
     Scaffold(
         topBar = {
             DateSideScroller(
-                viewModel = viewModel,
-                onTitleClick = {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        columnState.scrollTo(
-                            uiState.value.scrollState.toInt() -
-                                    (getSystem().displayMetrics.densityDpi)
-                        )
-                    }
+                currentDate = uiState.value.currentDay,
+                dates = calendarViewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
+            ) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    columnState.scrollTo(
+                        uiState.value.scrollState.toInt() -
+                                (getSystem().displayMetrics.densityDpi)
+                    )
                 }
-            )
+            }
         }
     ) { padding ->
         Box(
@@ -77,15 +75,14 @@ fun CalendarScreen(
             )
 
             TaskTable(
-                viewModel = taskViewModel,
-                state = uiState,
+                tasks = tasks,
                 slotHeight = timeSlotHeight
             )
 
             if (uiState.value.selectedDay == uiState.value.currentDay) {
                 CurrentTimeLine(
                     slotHeight = timeSlotHeight,
-                    viewModel = viewModel
+                    viewModel = calendarViewModel
                 )
             }
         }
@@ -133,8 +130,7 @@ fun TimeTable(
 
 @Composable
 fun TaskTable(
-    viewModel: TaskViewModel,
-    state : State<CalendarScreenState>,
+    tasks: State<List<Task>>,
     slotHeight: Int
 ){
     Box(
@@ -145,11 +141,9 @@ fun TaskTable(
         val taskHeight = 60
         val taskWidth = 150
         var sideFlip = 1
-        viewModel.getTaskListByDate(state.value.selectedDay.atStartOfDay())
-            .filter { it.deadline.toLocalDate() == state.value.selectedDay && !it.isCompleted }
-            .sortedBy { it.deadline }
+        tasks.value
             .plus(null)
-            .zipWithNext() { taskA, taskB ->
+            .zipWithNext { taskA, taskB ->
                 CalendarTask(
                     task = taskA!!,
                     offset = 50 + taskOffset,
@@ -235,5 +229,5 @@ fun CurrentTimeLine(
 @Preview
 @Composable
 fun PreviewCalendarScreen(){
-    CalendarScreen(CalendarViewModel())
+    CalendarScreen()
 }
