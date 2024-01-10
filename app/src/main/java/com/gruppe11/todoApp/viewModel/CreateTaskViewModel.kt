@@ -22,21 +22,13 @@ class CreateTaskViewModel @Inject constructor(
     private val timeSlotRepository: ITimeSlotRepository
 ) : ViewModel() {
     private val _editingTask = MutableStateFlow<Task?>(null)
-
     val editingTask = _editingTask.asStateFlow()
+    private val _subtasks = MutableStateFlow<List<SubTask>>(emptyList())
+    val subtasks = _subtasks.asStateFlow()
     suspend fun getSubtasks(currentTask: Task): List<SubTask> {
         return subtaskRepository.readAll(currentTask)
     }
 
-    fun addTask(task: Task, subtaskList: List<SubTask>): Task {
-        var tmpTask1 = task
-        viewModelScope.launch {
-            val tmpTask2 = taskRepository.createTask(task)
-            addSubtasks(tmpTask2, subtaskList)
-            tmpTask1 = tmpTask2
-        }
-        return tmpTask1
-    }
 
     fun removeSubtask(task: Task, subTask: SubTask) {
         viewModelScope.launch {
@@ -56,6 +48,18 @@ class CreateTaskViewModel @Inject constructor(
         }
     }
 
+    fun addTask(task: Task, subtaskList: List<SubTask>): Task {
+        var tmpTask1 = task
+        viewModelScope.launch {
+            val tmpTask2 = taskRepository.createTask(task)
+            if (subtaskList.isNotEmpty()){
+                addSubtasks(tmpTask2, subtaskList)
+            }
+            tmpTask1 = tmpTask2
+        }
+        return tmpTask1
+    }
+
     fun addSubtasks(task: Task, subtasks: List<SubTask>) {
         viewModelScope.launch {
             val existingSubtasks = subtaskRepository.readAll(task)
@@ -63,19 +67,14 @@ class CreateTaskViewModel @Inject constructor(
             for (subtask in newSubtasks) {
                 subtaskRepository.createSubtask(task, subtask)
             }
+            val updatedSubtasks = subtaskRepository.readAll(task)
+            _subtasks.value = updatedSubtasks
         }
     }
 
     fun updateTask(task: Task, subtaskList: List<SubTask>) {
         viewModelScope.launch {
             taskRepository.update(task)
-        }
-        fun addTask(task: Task, subtaskList: List<SubTask>) {
-            viewModelScope.launch {
-                val tmpTask = taskRepository.createTask(task)
-                addSubtasks(tmpTask, subtaskList)
-
-            }
         }
     }
 

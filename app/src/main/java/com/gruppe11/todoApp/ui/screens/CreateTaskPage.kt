@@ -128,18 +128,11 @@ fun CreateTaskContent(
     }
 
 
-    val addSubtask: () -> Unit = {
+    val addSubtaskToList: () -> Unit = {
         if (subtaskName.text.isNotEmpty()) {
             val newSubtask = SubTask(title = subtaskName.text, id = 0, completed = false)
-            subtaskList = subtaskList + newSubtask
-
-            // Update the task's subtask list
-//            currentTask.value?.let {
-//                viewModel.addSubtasks(it, subtaskList)
-//            } ?: run {
-//                viewModel.addSubtasks(tmpTask,subtaskList)
-//            }
-
+            subtaskList = subtaskList.toMutableList().apply { add(newSubtask) }
+            currentTask.value?.let{ viewModel.addSubtasks(it,subtaskList) } ?: run { viewModel.addSubtasks(tmpTask, subtaskList)}
             subtaskName = TextFieldValue("")
         }
     }
@@ -326,7 +319,7 @@ fun CreateTaskContent(
                         SwitchableButton(
                             text = "Confirm",
                             onClick = {
-                                addSubtask()
+                                addSubtaskToList()
                                 showSubTaskDialog = false
                             },
                             isFilled = true,
