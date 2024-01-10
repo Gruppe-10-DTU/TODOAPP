@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,12 +29,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gruppe11.todoApp.model.TimeSlot
+import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(
-    manageTimeSlot: () -> Unit
+    manageTimeSlot: () -> Unit,
+    manageProfile: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
@@ -54,10 +57,13 @@ fun SettingsPage(
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             item{
-                TimeSlotSettings(navigation = manageTimeSlot)
+                ProfileSlotSettings(navigation = manageProfile)
+                HorizDividerWithSpacer(10.dp)
             }
+
             item {
-                ProfileSlotSettings(navigation = manageTimeSlot)
+                TimeSlotSettings(navigation = manageTimeSlot)
+                HorizDividerWithSpacer(10.dp)
             }
         }
 
