@@ -11,6 +11,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -139,9 +139,14 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
-        viewModelScope.launch(Dispatchers.IO) {
-            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))?.wait()
-            if(task.subtasks.all{it.completed}){
+        viewModelScope.launch(Dispatchers.IO) {async{
+            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
+        }.await()
+            val tmp = taskRepository.read(task.id)
+            if(tmp != null && tmp.subtasks.all { it.completed } && !tmp.isCompleted){
+                changeTaskCompletion(task)
+            }
+            else if(tmp != null && !tmp.subtasks.all {it.completed} && tmp.isCompleted){
                 changeTaskCompletion(task)
             }
         }

@@ -73,7 +73,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,7 +92,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import org.w3c.dom.Text
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -541,7 +539,6 @@ fun ShowTaskList (
 
 @Composable
 fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,task: Task, subtask : SubTask) {
-    var checked by remember { mutableStateOf(subtask.completed) }
     Row(modifier = Modifier
         .fillMaxWidth()
     ) {
@@ -551,9 +548,8 @@ fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,
             text = subtask.title)
         Spacer(modifier = Modifier.weight(1f))
         Checkbox(modifier = Modifier.padding(10.dp),
-            checked = checked,
+            checked = subtask.completed,
             onCheckedChange = {
-                checked = !checked
                 changeSubtaskCompletion(task, subtask)
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
