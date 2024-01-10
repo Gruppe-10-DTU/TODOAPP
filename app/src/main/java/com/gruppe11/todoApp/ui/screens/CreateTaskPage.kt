@@ -96,12 +96,6 @@ fun CreateTaskContent(
             subtaskList = subtaskList + newSubtask
 
             // Update the task's subtask list
-            currentTask.value?.let {
-                viewModel.addSubtasks(it, subtaskList)
-            } ?: run {
-                viewModel.addSubtasks(tmpTask,subtaskList)
-            }
-
             subtaskName = TextFieldValue("")
         }
     }

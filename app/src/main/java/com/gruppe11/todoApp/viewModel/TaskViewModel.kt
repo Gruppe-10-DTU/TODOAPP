@@ -119,8 +119,14 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
-        viewModelScope.launch {
-            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed));
+        viewModelScope.launch(Dispatchers.IO) {
+            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
+
+            if(!task.isCompleted) {
+                if(task.subtasks.size == task.subtasks.filter{it.completed}.size+1) {
+                    changeTaskCompletion(task)
+                }
+            }
         }
     }
 
@@ -128,11 +134,9 @@ class TaskViewModel @Inject constructor (
         if(_TaskState.value.isEmpty()){
             return 0f
         }
-
         val totComp = _TaskState.value.filter { it.deadline.toLocalDate() == date.toLocalDate() }.count { it.isCompleted }
         val totTask = _TaskState.value.count{ it.deadline.toLocalDate() == date.toLocalDate() }
         if (totTask == 0) return 0f
-        println("Date: " + date + " had " + totComp + " completed and total amount of tasks: " + totTask)
         return totComp/totTask.toFloat()
     }
 
