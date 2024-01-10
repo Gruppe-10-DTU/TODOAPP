@@ -4,20 +4,22 @@ package com.gruppe11.todoApp.ui.screens
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -46,16 +48,17 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SchedulingScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
 ) {
     val timeslots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
-    //var timeSlotHeight by remember { mutableStateOf(0) } // TODO Proper calculation of slot height
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val columnScrollState = rememberLazyListState()
-    val taskHeight = 75.dp
-    val taskWidth = 75.dp
+    val minSlotHeight = 200.dp
+    val minTaskHeight = 75.dp
+    val minTaskWidth = 75.dp
 
 
     Scaffold(
@@ -76,42 +79,56 @@ fun SchedulingScreen(
                 .fillMaxSize(),
             state = columnScrollState
         ) {
-            items(timeslots.value){slot ->
-                val slotHeight = (24 / (slot.end.hour - slot.start.hour)).times(30).dp
+            if (timeslots.value.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(40.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "You haven't created any timeslots.", fontSize = 20.sp)
+                    }
+                }
+            }
+            items(timeslots.value) { slot ->
                 TimeSlot(
                     timeSlot = slot,
-                    slotHeight = slotHeight
+                    slotHeight = minSlotHeight
                 ) {
-                    LazyHorizontalStaggeredGrid(rows = StaggeredGridCells.Fixed(2)) {
-                        slot.tasks // TODO implement timeslot data class
-                            .filter { task -> task.deadline == uiState.value.currentDay.atStartOfDay()}
-                            .sortedBy { it.priority }.let {
-                                items(items = it
-                                    .reversed()
-                                ) { task ->
-                                    ScheduleTask(
-                                        task = task,
-                                        height = taskHeight,
-                                        width = taskWidth
-                                    )
-                                }
+                    FlowRow(maxItemsInEachRow = 5) {
+                        slot.tasks
+                            .filter { task -> task.deadline.toLocalDate() == uiState.value.selectedDay }
+                            .sortedBy { it.priority }//.sortedBy { !it.isCompleted }
+                            .reversed()
+                            .forEach { task ->
+                                ScheduleTask(
+                                    task = task,
+                                    height = minTaskHeight,
+                                    width = minTaskWidth,
+                                    toggleCompletion = {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            viewModel.toggleTaskCompletion(it)}
+                                        }
+                                )
                             }
                     }
                 }
                 HorizontalDivider()
             }
         }
-        LaunchedEffect(key1 = LocalDateTime.now().hour) {
-            if (uiState.value.selectedDay == LocalDate.now()) {
-                scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
-            }
+    }
+    LaunchedEffect(key1 = LocalDateTime.now().hour) {
+        if (uiState.value.selectedDay == LocalDate.now()) {
+            scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
         }
-        LaunchedEffect(key1 = timeslots.value){
-            CoroutineScope(Dispatchers.Main).launch {
-                // TODO REMOVE BEFORE SHIPPING
-                if (timeslots.value.isEmpty()) {
-                    viewModel.generateTestingTimeSlots()
-                }
+    }
+    LaunchedEffect(key1 = timeslots.value) {
+        CoroutineScope(Dispatchers.Main).launch {
+            // TODO REMOVE BEFORE SHIPPING
+            if (timeslots.value.isEmpty()) {
+                viewModel.generateTestingTimeSlots()
             }
         }
     }
@@ -120,12 +137,12 @@ fun SchedulingScreen(
 @Composable
 fun TimeSlot (
     slotHeight: Dp,
-    timeSlot: TimeSlot, // TODO Change type to match timeslot implementation
+    timeSlot: TimeSlot,
     content: @Composable () -> Unit
 ){
     HorizontalDivider()
     Row(modifier = Modifier
-        .height(slotHeight)
+        .defaultMinSize(minHeight = slotHeight)
     ) {
         Column(
             modifier = Modifier
@@ -153,40 +170,62 @@ fun TimeSlot (
 fun ScheduleTask(
     task: Task,
     height: Dp,
-    width: Dp
+    width: Dp,
+    toggleCompletion: (Task) -> Unit
 ){
+    //TODO Change colors to match ColorScheme
     val priorityColor = when (task.priority) {
         Priority.HIGH -> Color.Red
         Priority.MEDIUM -> MaterialTheme.colorScheme.primary
         Priority.LOW -> Color.Green
     }
+    //TODO Change colors to match ColorScheme
+    val completionColor = when (task.isCompleted) {
+        false -> MaterialTheme.colorScheme.tertiaryContainer
+        true -> MaterialTheme.colorScheme.primaryContainer
+    }
     ElevatedCard(
         modifier = Modifier
             .defaultMinSize(minWidth = width, minHeight = height)
             .padding(2.dp)
-            .fillMaxSize()
             .border(
                 width = 1.dp,
                 color = priorityColor,
                 shape = RoundedCornerShape(10.dp)
-            )
+            ),
+        colors = CardColors(
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            containerColor = completionColor,
+            disabledContainerColor = Color.Black,
+            disabledContentColor = Color.Black)
 
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = task.title, fontSize = 18.sp)
-            // TODO add relevant info such as priority etc.
-        }
+        Row() {
+            Column(
+                modifier = Modifier.padding(vertical = 10.dp, horizontal = 10.dp),
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(text = task.title.uppercase(), fontSize = 19.sp)
+                Column(modifier = Modifier.padding(10.dp, 1.dp)) {
+                    task.subtasks.forEach {
+                        Text(text = it.title, fontSize = 14.sp)
+                    }
+                // TODO add more relevant info such as priority etc.
+                }
 
+            }
+            Checkbox(
+                checked = task.isCompleted,
+                onCheckedChange = { toggleCompletion(task.copy(isCompleted = !task.isCompleted)) }
+            )
+        }
     }
 }
 
 suspend fun  scrollToCurrentTime(
     state: LazyListState,
-    slots: List<TimeSlot> // TODO Change type to match timeslot implementation
+    slots: List<TimeSlot>
 ){
     slots.forEach {
         if (LocalTime.now().isAfter(it.start)) {

@@ -16,12 +16,12 @@ import java.time.LocalDateTime
 class CreateSubtask {
 
     private val viewModel: TaskViewModel = TaskViewModel(TaskRepositoryImpl(), SubtaskRepositoryImpl())
-    private lateinit var subtask : SubTask;
-    private lateinit var task : Task;
+    private lateinit var subtask : SubTask
+    private lateinit var task : Task
     @Given("I have created a task")
     fun iHaveCreatedATask() = runTest {
 
-        task = Task(1,"test", Priority.MEDIUM, LocalDateTime.now(), false)
+        task = Task(1,"test", Priority.MEDIUM, LocalDateTime.now(), false, emptyList())
         viewModel.addTask(
             task,
             emptyList()

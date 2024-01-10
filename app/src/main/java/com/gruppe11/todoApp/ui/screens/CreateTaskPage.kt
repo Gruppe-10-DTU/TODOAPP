@@ -2,17 +2,23 @@ package com.gruppe11.todoApp.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -20,24 +26,29 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,16 +57,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
 import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
-import com.gruppe11.todoApp.viewModel.TaskViewModel
+import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
@@ -63,7 +76,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun CreateTaskContent(
     returnPage: () -> Unit,
-    viewModel: TaskViewModel = hiltViewModel(),
+    viewModel: CreateTaskViewModel = hiltViewModel(),
     taskId: Int? = null
 ) {
     if (taskId != null) {
@@ -87,8 +100,33 @@ fun CreateTaskContent(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    var scheduleChecked by remember { mutableStateOf(false) }
+    var selectedTimeSlot by remember {
+        mutableStateOf(
+            TimeSlot(
+                0, "", LocalTime.now(), LocalTime.now(),
+                emptyList()
+            )
+        )
+    }
+    var timeSlotVisible by remember { mutableStateOf(false) }
+    val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
+    val focusManager = LocalFocusManager.current
 
     var tmpTask by remember { mutableStateOf(Task(0,"", Priority.MEDIUM,LocalDateTime.now(),false, emptyList())) }
+    val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
+        {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                modifier = Modifier.size(SwitchDefaults.IconSize),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    } else {
+        null
+    }
+
 
     val addSubtask: () -> Unit = {
         if (subtaskName.text.isNotEmpty()) {
@@ -169,11 +207,13 @@ fun CreateTaskContent(
                                     snackbarHostState.showSnackbar("Task updated")
                                 }
                             } ?: run {
-                                viewModel.addTask(
+                                val taskHolder = viewModel.addTask(
                                     tmpTask,
                                     subtaskList
                                 )
-
+                                if (selectedTimeSlot.name != "") {
+                                    viewModel.addToTimeslot(selectedTimeSlot.copy(tasks = selectedTimeSlot.tasks + taskHolder))
+                                }
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Task created")
                                 }
@@ -197,7 +237,9 @@ fun CreateTaskContent(
         }
 
     }) { padding ->
-        LazyColumn(modifier = Modifier.padding(16.dp)) {
+        LazyColumn(modifier = Modifier
+            .padding(16.dp)
+            .noRippleClickable { focusManager?.clearFocus() }) {
             item {
                 Spacer(modifier = Modifier.height(60.dp))
                 // Main task Input
@@ -206,24 +248,34 @@ fun CreateTaskContent(
                     onValueChange = { taskName = it },
                     label = { Text("Task name") },
                     textStyle = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                 )
                 HorizDividerWithSpacer(10.dp)
                 Text(
                     text = "Choose priority",
-                    fontWeight = FontWeight.Bold,
-                    //fontSize = ,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
                 PriorityFC(
                     selectedPriority = priority,
                     onClick = { newPriority -> priority = newPriority }
                 )
                 HorizDividerWithSpacer(10.dp)
-                Row {
-                    Text(text = "Add Subtask")
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.padding(10.dp, 10.dp)
+                ){
+
+                    Text(
+                        text = "Add Subtask",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                     IconButton(
                         onClick = {
                             showSubTaskDialog = true
@@ -232,8 +284,8 @@ fun CreateTaskContent(
                         content = {
                             Icon(
                                 imageVector = Icons.Filled.AddCircleOutline,
-                                contentDescription = "Cancel",
-                                tint = MaterialTheme.colorScheme.primary
+                                contentDescription = "Add Subtask",
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     )
@@ -245,8 +297,13 @@ fun CreateTaskContent(
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.focusRequester(subtaskFocusRequester)
-                        )
+                        modifier = Modifier.focusRequester(subtaskFocusRequester),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+                    )
                     LaunchedEffect(Unit) {
                         subtaskFocusRequester.requestFocus()
                     }
@@ -284,20 +341,21 @@ fun CreateTaskContent(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        OutlinedTextField(
-                            value = subtask.title,
-                            onValueChange = { subtask.title = it },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
+                        Text(text = subtask.title)
+//                        OutlinedTextField(
+//                            value = subtask.title,
+//                            onValueChange = { subtaskName = it },
+//                            colors = OutlinedTextFieldDefaults.colors(
+//                                unfocusedBorderColor = MaterialTheme.colorScheme.primary
+//                            )
+//                        )
                     }
                 }
                 HorizDividerWithSpacer(10.dp)
                 Text(
                     text = "Select date",
-                    fontWeight = FontWeight.Bold,
-                    //fontSize = ,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -333,6 +391,66 @@ fun CreateTaskContent(
                         }
                     )
                 }
+
+                HorizDividerWithSpacer(dividerHeight = 10.dp)
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.padding(10.dp, 10.dp)
+                ) {
+                    Text(
+                        text = "Schedule ",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Switch(
+                        modifier = Modifier.scale(0.8f),
+                        checked = scheduleChecked,
+                        onCheckedChange = {
+                            scheduleChecked = it
+                            if(!scheduleChecked){
+                                selectedTimeSlot = TimeSlot(
+                                    0, "", LocalTime.now(), LocalTime.now(),
+                                    emptyList()
+                                )
+                            }
+                                          },
+                        thumbContent = switchIcon
+                    )
+                }
+                if (scheduleChecked) {
+                    Row {
+//                        Text(text = "Select Timeslot:")
+                        TextButton(
+                            onClick = { timeSlotVisible = !timeSlotVisible },
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.background
+                            ),
+                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                        ) {
+                            Text(
+                                text = (if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot"),
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .height(20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = timeSlotVisible,
+                        onDismissRequest = { timeSlotVisible = false }) {
+                        timeSlots.value.forEach { timeSlot ->
+                            DropdownMenuItem(
+                                text = { Text(text = timeSlot.name) },
+                                onClick = {
+                                    selectedTimeSlot = timeSlot
+                                    timeSlotVisible = !timeSlotVisible
+                                })
+                        }
+                    }
+                }
                 if (showDatePicker) {
                     DatePickerDialogFunction(
                         System.currentTimeMillis(),
@@ -340,6 +458,7 @@ fun CreateTaskContent(
                         onDismiss = { showDatePicker = false }
                     )
                 }
+                Box(modifier = Modifier.padding(padding))
             }
         }
     }
@@ -361,7 +480,15 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
     }
 }
 
-
+fun Modifier.noRippleClickable(
+    onClick: () -> Unit
+): Modifier = composed {
+    clickable(
+        indication = null,
+        interactionSource = remember { MutableInteractionSource() }) {
+        onClick()
+    }
+}
 
 
 
