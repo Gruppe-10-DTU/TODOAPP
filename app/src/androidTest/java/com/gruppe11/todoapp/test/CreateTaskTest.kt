@@ -18,7 +18,7 @@ class CreateTaskTest{
     private lateinit var task: Task
     @Given("I want to create a task")
     fun iWantToCreateATask() = runTest {
-        task = Task(1, "testTask",Priority.HIGH,LocalDateTime.now(),false)
+        task = Task(1, "testTask",Priority.HIGH,LocalDateTime.now(),false, emptyList())
     }
     @When("I click on the plus icon, a text box I can fill out should appear")
     fun iClickOnThePlusIconATextBoxICanFillOutShouldAppear() = runTest {
