@@ -11,6 +11,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -45,15 +45,12 @@ class TaskViewModel @Inject constructor (
         )
     )
 
-    private val _editingTask = MutableStateFlow<Task?>(null)
-
-    val editingTask = _editingTask.asStateFlow()
-
     val UIState = _UIState.asStateFlow()
 
     val DaysMap = _TaskState.combine(_UIState) { tasks, state -> generateMapOfDays(state.selectedDate)}.distinctUntilChanged()
     private val _filterTags = getFilterTags().toMutableSet()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val TaskState: Flow<List<Task>> = UIState
         .flatMapLatest { states -> _TaskState.map { it.filter { task -> filterTask(task) && doesMachSearchQuery(task) } } }
         .map { sortTasks(it) }
@@ -170,11 +167,6 @@ class TaskViewModel @Inject constructor (
     fun removeSubtask(task: Task, subTask: SubTask){
         viewModelScope.launch {
             subtaskRepository.delete(task, subTask)
-        }
-    }
-    fun getTask(taskId: Int) {
-        viewModelScope.launch {
-            _editingTask.value = taskRepository.read(taskId)
         }
     }
 
