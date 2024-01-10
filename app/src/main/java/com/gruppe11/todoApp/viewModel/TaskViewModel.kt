@@ -1,27 +1,19 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
-import android.app.DownloadManager.Query
-import androidx.compose.runtime.mutableStateOf
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.gruppe11.todoApp.Task.title
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
-import com.gruppe11.todoApp.model.Tag
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.ui.screenStates.LoadingState
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,7 +21,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -49,30 +40,27 @@ class TaskViewModel @Inject constructor (
             incompleteFilter = false,
             priorities = mutableSetOf(),
             sortedOption = "Priority Descending",
-            searchText = ""
+            searchText = "",
+            loadingState = LoadingState.LOADING
         )
     )
-
-    private val _editingTask = MutableStateFlow<Task?>(null)
-
-    val editingTask = _editingTask.asStateFlow()
 
     val UIState = _UIState.asStateFlow()
 
     val DaysMap = _TaskState.combine(_UIState) { tasks, state -> generateMapOfDays(state.selectedDate)}.distinctUntilChanged()
-    private val _filterTags = getFilterTags().toMutableSet()
 
     val TaskState: Flow<List<Task>> = UIState
-        .flatMapLatest { states -> _TaskState.map { it.filter { task -> filterTask(task) && doesMachSearchQuery(task) } } }
+        .flatMapLatest { states ->
+            _TaskState.map {
+                it.filter {
+                    task -> filterTask(task) && doesMatchSearchQuery(task)
+                }
+            }
+        }
         .map { sortTasks(it) }
         .distinctUntilChanged()
 
-    val tags: Set<Tag>
-        get() = _filterTags
-
-    private fun getFilterTags() = emptySet<Tag>()
-
-    fun doesMachSearchQuery(task: Task): Boolean {
+    private fun doesMatchSearchQuery(task: Task): Boolean {
         val matchingCombinations = listOf(
             task.title
         )
@@ -89,43 +77,41 @@ class TaskViewModel @Inject constructor (
     }
 
     init {
+        loadTaskList()
+    }
+
+    fun loadTaskList() {
+        _UIState.update { it.copy(loadingState = LoadingState.LOADING) }
         viewModelScope.launch(viewModelScope.coroutineContext) {
-            taskRepository.readAll().collect{
-                tasks -> _TaskState.value = tasks
+            try {
+                val flow = taskRepository.readAll()
+                _UIState.update { it.copy(loadingState = LoadingState.SUCCESS) }
+                flow.collect{
+                    tasks -> _TaskState.value = tasks
+                }
+            } catch (e: Exception) {
+                _UIState.update { it.copy(loadingState = LoadingState.ERROR) }
             }
         }
     }
-    fun getTaskListByDate(date: LocalDateTime): List<Task>{
-        return _TaskState.value.filter {it.deadline.toLocalDate() == date.toLocalDate()}
-    }
+
     fun changeDate(date: LocalDateTime) {
         viewModelScope.launch {
             _UIState.update { currentState -> currentState.copy(selectedDate = date)}
         }
     }
-    fun updateTask(task: Task, subtaskList: List<SubTask>){
-        viewModelScope.launch {
-            taskRepository.update(task)
-        }
-
-//        addSubtasks(task, subtaskList)
-    }
-
-    fun addTask(task: Task, subtaskList: List<SubTask>){
-        viewModelScope.launch {
-            val tmpTask = taskRepository.createTask(task)
-            addSubtasks(tmpTask, subtaskList)
-
-        }
-    }
 
     fun removeTask(task: Task){
-        viewModelScope.launch {
-            taskRepository.delete(task)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                taskRepository.delete(task)
+            } catch (e: Exception) {
+                Log.d("taskRepository", e.toString())
+            }
         }
     }
     @SuppressLint("NewApi")
-    suspend fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
+    fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
         var tmp:LocalDateTime = LocalDateTime.now().minusDays(30)
 
@@ -142,18 +128,26 @@ class TaskViewModel @Inject constructor (
     @SuppressLint("NewApi")
     fun changeTaskCompletion(task: Task){
         viewModelScope.launch(Dispatchers.IO) {
-            taskRepository.update(task.copy(isCompleted = !task.isCompleted))
+            try {
+                taskRepository.update(task.copy(isCompleted = !task.isCompleted))
+            } catch (e: Exception) {
+                Log.d("taskRepository", e.toString())
+            }
         }
     }
 
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
-        viewModelScope.launch {
-            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed));
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
+            } catch (e: Exception) {
+                Log.d("taskRepository", e.toString())
+            }
         }
     }
 
-    fun countTaskCompletionsByDay( date: LocalDateTime): Float {
+    private fun countTaskCompletionsByDay(date: LocalDateTime): Float {
         if(_TaskState.value.isEmpty()){
             return 0f
         }
@@ -163,20 +157,6 @@ class TaskViewModel @Inject constructor (
         if (totTask == 0) return 0f
         println("Date: " + date + " had " + totComp + " completed and total amount of tasks: " + totTask)
         return totComp/totTask.toFloat()
-    }
-
-    suspend fun getSubtasks(currentTask: Task): List<SubTask> {
-        return subtaskRepository.readAll(currentTask)
-    }
-    fun removeSubtask(task: Task, subTask: SubTask){
-        viewModelScope.launch {
-            subtaskRepository.delete(task, subTask)
-        }
-    }
-    fun getTask(taskId: Int) {
-        viewModelScope.launch {
-            _editingTask.value = taskRepository.read(taskId)
-        }
     }
 
     fun addSubtasks(task: Task, subtasks: List<SubTask>){
