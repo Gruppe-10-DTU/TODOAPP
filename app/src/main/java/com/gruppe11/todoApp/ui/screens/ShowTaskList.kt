@@ -71,7 +71,11 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,12 +86,14 @@ import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
+import com.gruppe11.todoApp.ui.elements.SearchBar
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import org.w3c.dom.Text
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -257,10 +263,41 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
             )
-            Text(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.title
-            )
+                    Text(
+                        buildAnnotatedString (
+                        ) {
+                            val nrOfCharactersInSearch : Int = viewModel.UIState.value.searchText.length
+                            var startOfText = 0
+                            var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText)
+                            var endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
+                            var moreInstances = true
+
+                            while (moreInstances) {
+
+                                append(task.title.substring(startOfText,startOfSearch))
+
+                                withStyle(style = SpanStyle(
+                                    background = MaterialTheme.colorScheme.secondary)) {
+                                    append(task.title.substring(startOfSearch,endOfSearchPlus1))
+                                }
+
+                                startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1)
+
+                                if (startOfSearch > 0) {
+                                    startOfText = endOfSearchPlus1
+                                    endOfSearchPlus1 = startOfSearch + nrOfCharactersInSearch
+                                } else {
+                                    moreInstances = false
+                                }
+
+                            }
+
+                            append(task.title.substring(endOfSearchPlus1))
+                        },
+                        modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                    )
+
+
             Spacer(Modifier.weight(1f))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
@@ -388,6 +425,12 @@ fun ShowTaskList (
                             .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.TopEnd
                     ) {
+                        Column (
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            SearchBar(screenState)
+                            }
                         Column {
                             Row{
                                 IconButton(onClick = { sortingVisible = !sortingVisible }) {

@@ -1,6 +1,10 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
+import android.app.DownloadManager.Query
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gruppe11.todoApp.Task.title
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
@@ -13,6 +17,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -38,7 +47,8 @@ class TaskViewModel @Inject constructor (
             completeFilter = false,
             incompleteFilter = false,
             priorities = mutableSetOf(),
-            sortedOption = "Priority Descending"
+            sortedOption = "Priority Descending",
+            searchText = ""
         )
     )
 
@@ -51,12 +61,31 @@ class TaskViewModel @Inject constructor (
     val DaysMap = _TaskState.combine(_UIState) { tasks, state -> generateMapOfDays(state.selectedDate)}.distinctUntilChanged()
     private val _filterTags = getFilterTags().toMutableSet()
 
-    val TaskState: Flow<List<Task>> = UIState.flatMapLatest { states -> _TaskState.map { it.filter { task -> filterTask(task) } } }.map { sortTasks(it) }.distinctUntilChanged()
+    val TaskState: Flow<List<Task>> = UIState
+        .flatMapLatest { states -> _TaskState.map { it.filter { task -> filterTask(task) && doesMachSearchQuery(task) } } }
+        .map { sortTasks(it) }
+        .distinctUntilChanged()
 
     val tags: Set<Tag>
         get() = _filterTags
 
     private fun getFilterTags() = emptySet<Tag>()
+
+    fun doesMachSearchQuery(task: Task): Boolean {
+        val matchingCombinations = listOf(
+            task.title
+        )
+
+        return matchingCombinations.any{
+            it.contains(_UIState.value.searchText, ignoreCase = true)
+        }
+    }
+
+    fun onSearchTextChange(text: String) {
+        viewModelScope.launch {
+            _UIState.update { currentState -> currentState.copy(searchText = text) }
+        }
+    }
 
     init {
         viewModelScope.launch(viewModelScope.coroutineContext) {
@@ -207,7 +236,7 @@ class TaskViewModel @Inject constructor (
         }
         return sortedTasks
     }
-    
+
     fun selectSortingOption(sortOption: String) {
         viewModelScope.launch {
             _UIState.update { currentState -> currentState.copy(sortedOption = sortOption)}

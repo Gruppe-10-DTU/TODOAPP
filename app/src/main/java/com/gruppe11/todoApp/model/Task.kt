@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.model
 
+//import com.gruppe11.todoApp.Task
 import com.gruppe11.todoApp.serializer.LocalDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
@@ -47,7 +48,7 @@ data class Task (
 //
 //        }
 //        is State.ContentState -> {
-//
+
 //        }
 //
 //        else -> {}
