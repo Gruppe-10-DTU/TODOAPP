@@ -119,7 +119,6 @@ class TaskViewModel @Inject constructor (
     fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
         var tmp:LocalDateTime = LocalDateTime.now().minusDays(30)
-
         if(date != null) {
             tmp = date.minusDays(30)
         }
@@ -139,15 +138,17 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
-        viewModelScope.launch(Dispatchers.IO) {async{
+        viewModelScope.launch(Dispatchers.Main) {val subtaskasync = async{
             subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
         }.await()
-            val tmp = taskRepository.read(task.id)
-            if(tmp != null && tmp.subtasks.all { it.completed } && !tmp.isCompleted){
+            //val tmp = taskRepository.read(task.id)
+            if(subtaskasync != null && task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && !task.isCompleted){
                 changeTaskCompletion(task)
             }
-            else if(tmp != null && !tmp.subtasks.all {it.completed} && tmp.isCompleted){
+            else if(subtaskasync != null && !task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && task.isCompleted){
                 changeTaskCompletion(task)
+            } else {
+                taskRepository.read(task.id)
             }
         }
     }
