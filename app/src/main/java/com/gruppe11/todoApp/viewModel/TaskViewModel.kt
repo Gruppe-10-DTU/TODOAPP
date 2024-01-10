@@ -1,10 +1,6 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
-import android.app.DownloadManager.Query
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.gruppe11.todoApp.Task.title
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
@@ -17,11 +13,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -124,7 +116,7 @@ class TaskViewModel @Inject constructor (
         }
     }
     @SuppressLint("NewApi")
-    suspend fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
+    fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
         var tmp:LocalDateTime = LocalDateTime.now().minusDays(30)
 
@@ -148,12 +140,9 @@ class TaskViewModel @Inject constructor (
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
         viewModelScope.launch(Dispatchers.IO) {
-            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
-
-            if(!task.isCompleted) {
-                if(task.subtasks.size == task.subtasks.filter{it.completed}.size+1) {
-                    changeTaskCompletion(task)
-                }
+            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))?.wait()
+            if(task.subtasks.all{it.completed}){
+                changeTaskCompletion(task)
             }
         }
     }
