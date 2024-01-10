@@ -78,9 +78,7 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskContent(
-    returnPage: () -> Unit,
-    viewModel: CreateTaskViewModel = hiltViewModel(),
-    taskId: Int? = null
+    returnPage: () -> Unit, viewModel: CreateTaskViewModel = hiltViewModel(), taskId: Int? = null
 ) {
     if (taskId != null) {
         viewModel.getTask(taskId)
@@ -88,10 +86,7 @@ fun CreateTaskContent(
     val currentTask = viewModel.editingTask.collectAsStateWithLifecycle()
     var subtaskName by remember { mutableStateOf("") }
     var showSubTaskDialog by remember { mutableStateOf(false) }
-    var subtaskList by remember { mutableStateOf(listOf<SubTask>()) }
     val subtaskFocusRequester = remember { FocusRequester() }
-    var priority by remember { mutableStateOf("MEDIUM") }
-    var date by remember { mutableStateOf(LocalDateTime.now()) }
     var showDatePicker by remember {
         mutableStateOf(false)
     }
@@ -99,30 +94,10 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
-    var selectedTimeSlot by remember {
-        mutableStateOf(
-            TimeSlot(
-                0, "", LocalTime.now(), LocalTime.now(),
-                emptyList()
-            )
-        )
-    }
+    var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0, "", LocalTime.now(), LocalTime.now(), emptyList())) }
     var timeSlotVisible by remember { mutableStateOf(false) }
     val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
-
-    var tmpTask by remember {
-        mutableStateOf(
-            Task(
-                0,
-                "",
-                Priority.MEDIUM,
-                LocalDateTime.now(),
-                false,
-                emptyList()
-            )
-        )
-    }
     val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
         {
             Icon(
@@ -180,9 +155,13 @@ fun CreateTaskContent(
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (currentTask.value.title.isNotEmpty()) {
-                            var message =""
-                            if (taskId != null) message = "Task updated" else message = "Task created"
-                            viewModel.submitTask()
+                            var message = ""
+                            if (taskId != null) message = "Task updated" else message =
+                                "Task created"
+                            val task = viewModel.submitTask()
+                            if (selectedTimeSlot.name.isNotEmpty()) {
+                                viewModel.addToTimeslot(selectedTimeSlot, task)
+                            }
                             scope.launch {
                                 snackbarHostState.showSnackbar(message = message)
                             }
@@ -205,21 +184,20 @@ fun CreateTaskContent(
         }
 
     }) { padding ->
-        LazyColumn(modifier = Modifier
-            .padding(16.dp)
-            .noRippleClickable { focusManager?.clearFocus() }) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(16.dp)
+                .noRippleClickable { focusManager?.clearFocus() }) {
             item {
                 Spacer(modifier = Modifier.height(60.dp))
                 // Main task Input
-                OutlinedTextField(
-                    value = currentTask.value.title,
+                OutlinedTextField(value = currentTask.value.title,
                     onValueChange = { viewModel.editTitle(it) },
                     label = { Text("Task name") },
                     textStyle = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
+                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                 )
@@ -230,8 +208,7 @@ fun CreateTaskContent(
                     fontWeight = FontWeight.Bold
                 )
                 PriorityFC(
-                    selectedPriority = currentTask.value.priority,
-                    onClick = viewModel::editPriority
+                    selectedPriority = currentTask.value.priority, onClick = viewModel::editPriority
                 )
                 HorizDividerWithSpacer(10.dp)
                 Row(
@@ -244,31 +221,26 @@ fun CreateTaskContent(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
-                    IconButton(
-                        onClick = {
-                            showSubTaskDialog = true
-                            subtaskName = ""
-                        },
-                        content = {
-                            Icon(
-                                imageVector = Icons.Filled.AddCircleOutline,
-                                contentDescription = "Add Subtask",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    )
+                    IconButton(onClick = {
+                        showSubTaskDialog = true
+                        subtaskName = ""
+                    }, content = {
+                        Icon(
+                            imageVector = Icons.Filled.AddCircleOutline,
+                            contentDescription = "Add Subtask",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    })
                 }
 
                 if (showSubTaskDialog) {
-                    OutlinedTextField(
-                        value = subtaskName,
+                    OutlinedTextField(value = subtaskName,
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.focusRequester(subtaskFocusRequester),
                         keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Done
+                            keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                     )
@@ -277,22 +249,16 @@ fun CreateTaskContent(
                     }
                     Row {
                         SwitchableButton(
-                            text = "Cancel",
-                            onClick = {
+                            text = "Cancel", onClick = {
                                 showSubTaskDialog = false
-                            },
-                            isFilled = false,
-                            pickedColor = MaterialTheme.colorScheme.primary
+                            }, isFilled = false, pickedColor = MaterialTheme.colorScheme.primary
                         )
                         SwitchableButton(
-                            text = "Confirm",
-                            onClick = {
+                            text = "Confirm", onClick = {
                                 viewModel.addSubtask(subtaskName)
                                 subtaskName = ""
                                 showSubTaskDialog = false
-                            },
-                            isFilled = true,
-                            pickedColor = MaterialTheme.colorScheme.tertiary
+                            }, isFilled = true, pickedColor = MaterialTheme.colorScheme.tertiary
                         )
                     }
                 }
@@ -329,22 +295,18 @@ fun CreateTaskContent(
                         Text(
                             text = currentTask.value.deadline.format(
                                 DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                            ),
-                            fontSize = 20.sp
+                            ), fontSize = 20.sp
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
-                    IconButton(
-                        onClick = { showDatePicker = true },
-                        content = {
-                            Icon(
-                                imageVector = Icons.Outlined.CalendarMonth,
-                                contentDescription = "Pick a date",
-                                modifier = Modifier.scale(1.3f),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    )
+                    IconButton(onClick = { showDatePicker = true }, content = {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = "Pick a date",
+                            modifier = Modifier.scale(1.3f),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    })
                 }
 
                 HorizDividerWithSpacer(dividerHeight = 10.dp)
@@ -365,14 +327,14 @@ fun CreateTaskContent(
                             scheduleChecked = it
                             if (!scheduleChecked) {
                                 selectedTimeSlot = TimeSlot(
-                                    0, "", LocalTime.now(), LocalTime.now(),
-                                    emptyList()
+                                    0, "", LocalTime.now(), LocalTime.now(), emptyList()
                                 )
                             }
                         },
                         thumbContent = switchIcon
                     )
                 }
+
                 if (scheduleChecked) {
                     Row {
 //                        Text(text = "Select Timeslot:")
@@ -393,25 +355,20 @@ fun CreateTaskContent(
                             )
                         }
                     }
-                    DropdownMenu(
-                        expanded = timeSlotVisible,
+                    DropdownMenu(expanded = timeSlotVisible,
                         onDismissRequest = { timeSlotVisible = false }) {
                         timeSlots.value.forEach { timeSlot ->
-                            DropdownMenuItem(
-                                text = { Text(text = timeSlot.name) },
-                                onClick = {
-                                    selectedTimeSlot = timeSlot
-                                    timeSlotVisible = !timeSlotVisible
-                                })
+                            DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
+                                selectedTimeSlot = timeSlot
+                                timeSlotVisible = !timeSlotVisible
+                            })
                         }
                     }
                 }
                 if (showDatePicker) {
-                    DatePickerDialogFunction(
-                        System.currentTimeMillis(),
+                    DatePickerDialogFunction(System.currentTimeMillis(),
                         onDateSelected = viewModel::editDeadline,
-                        onDismiss = { showDatePicker = false }
-                    )
+                        onDismiss = { showDatePicker = false })
                 }
                 Box(modifier = Modifier.padding(padding))
             }
@@ -438,9 +395,7 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
 fun Modifier.noRippleClickable(
     onClick: () -> Unit
 ): Modifier = composed {
-    clickable(
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() }) {
+    clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
         onClick()
     }
 }
@@ -470,12 +425,10 @@ fun subtaskItem(
         }
 //                        Text(text = subtask.title)
         OutlinedTextField(
-            value = subtaskName,
-            onValueChange = {
+            value = subtaskName, onValueChange = {
                 subtaskName = it
                 showConfirm = true
-            },
-            colors = OutlinedTextFieldDefaults.colors(
+            }, colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = MaterialTheme.colorScheme.primary
             )
         )
@@ -483,22 +436,16 @@ fun subtaskItem(
     if (showConfirm) {
         Row {
             SwitchableButton(
-                text = "Cancel",
-                onClick = {
+                text = "Cancel", onClick = {
                     subtaskName = subtask.title
                     showConfirm = false
-                },
-                isFilled = false,
-                pickedColor = MaterialTheme.colorScheme.primary
+                }, isFilled = false, pickedColor = MaterialTheme.colorScheme.primary
             )
             SwitchableButton(
-                text = "Confirm",
-                onClick = {
+                text = "Confirm", onClick = {
                     editSubTask(index, subtaskName, subtask)
                     showConfirm = false
-                },
-                isFilled = true,
-                pickedColor = MaterialTheme.colorScheme.tertiary
+                }, isFilled = true, pickedColor = MaterialTheme.colorScheme.tertiary
             )
         }
     }

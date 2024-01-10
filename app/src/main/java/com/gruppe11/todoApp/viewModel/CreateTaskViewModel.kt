@@ -54,18 +54,6 @@ class CreateTaskViewModel @Inject constructor(
     }
 
 
-    fun addTask(task: Task, subtaskList: List<SubTask>): Task {
-        var tmpTask1 = task
-        viewModelScope.launch {
-            val tmpTask2 = taskRepository.createTask(task)
-            if (subtaskList.isNotEmpty()) {
-                addSubtasks(tmpTask2, subtaskList)
-            }
-            tmpTask1 = tmpTask2
-        }
-        return tmpTask1
-    }
-
     private fun addSubtasks(task: Task, subtasks: List<SubTask>) {
         viewModelScope.launch {
             val existingSubtasks = subtaskRepository.readAll(task)
@@ -77,18 +65,12 @@ class CreateTaskViewModel @Inject constructor(
         }
     }
 
-    fun updateTask(task: Task, subtaskList: List<SubTask>) {
-        viewModelScope.launch {
-            taskRepository.update(task)
-        }
-    }
-
     fun getTimeSlots(): Flow<List<TimeSlot>> {
         return timeSlotRepository.readAll()
     }
 
-    fun addToTimeslot(timeslot: TimeSlot) {
-        timeSlotRepository.update(timeslot)
+    fun addToTimeslot(timeslot: TimeSlot, task: Task) {
+        timeSlotRepository.update(timeslot.copy(tasks = timeslot.tasks.plus(task)))
     }
 
     fun editTitle(title: String) {
@@ -101,9 +83,6 @@ class CreateTaskViewModel @Inject constructor(
 
     fun editDeadline(deadline: LocalDateTime) {
         _editingTask.update { task: Task -> task.copy(deadline = deadline) }
-    }
-
-    fun editSubtasks(subtaskList: List<SubTask>) {
     }
 
     fun editSubtask(index: Int, newSubtaskTitle: String, newSubtask: SubTask) {
@@ -128,9 +107,10 @@ class CreateTaskViewModel @Inject constructor(
 
     }
 
-    suspend fun submitTask() {
+    suspend fun submitTask(): Task{
+        var task: Task
         if (_editingTask.value.id > 0) {
-            taskRepository.update(_editingTask.value)
+             task = taskRepository.update(_editingTask.value)
             val existingSubtasks = subtaskRepository.readAll(_editingTask.value)
             _editingTask.value.subtasks.forEach{
                 subTask ->
@@ -140,18 +120,15 @@ class CreateTaskViewModel @Inject constructor(
                     subtaskRepository.createSubtask(_editingTask.value, subTask)
                 }
             }
-
+            return task
         } else {
             val task = taskRepository.createTask(_editingTask.value)
             if (_editingTask.value.title.isNotEmpty() && _editingTask.value.subtasks.isNotEmpty()) {
                 addSubtasks(task, _editingTask.value.subtasks)
             }
-//                if (selectedTimeSlot.name != "") {
-//                    viewModel.addToTimeslot(selectedTimeSlot.copy(tasks = selectedTimeSlot.tasks + taskHolder))
-//                }
-//                scope.launch {
-//                    snackbarHostState.showSnackbar("Task created")
+            return task
         }
     }
+
 }
 
