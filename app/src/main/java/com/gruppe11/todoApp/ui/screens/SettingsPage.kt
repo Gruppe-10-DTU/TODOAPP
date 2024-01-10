@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ButtonColors
@@ -55,6 +56,9 @@ fun SettingsPage(
             item{
                 TimeSlotSettings(navigation = manageTimeSlot)
             }
+            item {
+                ProfileSlotSettings(navigation = manageTimeSlot)
+            }
         }
 
     }
@@ -83,5 +87,33 @@ fun TimeSlotSettings(
             contentDescription = null,
             modifier = Modifier.rotate(180F)
         )
+    }
+}
+
+@Composable
+fun ProfileSlotSettings(
+    navigation: () -> Unit
+) {
+    TextButton(
+        onClick = navigation,
+        colors = ButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContentColor = MaterialTheme.colorScheme.tertiary,
+            disabledContainerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {Alignment.CenterVertically
+        Arrangement.SpaceBetween
+        Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
+        Spacer(modifier = Modifier.width(25.dp))
+        Text(text = "Manage Profile", fontSize = 25.sp)
+        Spacer(modifier = Modifier.width(25.dp))
+        Icon(
+            imageVector = Icons.Default.ArrowBackIosNew,
+            contentDescription = null,
+            modifier = Modifier.rotate(180F)
+        )
+        
     }
 }
