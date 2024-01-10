@@ -159,9 +159,15 @@ fun CreateTaskContent(
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
-                            if (selectedTimeSlot.name.isNotEmpty()) {
+                            val oldTimeslot = viewModel.getTimeSlot(task)
+                            if (task != null && viewModel.doesTaskExistInTimeSlot(task) && oldTimeslot != selectedTimeSlot) {
+                                viewModel.removeTaskFromTimeSlot(oldTimeslot, task)
+                                viewModel.addToTimeslot(selectedTimeSlot, task)
+                            } else if (scheduleChecked && oldTimeslot != selectedTimeSlot){
                                 viewModel.addToTimeslot(selectedTimeSlot, task)
                             }
+
+
                             scope.launch {
                                 snackbarHostState.showSnackbar(message = message)
                             }
@@ -334,7 +340,17 @@ fun CreateTaskContent(
                         thumbContent = switchIcon
                     )
                 }
-
+                val taskExistsInTimeSlots = viewModel.doesTaskExistInTimeSlots(currentTask.value, timeSlots.value)
+                var taskTimeSlot: TimeSlot? = null
+                if (taskId != null) {
+                    if(taskId > 0 && taskExistsInTimeSlots){
+                        scheduleChecked = true
+                        taskTimeSlot = timeSlots.value.find { it.tasks.contains(currentTask.value) }
+                        if (taskTimeSlot != null){
+//                            selectedTimeSlot = taskTimeSlot
+                        }
+                    }
+                }
                 if (scheduleChecked) {
                     Row {
 //                        Text(text = "Select Timeslot:")
