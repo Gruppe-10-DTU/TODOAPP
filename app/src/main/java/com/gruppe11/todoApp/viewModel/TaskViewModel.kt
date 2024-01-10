@@ -66,9 +66,6 @@ class TaskViewModel @Inject constructor (
         .map { sortTasks(it) }
         .distinctUntilChanged()
 
-    private val _searchText = MutableStateFlow("")
-    val searchText = _searchText.asStateFlow()
-
     val tags: Set<Tag>
         get() = _filterTags
 

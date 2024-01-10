@@ -234,7 +234,6 @@ fun GenerateLazyColumnForTasks(
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
-    val searchText = viewModel.searchText
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
