@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ButtonColors
@@ -27,12 +29,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gruppe11.todoApp.model.TimeSlot
+import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(
-    manageTimeSlot: () -> Unit
+    manageTimeSlot: () -> Unit,
+    manageProfile: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxHeight(),
@@ -53,7 +57,13 @@ fun SettingsPage(
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             item{
+                ProfileSlotSettings(navigation = manageProfile)
+                HorizDividerWithSpacer(10.dp)
+            }
+
+            item {
                 TimeSlotSettings(navigation = manageTimeSlot)
+                HorizDividerWithSpacer(10.dp)
             }
         }
 
@@ -83,5 +93,33 @@ fun TimeSlotSettings(
             contentDescription = null,
             modifier = Modifier.rotate(180F)
         )
+    }
+}
+
+@Composable
+fun ProfileSlotSettings(
+    navigation: () -> Unit
+) {
+    TextButton(
+        onClick = navigation,
+        colors = ButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContentColor = MaterialTheme.colorScheme.tertiary,
+            disabledContainerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {Alignment.CenterVertically
+        Arrangement.SpaceBetween
+        Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
+        Spacer(modifier = Modifier.width(25.dp))
+        Text(text = "Manage Profile", fontSize = 25.sp)
+        Spacer(modifier = Modifier.width(25.dp))
+        Icon(
+            imageVector = Icons.Default.ArrowBackIosNew,
+            contentDescription = null,
+            modifier = Modifier.rotate(180F)
+        )
+        
     }
 }

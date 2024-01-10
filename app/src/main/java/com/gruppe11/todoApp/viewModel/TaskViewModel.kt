@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -220,6 +221,9 @@ class TaskViewModel @Inject constructor (
                 set.remove(priority)
             } else {
                 set.add(priority)
+            }
+            if (set.size == Priority.values().size) {
+                set.clear()
             }
             _UIState.update { currentState -> currentState.copy(priorities = set) }
         }

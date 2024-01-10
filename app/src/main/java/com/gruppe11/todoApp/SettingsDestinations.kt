@@ -6,3 +6,7 @@ interface SettingsDestination {
 object ManageTimeSlots: SettingsDestination {
     override val route: String = "manageTimeSlots"
 }
+
+object ManageProfile: SettingsDestination {
+    override val route: String = "manageProfile"
+}
