@@ -134,11 +134,11 @@ fun CreateTaskContent(
             subtaskList = subtaskList + newSubtask
 
             // Update the task's subtask list
-            currentTask.value?.let {
-                viewModel.addSubtasks(it, subtaskList)
-            } ?: run {
-                viewModel.addSubtasks(tmpTask,subtaskList)
-            }
+//            currentTask.value?.let {
+//                viewModel.addSubtasks(it, subtaskList)
+//            } ?: run {
+//                viewModel.addSubtasks(tmpTask,subtaskList)
+//            }
 
             subtaskName = TextFieldValue("")
         }
@@ -217,6 +217,7 @@ fun CreateTaskContent(
                                     tmpTask,
                                     subtaskList
                                 )
+
                                 if (selectedTimeSlot.name != "") {
                                     viewModel.addToTimeslot(selectedTimeSlot.copy(tasks = selectedTimeSlot.tasks + taskHolder))
                                 }
