@@ -9,5 +9,6 @@ data class TasksScreenState(
     val incompleteFilter: Boolean,
     val priorities: MutableSet<Priority>,
     val sortedOption: String,
-    val searchText: String
+    val searchText: String,
+    val loadingState: LoadingState
 )
