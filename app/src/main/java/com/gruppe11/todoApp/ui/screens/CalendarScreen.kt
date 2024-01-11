@@ -53,6 +53,7 @@ fun CalendarScreen(
         topBar = {
             DateSideScroller(
                 currentDate = uiState.value.currentDay,
+                onDateChange = { calendarViewModel.changeSelectedDate(it) },
                 dates = calendarViewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
             ) {
                 CoroutineScope(Dispatchers.Main).launch {

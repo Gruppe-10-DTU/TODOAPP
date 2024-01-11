@@ -90,5 +90,11 @@ class CalendarViewModel @Inject constructor(
             )
         }
     }
+
+    fun changeSelectedDate(date: LocalDate) {
+        _uiState.update {
+            it.copy(selectedDay = date)
+        }
+    }
 }
 
