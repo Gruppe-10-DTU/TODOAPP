@@ -110,15 +110,15 @@ fun LinearDeterminateIndicator(progress: Float) {
             .height(60.dp)
             .padding(7.5.dp)
     ) {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .height(10.dp)
-                    .width(50.dp)
-                    .rotate(-90f),
-                progress = {progress},
-                trackColor = MaterialTheme.colorScheme.primaryContainer,
-            )
+        LinearProgressIndicator(
+            modifier = Modifier
+                .wrapContentSize()
+                .height(10.dp)
+                .width(50.dp)
+                .rotate(-90f),
+            progress = {progress},
+            trackColor = MaterialTheme.colorScheme.primaryContainer,
+        )
     }
 }
 
@@ -147,56 +147,56 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                    val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
-                    items(daysMap.keys.toList()) { day ->
-                            Column(
-                            verticalArrangement = Arrangement.SpaceEvenly,
-                            modifier = Modifier.wrapContentSize(),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                                daysMap[day]?.let {
-                                    LinearDeterminateIndicator(
-                                        progress = it
-                                    )
-                                }
-                            Spacer(Modifier.height(2.dp))
-                                FilterChip(
-                                    shape = MaterialTheme.shapes.small,
-                                    selected = selectedDate.toLocalDate().equals(day),
-                                    onClick = {
-                                        onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
-                                              },
-                                    label = {
-                                        Text(
-                                            text = day.format(formatFilterDate),
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier
-                                                .padding(0.dp)
-                                                .fillMaxWidth(),
-                                            fontSize = 9.8.sp
-                                        )
-                                    },
-                                    enabled = true,
-                                    modifier = Modifier
-                                        .width(65.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.background,
-                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                        selectedLabelColor = MaterialTheme.colorScheme.background
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = false,
-                                        borderColor = Color.Transparent,
-                                        disabledBorderColor = Color.Transparent,
-                                    )
-                                )
-                            }
+                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
+                items(daysMap.keys.toList()) { day ->
+                    Column(
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.wrapContentSize(),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        daysMap[day]?.let {
+                            LinearDeterminateIndicator(
+                                progress = it
+                            )
                         }
+                        Spacer(Modifier.height(2.dp))
+                        FilterChip(
+                            shape = MaterialTheme.shapes.small,
+                            selected = selectedDate.toLocalDate().equals(day),
+                            onClick = {
+                                onSelectedDate(day.atTime(LocalDateTime.now().hour,LocalDateTime.now().minute))
+                            },
+                            label = {
+                                Text(
+                                    text = day.format(formatFilterDate),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .padding(0.dp)
+                                        .fillMaxWidth(),
+                                    fontSize = 9.8.sp
+                                )
+                            },
+                            enabled = true,
+                            modifier = Modifier
+                                .width(65.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.background
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = false,
+                                borderColor = Color.Transparent,
+                                disabledBorderColor = Color.Transparent,
+                            )
+                        )
                     }
+                }
             }
         }
+    }
 }
 
 
@@ -333,7 +333,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             deleteTask = {
                 showDialog.value = false
                 viewModel.removeTask(task)
-             },
+            },
             dismissDialog = { showDialog.value = false }
         )
     }
@@ -379,7 +379,7 @@ fun ShowTaskList (
                                 containerColor = MaterialTheme.colorScheme.background,
                                 disabledContainerColor = MaterialTheme.colorScheme.background,
                                 disabledContentColor = MaterialTheme.colorScheme.tertiary)
-                            ) {
+                        ) {
                             Text(
                                 text = screenState.selectedDate.format(formatBigDate).toString(),
                                 fontSize = 18.sp
@@ -491,7 +491,7 @@ fun ShowTaskList (
                             .wrapContentHeight()
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.TopCenter
+                        contentAlignment = Alignment.TopCenter
                     ) {
                         Column {
                             AnimatedVisibility(
@@ -559,7 +559,6 @@ fun ShowTaskList (
                             }
                         }
                     }
-
                 }
             }
             LaunchedEffect(true) {
@@ -571,7 +570,6 @@ fun ShowTaskList (
 
 @Composable
 fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,task: Task, subtask : SubTask) {
-    var checked by remember { mutableStateOf(subtask.completed) }
     Row(modifier = Modifier
         .fillMaxWidth()
     ) {
@@ -581,9 +579,8 @@ fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,
             text = subtask.title)
         Spacer(modifier = Modifier.weight(1f))
         Checkbox(modifier = Modifier.padding(10.dp),
-            checked = checked,
+            checked = subtask.completed,
             onCheckedChange = {
-                //checked = !checked
                 changeSubtaskCompletion(task, subtask)
             },
             colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
