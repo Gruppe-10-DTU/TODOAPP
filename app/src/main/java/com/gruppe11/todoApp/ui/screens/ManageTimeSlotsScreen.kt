@@ -97,7 +97,8 @@ fun ManageTimeSlotsScreen(
                             id = 0,
                             name = "new time slot",
                             start = LocalTime.of(LocalTime.now().hour, 0),
-                            end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0)
+                            end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0),
+                            emptyList()
                         )
                     ) },
                     colors = ButtonColors(

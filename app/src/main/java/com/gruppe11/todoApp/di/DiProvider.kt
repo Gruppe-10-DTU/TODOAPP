@@ -5,7 +5,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
 import com.gruppe11.todoApp.repository.TaskRepositoryImpl
-import com.gruppe11.todoApp.repository.TimeSlotRepositoryImpl
+import com.gruppe11.todoApp.repository.TimeSlotRepositoryApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,6 +31,6 @@ object DiProvider {
     @Provides
     @Singleton
     fun providesTimeSlotRepository(): ITimeSlotRepository {
-        return TimeSlotRepositoryImpl()
+        return TimeSlotRepositoryApi()
     }
 }

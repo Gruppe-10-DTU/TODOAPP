@@ -1,15 +1,11 @@
 package com.gruppe11.todoApp.repository
 
-import androidx.compose.runtime.collectAsState
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNotEquals
 import org.junit.Before

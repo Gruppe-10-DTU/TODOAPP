@@ -28,7 +28,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -37,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -49,18 +47,13 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
-import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
-import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
@@ -70,8 +63,6 @@ import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
@@ -94,9 +85,8 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
-    var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0, "", LocalTime.now(), LocalTime.now(), emptyList())) }
     var timeSlotVisible by remember { mutableStateOf(false) }
-    val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots = viewModel.Timeslots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
     val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
         {
@@ -159,9 +149,7 @@ fun CreateTaskContent(
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
-                            if (selectedTimeSlot.name.isNotEmpty()) {
-                                viewModel.addToTimeslot(selectedTimeSlot, task)
-                            }
+
                             scope.launch {
                                 snackbarHostState.showSnackbar(message = message)
                             }
@@ -325,11 +313,6 @@ fun CreateTaskContent(
                         checked = scheduleChecked,
                         onCheckedChange = {
                             scheduleChecked = it
-                            if (!scheduleChecked) {
-                                selectedTimeSlot = TimeSlot(
-                                    0, "", LocalTime.now(), LocalTime.now(), emptyList()
-                                )
-                            }
                         },
                         thumbContent = switchIcon
                     )
@@ -346,7 +329,7 @@ fun CreateTaskContent(
                             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                         ) {
                             Text(
-                                text = (if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot"),
+                                text = (currentTask.value.timeslot?.name ?: "Select Timeslot"),
                                 modifier = Modifier
                                     .width(100.dp)
                                     .height(20.dp),
@@ -359,7 +342,7 @@ fun CreateTaskContent(
                         onDismissRequest = { timeSlotVisible = false }) {
                         timeSlots.value.forEach { timeSlot ->
                             DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
-                                selectedTimeSlot = timeSlot
+                                viewModel.editTimeslot(timeSlot)
                                 timeSlotVisible = !timeSlotVisible
                             })
                         }
@@ -392,6 +375,7 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
     }
 }
 
+@SuppressLint("ModifierFactoryUnreferencedReceiver")
 fun Modifier.noRippleClickable(
     onClick: () -> Unit
 ): Modifier = composed {
