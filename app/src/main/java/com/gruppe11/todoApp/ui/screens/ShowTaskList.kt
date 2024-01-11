@@ -435,7 +435,8 @@ fun ShowTaskList (
                                         contentDescription = "Open sorting",
                                         modifier = Modifier
                                             .size(44.dp)
-                                            .padding(4.dp)
+                                            .padding(4.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
                                 if (sortingVisible) {
@@ -468,7 +469,8 @@ fun ShowTaskList (
                                         contentDescription = "Open filter selection",
                                         modifier = Modifier
                                             .size(44.dp)
-                                            .padding(4.dp)
+                                            .padding(4.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
                                 IconButton(onClick = { showMonthPicker.value = true }) {
@@ -477,7 +479,8 @@ fun ShowTaskList (
                                         contentDescription = "Open YearMonth Picker",
                                         modifier = Modifier
                                             .size(44.dp)
-                                            .padding(4.dp)
+                                            .padding(4.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
                             }
