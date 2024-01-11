@@ -12,6 +12,7 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -28,19 +29,34 @@ class CreateTaskViewModel @Inject constructor(
     private val _editingTask = MutableStateFlow<Task>(
         Task(
             -1, "", Priority.MEDIUM, LocalDateTime.now(), false,
-            emptyList()
+            emptyList(),
+            null
         )
     )
+
     val editingTask = _editingTask.asStateFlow()
 
-    private val _submitState = MutableStateFlow(ExecutionState.SUCCESS)
-    val submitState = _submitState.asStateFlow()
+    val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
 
-    private val _timeslots = MutableStateFlow<List<TimeSlot>>(emptyList())
-    val timeslots = _timeslots.asStateFlow()
-
+    val Timeslots = _timeslots.asStateFlow()
     init {
-        getTimeSlots()
+        viewModelScope.launch(Dispatchers.Default) {
+
+            timeSlotRepository.readAll().collect{ timeslots ->
+                _timeslots.value = timeslots
+            }
+        }
+    }
+
+    suspend fun getSubtasks(currentTask: Task): List<SubTask> {
+        return subtaskRepository.readAll(currentTask)
+    }
+
+
+    fun removeSubtask(task: Task, subTask: SubTask) {
+        viewModelScope.launch {
+            subtaskRepository.delete(task, subTask)
+        }
     }
 
     fun getTask(taskId: Int) {
@@ -84,6 +100,7 @@ class CreateTaskViewModel @Inject constructor(
     }
 
     fun addToTimeslot(timeslot: TimeSlot, task: Task) {
+        _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
         try {
             timeSlotRepository.update(timeslot.copy(tasks = timeslot.tasks.plus(task)))
             _submitState.value = ExecutionState.SUCCESS
@@ -155,6 +172,10 @@ class CreateTaskViewModel @Inject constructor(
             }
         }
         return task
+    }
+
+    fun editTimeslot(timeslot: TimeSlot) {
+        _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
     }
 
 }

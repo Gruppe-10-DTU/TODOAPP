@@ -88,9 +88,8 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
-    var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0, "", LocalTime.now(), LocalTime.now(), emptyList())) }
     var timeSlotVisible by remember { mutableStateOf(false) }
-    val timeSlots = viewModel.timeslots.collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots = viewModel.Timeslots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
     val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
         {
@@ -333,11 +332,6 @@ fun CreateTaskContent(
                         checked = scheduleChecked,
                         onCheckedChange = {
                             scheduleChecked = it
-                            if (!scheduleChecked) {
-                                selectedTimeSlot = TimeSlot(
-                                    0, "", LocalTime.now(), LocalTime.now(), emptyList()
-                                )
-                            }
                         },
                         thumbContent = switchIcon
                     )
@@ -354,7 +348,7 @@ fun CreateTaskContent(
                             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                         ) {
                             Text(
-                                text = (if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot"),
+                                text = (currentTask.value.timeslot?.name ?: "Select Timeslot"),
                                 modifier = Modifier
                                     .width(100.dp)
                                     .height(20.dp),
@@ -367,7 +361,7 @@ fun CreateTaskContent(
                         onDismissRequest = { timeSlotVisible = false }) {
                         timeSlots.value.forEach { timeSlot ->
                             DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
-                                selectedTimeSlot = timeSlot
+                                viewModel.editTimeslot(timeSlot)
                                 timeSlotVisible = !timeSlotVisible
                             })
                         }
@@ -400,6 +394,7 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
     }
 }
 
+@SuppressLint("ModifierFactoryUnreferencedReceiver")
 fun Modifier.noRippleClickable(
     onClick: () -> Unit
 ): Modifier = composed {
