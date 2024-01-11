@@ -13,6 +13,7 @@ import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.BottomAppBar
@@ -28,7 +29,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -49,17 +48,13 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
-import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
-import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
@@ -70,7 +65,6 @@ import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -94,7 +88,17 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
-    var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0, "", LocalTime.now(), LocalTime.now(), emptyList())) }
+    var selectedTimeSlot by remember {
+        mutableStateOf(
+            TimeSlot(
+                0,
+                "",
+                LocalTime.now(),
+                LocalTime.now(),
+                emptyList()
+            )
+        )
+    }
     var timeSlotVisible by remember { mutableStateOf(false) }
     val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
@@ -142,7 +146,7 @@ fun CreateTaskContent(
                 text = "Cancel",
                 onClick = { returnPage() },
                 isFilled = false,
-                pickedColor = MaterialTheme.colorScheme.primary,
+                pickedColor = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -159,9 +163,16 @@ fun CreateTaskContent(
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
-                            if (selectedTimeSlot.name.isNotEmpty()) {
+                            val oldTimeslot = viewModel.getTimeSlot(task)
+                            val existsInTS = viewModel.doesTaskExistInTimeSlot(task)
+                            if (existsInTS && oldTimeslot != selectedTimeSlot) {
+                                viewModel.unscheduleTask(task)
+                                viewModel.addToTimeslot(selectedTimeSlot, task)
+                            } else if (scheduleChecked && oldTimeslot != selectedTimeSlot) {
                                 viewModel.addToTimeslot(selectedTimeSlot, task)
                             }
+
+
                             scope.launch {
                                 snackbarHostState.showSnackbar(message = message)
                             }
@@ -175,7 +186,7 @@ fun CreateTaskContent(
                     }
                 },
                 isFilled = true,
-                pickedColor = MaterialTheme.colorScheme.tertiary,
+                pickedColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -191,7 +202,8 @@ fun CreateTaskContent(
             item {
                 Spacer(modifier = Modifier.height(60.dp))
                 // Main task Input
-                OutlinedTextField(value = currentTask.value.title,
+                OutlinedTextField(
+                    value = currentTask.value.title,
                     onValueChange = { viewModel.editTitle(it) },
                     label = { Text("Task name") },
                     textStyle = MaterialTheme.typography.bodyMedium,
@@ -234,7 +246,8 @@ fun CreateTaskContent(
                 }
 
                 if (showSubTaskDialog) {
-                    OutlinedTextField(value = subtaskName,
+                    OutlinedTextField(
+                        value = subtaskName,
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
@@ -251,14 +264,14 @@ fun CreateTaskContent(
                         SwitchableButton(
                             text = "Cancel", onClick = {
                                 showSubTaskDialog = false
-                            }, isFilled = false, pickedColor = MaterialTheme.colorScheme.primary
+                            }, isFilled = false, pickedColor = MaterialTheme.colorScheme.tertiary
                         )
                         SwitchableButton(
                             text = "Confirm", onClick = {
                                 viewModel.addSubtask(subtaskName)
                                 subtaskName = ""
                                 showSubTaskDialog = false
-                            }, isFilled = true, pickedColor = MaterialTheme.colorScheme.tertiary
+                            }, isFilled = true, pickedColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -334,7 +347,18 @@ fun CreateTaskContent(
                         thumbContent = switchIcon
                     )
                 }
-
+                val taskExistsInTimeSlots =
+                    viewModel.doesTaskExistInTimeSlots(currentTask.value, timeSlots.value)
+                var taskTimeSlot: TimeSlot? = null
+                if (taskId != null) {
+                    if (taskId > 0 && taskExistsInTimeSlots) {
+                        scheduleChecked = true
+                        taskTimeSlot = timeSlots.value.find { it.tasks.contains(currentTask.value) }
+                        if (taskTimeSlot != null) {
+//                            selectedTimeSlot = taskTimeSlot
+                        }
+                    }
+                }
                 if (scheduleChecked) {
                     Row {
 //                        Text(text = "Select Timeslot:")
@@ -344,6 +368,7 @@ fun CreateTaskContent(
                                 containerColor = MaterialTheme.colorScheme.background
                             ),
                             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
                                 text = (if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot"),
@@ -353,16 +378,36 @@ fun CreateTaskContent(
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowDown,
+                                contentDescription = "See timeslots",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        DropdownMenu(expanded = timeSlotVisible,
+                            onDismissRequest = { timeSlotVisible = false }) {
+                            timeSlots.value.forEach { timeSlot ->
+                                DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
+                                    selectedTimeSlot = timeSlot
+                                    timeSlotVisible = !timeSlotVisible
+                                })
+                            }
                         }
                     }
-                    DropdownMenu(expanded = timeSlotVisible,
-                        onDismissRequest = { timeSlotVisible = false }) {
-                        timeSlots.value.forEach { timeSlot ->
-                            DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
-                                selectedTimeSlot = timeSlot
-                                timeSlotVisible = !timeSlotVisible
-                            })
-                        }
+                    if (selectedTimeSlot.name != "") {
+                        Text(
+                            text = "Period: ${
+                                selectedTimeSlot.start.format(
+                                    DateTimeFormatter.ofPattern("HH:mm")
+                                )
+                            } to ${
+                                selectedTimeSlot.end.format(
+                                    DateTimeFormatter.ofPattern("HH:mm")
+                                )
+                            }",
+                            fontWeight = FontWeight.Bold
+                        )
+
                     }
                 }
                 if (showDatePicker) {
@@ -420,7 +465,7 @@ fun subtaskItem(
                 imageVector = Icons.Outlined.RemoveCircleOutline,
                 contentDescription = "Delete Subtask",
                 modifier = Modifier.scale(1.3f),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.tertiary
             )
         }
 //                        Text(text = subtask.title)
@@ -439,13 +484,13 @@ fun subtaskItem(
                 text = "Cancel", onClick = {
                     subtaskName = subtask.title
                     showConfirm = false
-                }, isFilled = false, pickedColor = MaterialTheme.colorScheme.primary
+                }, isFilled = false, pickedColor = MaterialTheme.colorScheme.tertiary
             )
             SwitchableButton(
                 text = "Confirm", onClick = {
                     editSubTask(index, subtaskName, subtask)
                     showConfirm = false
-                }, isFilled = true, pickedColor = MaterialTheme.colorScheme.tertiary
+                }, isFilled = true, pickedColor = MaterialTheme.colorScheme.primary
             )
         }
     }

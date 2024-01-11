@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.viewModel
 
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,18 +33,8 @@ class CreateTaskViewModel @Inject constructor(
         )
     )
     val editingTask = _editingTask.asStateFlow()
+    val timeSlotsWithTasks = MutableStateFlow<List<TimeSlot>>(emptyList())
 
-
-    suspend fun getSubtasks(currentTask: Task): List<SubTask> {
-        return subtaskRepository.readAll(currentTask)
-    }
-
-
-    fun removeSubtask(task: Task, subTask: SubTask) {
-        viewModelScope.launch {
-            subtaskRepository.delete(task, subTask)
-        }
-    }
 
     fun getTask(taskId: Int) {
         viewModelScope.launch {
@@ -71,6 +63,53 @@ class CreateTaskViewModel @Inject constructor(
 
     fun addToTimeslot(timeslot: TimeSlot, task: Task) {
         timeSlotRepository.update(timeslot.copy(tasks = timeslot.tasks.plus(task)))
+    }
+
+    fun doesTaskExistInTimeSlots(task: Task, timeSlots: List<TimeSlot>): Boolean {
+        for (timeSlot in timeSlots) {
+            if (timeSlot.tasks.contains(task)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun unscheduleTask(task: Task){
+        timeSlotRepository.unschedule(task)
+    }
+
+    fun removeTaskFromTimeSlot(timeSlot: TimeSlot, task: Task) {
+        viewModelScope.launch {
+            // Remove the task from the time slot
+            timeSlot.tasks.toMutableStateList().remove(task)
+        }
+    }
+    fun moveTaskToNewTimeslot(timeslot: TimeSlot, task: Task) {
+        viewModelScope.launch {
+            timeSlotsWithTasks.value.forEach { timeSlot ->
+                timeSlot.tasks.minus(task)
+            }
+            timeslot.tasks.plus(task)
+        }
+    }
+
+    fun getTimeSlot(task: Task): TimeSlot {
+        var timeSlot = TimeSlot(-1, "", LocalTime.now(), LocalTime.now(), emptyList())
+        timeSlotsWithTasks.value.forEach { ts ->
+            if (ts.tasks.contains(task)) {
+                timeSlot = ts
+            }
+        }
+        return timeSlot
+    }
+
+    fun doesTaskExistInTimeSlot(task: Task): Boolean {
+        var exists = false
+
+        timeSlotsWithTasks.value.forEach { timeSlot ->
+            exists = timeSlot.tasks.contains(task)
+        }
+        return exists
     }
 
     fun editTitle(title: String) {
@@ -107,16 +146,14 @@ class CreateTaskViewModel @Inject constructor(
 
     }
 
-    suspend fun submitTask(): Task{
+    suspend fun submitTask(): Task {
         var task: Task
         if (_editingTask.value.id > 0) {
-             task = taskRepository.update(_editingTask.value)
-            val existingSubtasks = subtaskRepository.readAll(_editingTask.value)
-            _editingTask.value.subtasks.forEach{
-                subTask ->
-                if(subTask.id > 0){
+            task = taskRepository.update(_editingTask.value)
+            _editingTask.value.subtasks.forEach { subTask ->
+                if (subTask.id > 0) {
                     subtaskRepository.update(_editingTask.value, subTask)
-                } else{
+                } else {
                     subtaskRepository.createSubtask(_editingTask.value, subTask)
                 }
             }
