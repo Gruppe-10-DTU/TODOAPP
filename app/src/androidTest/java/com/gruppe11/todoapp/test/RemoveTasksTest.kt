@@ -8,6 +8,7 @@ import com.gruppe11.todoApp.viewModel.TaskViewModel
 import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import java.time.LocalDateTime
@@ -17,12 +18,11 @@ class RemoveTasksTest {
 
     @Given("A task already exists, and I want to remove it")
     fun aTaskAlreadyExistsAndIWantToRemoveIt() = runTest {
-        task = Task(0,"Hej", Priority.MEDIUM,LocalDateTime.now(),false)
+        task = Task(0,"Hej", Priority.MEDIUM,LocalDateTime.now(),false,listOf())
         viewModel.addTask(
             task = task,
             listOf()
         )
-
     }
 
     @When("Clicking the task, a menu should appear allowing me to edit or remove the task")
@@ -32,6 +32,6 @@ class RemoveTasksTest {
 
     @Then("The task should now disappear from the list")
     fun theMenuDisappearsACuratedSelectionOfTasksWithTheCorrespondingSelectedDateShouldAppear() = runTest {
-        Assert.assertTrue(viewModel.getTask(task.id) == null)
+        Assert.assertTrue(viewModel.TaskState.first().isEmpty())
     }
 }

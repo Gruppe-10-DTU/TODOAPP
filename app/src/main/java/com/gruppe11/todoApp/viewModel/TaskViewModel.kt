@@ -1,10 +1,6 @@
 package com.gruppe11.todoApp.viewModel
 import android.annotation.SuppressLint
-import android.app.DownloadManager.Query
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.gruppe11.todoApp.Task.title
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
@@ -15,13 +11,10 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,7 +22,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -53,15 +45,12 @@ class TaskViewModel @Inject constructor (
         )
     )
 
-    private val _editingTask = MutableStateFlow<Task?>(null)
-
-    val editingTask = _editingTask.asStateFlow()
-
     val UIState = _UIState.asStateFlow()
 
     val DaysMap = _TaskState.combine(_UIState) { tasks, state -> generateMapOfDays(state.selectedDate)}.distinctUntilChanged()
     private val _filterTags = getFilterTags().toMutableSet()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val TaskState: Flow<List<Task>> = UIState
         .flatMapLatest { states -> _TaskState.map { it.filter { task -> filterTask(task) && doesMachSearchQuery(task) } } }
         .map { sortTasks(it) }
@@ -125,10 +114,9 @@ class TaskViewModel @Inject constructor (
         }
     }
     @SuppressLint("NewApi")
-    suspend fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
+    fun generateMapOfDays(date: LocalDateTime?): MutableMap<LocalDate, Float> {
         val toReturn : MutableMap<LocalDate,Float> = emptyMap<LocalDate, Float>().toMutableMap()
         var tmp:LocalDateTime = LocalDateTime.now().minusDays(30)
-
         if(date != null) {
             tmp = date.minusDays(30)
         }
@@ -148,8 +136,18 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
-        viewModelScope.launch {
-            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed));
+        viewModelScope.launch(Dispatchers.Main) {val subtaskasync = async{
+            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
+        }.await()
+            //val tmp = taskRepository.read(task.id)
+            if(subtaskasync != null && task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && !task.isCompleted){
+                changeTaskCompletion(task)
+            }
+            else if(subtaskasync != null && !task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && task.isCompleted){
+                changeTaskCompletion(task)
+            } else {
+                taskRepository.read(task.id)
+            }
         }
     }
 
@@ -157,11 +155,9 @@ class TaskViewModel @Inject constructor (
         if(_TaskState.value.isEmpty()){
             return 0f
         }
-
         val totComp = _TaskState.value.filter { it.deadline.toLocalDate() == date.toLocalDate() }.count { it.isCompleted }
         val totTask = _TaskState.value.count{ it.deadline.toLocalDate() == date.toLocalDate() }
         if (totTask == 0) return 0f
-        println("Date: " + date + " had " + totComp + " completed and total amount of tasks: " + totTask)
         return totComp/totTask.toFloat()
     }
 
@@ -171,11 +167,6 @@ class TaskViewModel @Inject constructor (
     fun removeSubtask(task: Task, subTask: SubTask){
         viewModelScope.launch {
             subtaskRepository.delete(task, subTask)
-        }
-    }
-    fun getTask(taskId: Int) {
-        viewModelScope.launch {
-            _editingTask.value = taskRepository.read(taskId)
         }
     }
 
