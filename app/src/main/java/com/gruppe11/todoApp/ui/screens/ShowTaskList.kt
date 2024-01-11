@@ -73,6 +73,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -145,7 +146,7 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
+                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd/MM")
                 items(daysMap.keys.toList()) { day ->
                     Column(
                         verticalArrangement = Arrangement.SpaceEvenly,
@@ -169,9 +170,10 @@ fun GenerateLazyRowForDays(
                                     text = day.format(formatFilterDate),
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
-                                        .padding(0.dp)
                                         .fillMaxWidth(),
-                                    fontSize = 9.8.sp
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             },
                             enabled = true,
@@ -343,13 +345,11 @@ fun ShowTaskList (
     viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
-
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
-
     val tasks by viewModel.TaskState.collectAsStateWithLifecycle(initialValue = emptyList())
     val showMonthPicker = remember{ mutableStateOf(false) }
     Scaffold(
@@ -422,14 +422,9 @@ fun ShowTaskList (
                             .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.TopEnd
                     ) {
-                        Column (
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            SearchBar(screenState)
-                            }
                         Column {
                             Row{
+                                SearchBar(screenState)
                                 IconButton(onClick = { sortingVisible = !sortingVisible }) {
                                     Icon(
                                         imageVector = Icons.Filled.SortByAlpha,
@@ -482,6 +477,7 @@ fun ShowTaskList (
                                     )
                                 }
                             }
+                            HorizontalDivider(modifier = Modifier.padding(2.dp))
                         }
                     }
                     Box (
