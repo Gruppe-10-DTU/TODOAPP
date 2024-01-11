@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,7 +89,7 @@ fun SchedulingScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "You haven't created any timeslots.", fontSize = 20.sp)
+                        Text(text = "No timeslots found. Goto: Settings -> Manage time slots -> Create new timeslot", color = Color.LightGray,fontStyle = FontStyle.Italic,fontSize = 18.sp)
                     }
                 }
             }

@@ -213,7 +213,7 @@ fun EditableTimeSlot(
                                         onDelete(timeSlot)
                                         deleteModalVisible.value = false
                                     }) {
-                                        Text(text = "Delete", fontSize = 18.sp)
+                                        Text(color = MaterialTheme.colorScheme.tertiary,text = "Delete", fontSize = 18.sp)
                                     }
                                 }
                             }
