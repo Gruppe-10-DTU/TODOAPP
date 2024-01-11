@@ -36,12 +36,15 @@ class CreateTaskViewModel @Inject constructor(
 
     val editingTask = _editingTask.asStateFlow()
 
-    val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
+    private val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
 
     val Timeslots = _timeslots.asStateFlow()
+
+    private val _submitState = MutableStateFlow(ExecutionState.RUNNING)
+    val submitState = _submitState.asStateFlow()
+
     init {
         viewModelScope.launch(Dispatchers.Default) {
-
             timeSlotRepository.readAll().collect{ timeslots ->
                 _timeslots.value = timeslots
             }
@@ -72,7 +75,6 @@ class CreateTaskViewModel @Inject constructor(
         }
     }
 
-
     // No exception handling for this function
     // as it is handled in the function that calls it
     private fun addSubtasks(task: Task, subtasks: List<SubTask>) {
@@ -86,28 +88,8 @@ class CreateTaskViewModel @Inject constructor(
         }
     }
 
-    private fun getTimeSlots() {
-        viewModelScope.launch {
-            try {
-                val flow = timeSlotRepository.readAll()
-                flow.collect {
-                    _timeslots.value = it
-                }
-            } catch (e: Exception) {
-                Log.d("getTimeSlots", e.toString())
-            }
-        }
-    }
-
     fun addToTimeslot(timeslot: TimeSlot, task: Task) {
         _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
-        try {
-            timeSlotRepository.update(timeslot.copy(tasks = timeslot.tasks.plus(task)))
-            _submitState.value = ExecutionState.SUCCESS
-        } catch (e: Exception) {
-            Log.d("addToTimeslot", e.toString())
-            _submitState.value = ExecutionState.ERROR
-        }
     }
 
     fun editTitle(title: String) {

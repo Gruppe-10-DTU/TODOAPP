@@ -154,15 +154,13 @@ fun CreateTaskContent(
                             val task = viewModel.submitTask()
                             if (viewModel.submitState.value == ExecutionState.SUCCESS &&
                                 task != null) {
-                                if (selectedTimeSlot.name.isNotEmpty()) {
-                                    viewModel.addToTimeslot(selectedTimeSlot, task)
-                                }
                                 scope.launch {
                                     snackbarHostState.showSnackbar(message = message)
                                 }
                                 returnPage()
                             } else if (viewModel.submitState.value == ExecutionState.ERROR &&
-                                task != null) {
+                                task != null
+                            ) {
                                 message = "Error: Task was saved but subtasks failed to save"
                                 scope.launch {
                                     snackbarHostState.showSnackbar(message)
