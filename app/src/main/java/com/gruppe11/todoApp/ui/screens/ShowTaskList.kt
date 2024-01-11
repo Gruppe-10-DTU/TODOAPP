@@ -72,6 +72,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -350,6 +351,7 @@ fun ShowTaskList (
     var sortingVisible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
+    val focusManager = LocalFocusManager.current
     val tasks by viewModel.TaskState.collectAsStateWithLifecycle(initialValue = emptyList())
     val showMonthPicker = remember{ mutableStateOf(false) }
     Scaffold(
@@ -398,7 +400,9 @@ fun ShowTaskList (
         content = {
             Surface(modifier = Modifier.padding(top = it.calculateTopPadding(),bottom=it.calculateBottomPadding())) {
                 Column(
-                    modifier = Modifier.wrapContentSize(),
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .noRippleClickable { focusManager?.clearFocus() },
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

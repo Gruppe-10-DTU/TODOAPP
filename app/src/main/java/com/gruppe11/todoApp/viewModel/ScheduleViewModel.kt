@@ -2,16 +2,19 @@ package com.gruppe11.todoApp.viewModel
 
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.ui.screenStates.ScheduleScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -21,10 +24,20 @@ class ScheduleViewModel @Inject constructor(
     private val taskRepository: ITaskRepository
     ): ViewModel() {
 
-    val timeSlots = timeSlotRepository.readAll()
+    private val _timeSlots = MutableStateFlow<List<TimeSlot>>(emptyList())
+
+    val timeSlots = _timeSlots.asStateFlow()
     private val _uiState = MutableStateFlow(ScheduleScreenState())
     val uiState = _uiState.asStateFlow()
     val dates = getCalendarFlow()
+
+    init {
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            timeSlotRepository.readAll().collect{ timeslots ->
+                _timeSlots.value = timeslots
+            }
+        }
+    }
 
     private fun getCalendarFlow(): Flow<List<LocalDate>> {
 
@@ -43,10 +56,14 @@ class ScheduleViewModel @Inject constructor(
         return dateList
     }
     fun createTimeSlot(timeSlot: TimeSlot){
-        timeSlotRepository.create(timeSlot)
+        viewModelScope.launch {
+            timeSlotRepository.create(timeSlot)
+        }
     }
     fun updateTimeSlot(timeSlot: TimeSlot) {
-        timeSlotRepository.update(timeSlot)
+        viewModelScope.launch {
+            timeSlotRepository.update(timeSlot)
+        }
     }
     // TODO Remove before shipping
     fun generateTestingTimeSlots() {
@@ -67,7 +84,9 @@ class ScheduleViewModel @Inject constructor(
     }
 
     fun deleteTimeSlot(timeSlot: TimeSlot) {
-        timeSlotRepository.delete(timeSlot)
+        viewModelScope.launch {
+            timeSlotRepository.delete(timeSlot)
+        }
     }
 
     suspend fun toggleTaskCompletion(task: Task) {

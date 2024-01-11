@@ -88,19 +88,8 @@ fun CreateTaskContent(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
-    var selectedTimeSlot by remember {
-        mutableStateOf(
-            TimeSlot(
-                0,
-                "",
-                LocalTime.now(),
-                LocalTime.now(),
-                emptyList()
-            )
-        )
-    }
     var timeSlotVisible by remember { mutableStateOf(false) }
-    val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots = viewModel.Timeslots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
     val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
         {
@@ -163,15 +152,6 @@ fun CreateTaskContent(
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
-                            val oldTimeslot = viewModel.getTimeSlot(task)
-                            val existsInTS = viewModel.doesTaskExistInTimeSlot(task)
-                            if (existsInTS && oldTimeslot != selectedTimeSlot) {
-                                viewModel.unscheduleTask(task)
-                                viewModel.addToTimeslot(selectedTimeSlot, task)
-                            } else if (scheduleChecked && oldTimeslot != selectedTimeSlot) {
-                                viewModel.addToTimeslot(selectedTimeSlot, task)
-                            }
-
 
                             scope.launch {
                                 snackbarHostState.showSnackbar(message = message)
@@ -338,27 +318,11 @@ fun CreateTaskContent(
                         checked = scheduleChecked,
                         onCheckedChange = {
                             scheduleChecked = it
-                            if (!scheduleChecked) {
-                                selectedTimeSlot = TimeSlot(
-                                    0, "", LocalTime.now(), LocalTime.now(), emptyList()
-                                )
-                            }
                         },
                         thumbContent = switchIcon
                     )
                 }
-                val taskExistsInTimeSlots =
-                    viewModel.doesTaskExistInTimeSlots(currentTask.value, timeSlots.value)
-                var taskTimeSlot: TimeSlot? = null
-                if (taskId != null) {
-                    if (taskId > 0 && taskExistsInTimeSlots) {
-                        scheduleChecked = true
-                        taskTimeSlot = timeSlots.value.find { it.tasks.contains(currentTask.value) }
-                        if (taskTimeSlot != null) {
-//                            selectedTimeSlot = taskTimeSlot
-                        }
-                    }
-                }
+
                 if (scheduleChecked) {
                     Row {
 //                        Text(text = "Select Timeslot:")
@@ -371,7 +335,7 @@ fun CreateTaskContent(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                text = (if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot"),
+                                text = (currentTask.value.timeslot?.name ?: "Select Timeslot"),
                                 modifier = Modifier
                                     .width(100.dp)
                                     .height(20.dp),
@@ -384,24 +348,24 @@ fun CreateTaskContent(
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                        DropdownMenu(expanded = timeSlotVisible,
-                            onDismissRequest = { timeSlotVisible = false }) {
-                            timeSlots.value.forEach { timeSlot ->
-                                DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
-                                    selectedTimeSlot = timeSlot
-                                    timeSlotVisible = !timeSlotVisible
-                                })
-                            }
+                    }
+                    DropdownMenu(expanded = timeSlotVisible,
+                        onDismissRequest = { timeSlotVisible = false }) {
+                        timeSlots.value.forEach { timeSlot ->
+                            DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
+                                viewModel.editTimeslot(timeSlot)
+                                timeSlotVisible = !timeSlotVisible
+                            })
                         }
                     }
-                    if (selectedTimeSlot.name != "") {
+                    if (currentTask.value.timeslot != null) {
                         Text(
                             text = "Period: ${
-                                selectedTimeSlot.start.format(
+                                currentTask.value.timeslot.start.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             } to ${
-                                selectedTimeSlot.end.format(
+                                currentTask.value.timeslot.end.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             }",
