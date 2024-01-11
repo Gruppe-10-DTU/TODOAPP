@@ -85,9 +85,9 @@ class CreateTaskViewModel @Inject constructor(
         return false
     }
 
-    fun unscheduleTask(task: Task){
-        timeSlotRepository.unschedule(task)
-    }
+//    fun unscheduleTask(task: Task){
+//        timeSlotRepository.unschedule(task)
+//    }
 
     fun removeTaskFromTimeSlot(timeSlot: TimeSlot, task: Task) {
         viewModelScope.launch {

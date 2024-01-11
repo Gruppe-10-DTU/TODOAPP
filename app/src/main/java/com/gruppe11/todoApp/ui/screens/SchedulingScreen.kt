@@ -127,9 +127,9 @@ fun SchedulingScreen(
     LaunchedEffect(key1 = timeslots.value) {
         CoroutineScope(Dispatchers.Main).launch {
             // TODO REMOVE BEFORE SHIPPING
-            if (timeslots.value.isEmpty()) {
-                viewModel.generateTestingTimeSlots()
-            }
+//            if (timeslots.value.isEmpty()) {
+//                viewModel.generateTestingTimeSlots()
+//            }
         }
     }
 }

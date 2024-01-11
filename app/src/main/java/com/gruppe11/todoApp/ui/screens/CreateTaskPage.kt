@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
-import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
@@ -65,7 +64,6 @@ import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
@@ -358,14 +356,14 @@ fun CreateTaskContent(
                             })
                         }
                     }
-                    if (currentTask.value.timeslot != null) {
+                    currentTask.value.timeslot?.let {
                         Text(
                             text = "Period: ${
-                                currentTask.value.timeslot.start.format(
+                                currentTask.value.timeslot!!.start.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             } to ${
-                                currentTask.value.timeslot.end.format(
+                                currentTask.value.timeslot!!.end.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             }",
