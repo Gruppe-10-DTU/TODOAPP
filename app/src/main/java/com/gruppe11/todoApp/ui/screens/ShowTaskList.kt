@@ -427,6 +427,7 @@ fun ShowTaskList (
                         Column (
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .padding(5.dp),
                         ) {
                             SearchBar(screenState)
                             }
