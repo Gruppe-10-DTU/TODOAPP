@@ -322,7 +322,7 @@ fun CreateTaskContent(
                             imageVector = Icons.Outlined.CalendarMonth,
                             contentDescription = "Pick a date",
                             modifier = Modifier.scale(1.3f),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     })
                 }
