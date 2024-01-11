@@ -51,6 +51,7 @@ class TaskViewModel @Inject constructor (
 
     val DaysMap = _TaskState.combine(_UIState) { tasks, state -> generateMapOfDays(state.selectedDate)}.distinctUntilChanged()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val TaskState: Flow<List<Task>> = UIState
         .flatMapLatest { states ->
             _TaskState.map {
@@ -139,17 +140,21 @@ class TaskViewModel @Inject constructor (
 
     @SuppressLint("NewApi")
     fun changeSubtaskCompletion(task: Task, subtask: SubTask) {
-        viewModelScope.launch(Dispatchers.Main) {val subtaskasync = async{
-            subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
-        }.await()
-            //val tmp = taskRepository.read(task.id)
-            if(subtaskasync != null && task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && !task.isCompleted){
-                changeTaskCompletion(task)
-            }
-            else if(subtaskasync != null && !task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && task.isCompleted){
-                changeTaskCompletion(task)
-            } else {
-                taskRepository.read(task.id)
+        viewModelScope.launch(Dispatchers.Main) {
+            try {
+                val subtaskasync = async {
+                    subtaskRepository.update(task, subtask.copy(completed = !subtask.completed))
+                }.await()
+                //val tmp = taskRepository.read(task.id)
+                if (subtaskasync != null && task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && !task.isCompleted) {
+                    changeTaskCompletion(task)
+                } else if (subtaskasync != null && !task.subtasks.all { (it.id == subtaskasync.id && subtaskasync.completed) || (it.id != subtaskasync.id && it.completed) } && task.isCompleted) {
+                    changeTaskCompletion(task)
+                } else {
+                    taskRepository.read(task.id)
+                }
+            } catch (e: Exception) {
+                Log.d("changeSubtaskCompletion", e.toString())
             }
         }
     }
@@ -162,25 +167,6 @@ class TaskViewModel @Inject constructor (
         val totTask = _TaskState.value.count{ it.deadline.toLocalDate() == date.toLocalDate() }
         if (totTask == 0) return 0f
         return totComp/totTask.toFloat()
-    }
-
-    suspend fun getSubtasks(currentTask: Task): List<SubTask> {
-        return subtaskRepository.readAll(currentTask)
-    }
-    fun removeSubtask(task: Task, subTask: SubTask){
-        viewModelScope.launch {
-            subtaskRepository.delete(task, subTask)
-        }
-    }
-
-    fun addSubtasks(task: Task, subtasks: List<SubTask>){
-        viewModelScope.launch {
-            val existingSubtasks = subtaskRepository.readAll(task)
-            val newSubtasks = subtasks.filterNot { existingSubtasks.contains(it) }
-            for (subtask in newSubtasks) {
-                subtaskRepository.createSubtask(task, subtask)
-            }
-        }
     }
 
     fun changeFilter(target: String) {
@@ -217,7 +203,7 @@ class TaskViewModel @Inject constructor (
             } else {
                 set.add(priority)
             }
-            if (set.size == Priority.values().size) {
+            if (set.size == Priority.entries.size) {
                 set.clear()
             }
             _UIState.update { currentState -> currentState.copy(priorities = set) }
