@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
@@ -9,8 +10,8 @@ import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -32,28 +33,32 @@ class CreateTaskViewModel @Inject constructor(
     )
     val editingTask = _editingTask.asStateFlow()
 
+    private val _submitState = MutableStateFlow(ExecutionState.SUCCESS)
+    val submitState = _submitState.asStateFlow()
 
-    suspend fun getSubtasks(currentTask: Task): List<SubTask> {
-        return subtaskRepository.readAll(currentTask)
-    }
+    private val _timeslots = MutableStateFlow<List<TimeSlot>>(emptyList())
+    val timeslots = _timeslots.asStateFlow()
 
-
-    fun removeSubtask(task: Task, subTask: SubTask) {
-        viewModelScope.launch {
-            subtaskRepository.delete(task, subTask)
-        }
+    init {
+        getTimeSlots()
     }
 
     fun getTask(taskId: Int) {
         viewModelScope.launch {
-            val task = taskRepository.read(taskId)
-            if (task != null) {
-                _editingTask.emit(task)
+            try {
+                val task = taskRepository.read(taskId)
+                if (task != null) {
+                    _editingTask.emit(task)
+                }
+            } catch (e: Exception) {
+                Log.d("getTask", e.toString())
             }
         }
     }
 
 
+    // No exception handling for this function
+    // as it is handled in the function that calls it
     private fun addSubtasks(task: Task, subtasks: List<SubTask>) {
         viewModelScope.launch {
             val existingSubtasks = subtaskRepository.readAll(task)
@@ -65,12 +70,27 @@ class CreateTaskViewModel @Inject constructor(
         }
     }
 
-    fun getTimeSlots(): Flow<List<TimeSlot>> {
-        return timeSlotRepository.readAll()
+    private fun getTimeSlots() {
+        viewModelScope.launch {
+            try {
+                val flow = timeSlotRepository.readAll()
+                flow.collect {
+                    _timeslots.value = it
+                }
+            } catch (e: Exception) {
+                Log.d("getTimeSlots", e.toString())
+            }
+        }
     }
 
     fun addToTimeslot(timeslot: TimeSlot, task: Task) {
-        timeSlotRepository.update(timeslot.copy(tasks = timeslot.tasks.plus(task)))
+        try {
+            timeSlotRepository.update(timeslot.copy(tasks = timeslot.tasks.plus(task)))
+            _submitState.value = ExecutionState.SUCCESS
+        } catch (e: Exception) {
+            Log.d("addToTimeslot", e.toString())
+            _submitState.value = ExecutionState.ERROR
+        }
     }
 
     fun editTitle(title: String) {
@@ -107,27 +127,34 @@ class CreateTaskViewModel @Inject constructor(
 
     }
 
-    suspend fun submitTask(): Task{
-        var task: Task
+    suspend fun submitTask(): Task? {
+        var task: Task? = null
         if (_editingTask.value.id > 0) {
-             task = taskRepository.update(_editingTask.value)
-            val existingSubtasks = subtaskRepository.readAll(_editingTask.value)
-            _editingTask.value.subtasks.forEach{
-                subTask ->
-                if(subTask.id > 0){
-                    subtaskRepository.update(_editingTask.value, subTask)
-                } else{
-                    subtaskRepository.createSubtask(_editingTask.value, subTask)
+            try {
+                task = taskRepository.update(_editingTask.value)
+                _editingTask.value.subtasks.forEach { subTask ->
+                    if (subTask.id > 0) {
+                        subtaskRepository.update(_editingTask.value, subTask)
+                    } else {
+                        subtaskRepository.createSubtask(_editingTask.value, subTask)
+                    }
                 }
+                _submitState.value = ExecutionState.SUCCESS
+            } catch (e: Exception) {
+                _submitState.value = ExecutionState.ERROR
             }
-            return task
         } else {
-            val task = taskRepository.createTask(_editingTask.value)
-            if (_editingTask.value.title.isNotEmpty() && _editingTask.value.subtasks.isNotEmpty()) {
-                addSubtasks(task, _editingTask.value.subtasks)
+            try {
+                task = taskRepository.createTask(_editingTask.value)
+                if (_editingTask.value.title.isNotEmpty() && _editingTask.value.subtasks.isNotEmpty()) {
+                    addSubtasks(task, _editingTask.value.subtasks)
+                }
+                _submitState.value = ExecutionState.SUCCESS
+            } catch (e: Exception) {
+                _submitState.value = ExecutionState.ERROR
             }
-            return task
         }
+        return task
     }
 
 }

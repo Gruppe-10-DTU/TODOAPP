@@ -28,7 +28,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -37,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -49,28 +47,24 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
-import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.SubTask
-import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
 import com.gruppe11.todoApp.ui.elements.SwitchableButton
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -96,7 +90,7 @@ fun CreateTaskContent(
     var scheduleChecked by remember { mutableStateOf(false) }
     var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0, "", LocalTime.now(), LocalTime.now(), emptyList())) }
     var timeSlotVisible by remember { mutableStateOf(false) }
-    val timeSlots = viewModel.getTimeSlots().collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots = viewModel.timeslots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
     val switchIcon: (@Composable () -> Unit)? = if (scheduleChecked) {
         {
@@ -140,7 +134,7 @@ fun CreateTaskContent(
             //Cancel button
             SwitchableButton(
                 text = "Cancel",
-                onClick = { returnPage() },
+                onClick = returnPage,
                 isFilled = false,
                 pickedColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -159,13 +153,27 @@ fun CreateTaskContent(
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
-                            if (selectedTimeSlot.name.isNotEmpty()) {
-                                viewModel.addToTimeslot(selectedTimeSlot, task)
+                            if (viewModel.submitState.value == ExecutionState.SUCCESS &&
+                                task != null) {
+                                if (selectedTimeSlot.name.isNotEmpty()) {
+                                    viewModel.addToTimeslot(selectedTimeSlot, task)
+                                }
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message = message)
+                                }
+                                returnPage()
+                            } else if (viewModel.submitState.value == ExecutionState.ERROR &&
+                                task != null) {
+                                message = "Error: Task was saved but subtasks failed to save"
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
+                            } else if (viewModel.submitState.value == ExecutionState.ERROR) {
+                                message = "Error: Could not save task"
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
                             }
-                            scope.launch {
-                                snackbarHostState.showSnackbar(message = message)
-                            }
-                            returnPage()
                         } else {
                             dismissSnackbar(snackbarHostState, scope)
                             scope.launch {

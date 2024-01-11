@@ -8,7 +8,7 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
-import com.gruppe11.todoApp.ui.screenStates.LoadingState
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +43,7 @@ class TaskViewModel @Inject constructor (
             priorities = mutableSetOf(),
             sortedOption = "Priority Descending",
             searchText = "",
-            loadingState = LoadingState.LOADING
+            executionState = ExecutionState.RUNNING
         )
     )
 
@@ -84,16 +84,16 @@ class TaskViewModel @Inject constructor (
     }
 
     fun loadTaskList() {
-        _UIState.update { it.copy(loadingState = LoadingState.LOADING) }
+        _UIState.update { it.copy(executionState = ExecutionState.RUNNING) }
         viewModelScope.launch(viewModelScope.coroutineContext) {
             try {
                 val flow = taskRepository.readAll()
-                _UIState.update { it.copy(loadingState = LoadingState.SUCCESS) }
+                _UIState.update { it.copy(executionState = ExecutionState.SUCCESS) }
                 flow.collect{
                     tasks -> _TaskState.value = tasks
                 }
             } catch (e: Exception) {
-                _UIState.update { it.copy(loadingState = LoadingState.ERROR) }
+                _UIState.update { it.copy(executionState = ExecutionState.ERROR) }
             }
         }
     }

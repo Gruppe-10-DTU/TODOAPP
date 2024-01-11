@@ -90,7 +90,7 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.elements.LoadingIndicator
 import com.gruppe11.todoApp.ui.elements.SearchBar
-import com.gruppe11.todoApp.ui.screenStates.LoadingState
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -518,8 +518,8 @@ fun ShowTaskList (
                             }
                         }
                     }
-                    when (screenState.loadingState) {
-                        LoadingState.ERROR -> {
+                    when (screenState.executionState) {
+                        ExecutionState.ERROR -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -541,10 +541,10 @@ fun ShowTaskList (
                                 }
                             }
                         }
-                        LoadingState.LOADING -> {
+                        ExecutionState.RUNNING -> {
                             LoadingIndicator()
                         }
-                        LoadingState.SUCCESS -> {
+                        ExecutionState.SUCCESS -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()

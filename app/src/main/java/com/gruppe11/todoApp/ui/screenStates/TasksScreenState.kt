@@ -10,5 +10,5 @@ data class TasksScreenState(
     val priorities: MutableSet<Priority>,
     val sortedOption: String,
     val searchText: String,
-    val loadingState: LoadingState
+    val executionState: ExecutionState
 )
