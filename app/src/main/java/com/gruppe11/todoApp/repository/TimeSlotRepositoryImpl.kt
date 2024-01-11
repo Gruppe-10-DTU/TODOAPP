@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.repository
 
+import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,14 @@ class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
     override fun delete(timeSlot: TimeSlot) {
         timeslots.update {list ->
             list.filterNot { it == timeSlot }
+        }
+    }
+
+    override fun unschedule(task: Task){
+        timeslots.update { list ->
+            list.onEach { timeslot ->
+                timeslot.tasks.apply { filterNot { it.id == task.id } }
+            }
         }
     }
 }

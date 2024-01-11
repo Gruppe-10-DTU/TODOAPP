@@ -14,9 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -75,6 +72,10 @@ class CreateTaskViewModel @Inject constructor(
             }
         }
         return false
+    }
+
+    fun unscheduleTask(task: Task){
+        timeSlotRepository.unschedule(task)
     }
 
     fun removeTaskFromTimeSlot(timeSlot: TimeSlot, task: Task) {
