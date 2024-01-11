@@ -437,6 +437,7 @@ fun dismissSnackbar(snackbarHostState: SnackbarHostState, scope: CoroutineScope)
     }
 }
 
+@SuppressLint("ModifierFactoryUnreferencedReceiver")
 fun Modifier.noRippleClickable(
     onClick: () -> Unit
 ): Modifier = composed {

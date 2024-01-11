@@ -194,7 +194,7 @@ fun ScheduleTask(
                 shape = RoundedCornerShape(10.dp)
             ),
         colors = CardColors(
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             containerColor = completionColor,
             disabledContainerColor = Color.Black,
             disabledContentColor = Color.Black)
@@ -206,10 +206,10 @@ fun ScheduleTask(
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.Start
             ) {
-                Text(text = task.title.uppercase(), fontSize = 19.sp)
+                Text(text = task.title.uppercase(),color = MaterialTheme.colorScheme.onPrimary,fontSize = 19.sp)
                 Column(modifier = Modifier.padding(10.dp, 1.dp)) {
                     task.subtasks.forEach {
-                        Text(text = it.title, fontSize = 14.sp)
+                        Text(text = it.title,color = MaterialTheme.colorScheme.onPrimary,fontSize = 14.sp)
                     }
                 // TODO add more relevant info such as priority etc.
                 }

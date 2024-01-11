@@ -65,7 +65,7 @@ fun DateSideScroller(
             },
             colors = ButtonColors(
                 containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 disabledContainerColor = Color.Transparent,
                 disabledContentColor = Color.LightGray
             )
@@ -94,7 +94,7 @@ fun DateSideScroller(
                             selectedLeadingIconColor = Color.Transparent,
                             selectedTrailingIconColor = Color.Transparent,
                             containerColor = MaterialTheme.colorScheme.secondary,
-                            labelColor = MaterialTheme.colorScheme.onBackground,
+                            labelColor = MaterialTheme.colorScheme.onPrimary,
                             leadingIconColor = Color.Transparent,
                             trailingIconColor = Color.Red,
                             disabledContainerColor = Color.Transparent,
