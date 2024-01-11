@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,7 +27,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "NewApi")
@@ -52,9 +50,11 @@ fun SettingsPage(
         },
     ) {padding ->
         LazyColumn(
-            modifier = Modifier.padding(padding),
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ){
             item{
                 ProfileSlotSettings(navigation = manageProfile)
@@ -83,15 +83,15 @@ fun TimeSlotSettings(
             ),
         modifier = Modifier.fillMaxWidth()
         ) {Alignment.CenterVertically
-        Arrangement.SpaceBetween
+        Arrangement.Center
         Icon(imageVector = Icons.Default.Schedule, contentDescription = null)
-        Spacer(modifier = Modifier.width(25.dp))
-        Text(text = "Manage time slots", fontSize = 25.sp)
-        Spacer(modifier = Modifier.width(25.dp))
+        Spacer(modifier = Modifier.weight(0.25f))
+        Text(text = "Manage time slots", fontSize = 25.sp, modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(0.2f))
         Icon(
             imageVector = Icons.Default.ArrowBackIosNew,
             contentDescription = null,
-            modifier = Modifier.rotate(180F)
+            modifier = Modifier.rotate(180f)
         )
     }
 }
@@ -112,9 +112,9 @@ fun ProfileSlotSettings(
     ) {Alignment.CenterVertically
         Arrangement.SpaceBetween
         Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
-        Spacer(modifier = Modifier.width(25.dp))
-        Text(text = "Manage Profile", fontSize = 25.sp)
-        Spacer(modifier = Modifier.width(25.dp))
+        Spacer(modifier = Modifier.weight(0.25f))
+        Text(text = "Manage Profile", fontSize = 25.sp, modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(0.2f))
         Icon(
             imageVector = Icons.Default.ArrowBackIosNew,
             contentDescription = null,
