@@ -1,6 +1,5 @@
 package com.gruppe11.todoApp.ui.elements
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,6 +8,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -41,8 +41,8 @@ fun SearchBar(
         ) {
             Icon(
                 Icons.Default.Clear,
-                contentDescription = "",
-                tint = Color.Black
+                contentDescription = "Searchbar Loop Icon",
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
