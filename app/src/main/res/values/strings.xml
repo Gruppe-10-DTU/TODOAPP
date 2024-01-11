@@ -48,6 +48,5 @@
     <string name="complete">Complete</string>
     <string name="incomplete">Incomplete</string>
 
-    <!-- Api Url for local testing -->
-    <string name="apiUrl">http://10.0.2.2:8080</string>
+    <string name="error_task_loading">Error: Could not load tasks</string>
 </resources>

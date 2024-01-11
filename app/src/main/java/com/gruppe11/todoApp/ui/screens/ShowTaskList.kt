@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
@@ -71,6 +72,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -80,12 +82,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gruppe11.todoApp.R
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
+import com.gruppe11.todoApp.ui.elements.LoadingIndicator
 import com.gruppe11.todoApp.ui.elements.SearchBar
+import com.gruppe11.todoApp.ui.screenStates.LoadingState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -116,9 +121,6 @@ fun LinearDeterminateIndicator(progress: Float) {
         )
     }
 }
-
-
-
 
 @Composable
 fun GenerateLazyRowForDays(
@@ -516,17 +518,46 @@ fun ShowTaskList (
                             }
                         }
                     }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        GenerateLazyColumnForTasks(
-                            viewModel = viewModel,
-                            filteredTasks = tasks,
-                            editTask = onEditTask
-                        )
+                    when (screenState.loadingState) {
+                        LoadingState.ERROR -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.background),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column {
+                                    Text(stringResource(id = R.string.error_task_loading))
+                                    IconButton(
+                                        onClick = viewModel::loadTaskList,
+                                        modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Sync,
+                                            contentDescription = "Retry loading tasks",
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        LoadingState.LOADING -> {
+                            LoadingIndicator()
+                        }
+                        LoadingState.SUCCESS -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.background),
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                GenerateLazyColumnForTasks(
+                                    viewModel = viewModel,
+                                    filteredTasks = tasks,
+                                    editTask = onEditTask
+                                )
+                            }
+                        }
                     }
                 }
             }
