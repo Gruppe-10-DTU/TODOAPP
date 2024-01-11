@@ -11,7 +11,7 @@ import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,12 +29,25 @@ class CreateTaskViewModel @Inject constructor(
     private val _editingTask = MutableStateFlow<Task>(
         Task(
             -1, "", Priority.MEDIUM, LocalDateTime.now(), false,
-            emptyList()
+            emptyList(),
+            null
         )
     )
+
     val editingTask = _editingTask.asStateFlow()
     val timeSlotsWithTasks = MutableStateFlow<List<TimeSlot>>(emptyList())
 
+    val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
+
+    val Timeslots = _timeslots.asStateFlow()
+    init {
+        viewModelScope.launch(Dispatchers.Default) {
+
+            timeSlotRepository.readAll().collect{ timeslots ->
+                _timeslots.value = timeslots
+            }
+        }
+    }
 
     fun getTask(taskId: Int) {
         viewModelScope.launch {
@@ -57,14 +70,6 @@ class CreateTaskViewModel @Inject constructor(
         }
     }
 
-    fun getTimeSlots(): Flow<List<TimeSlot>> {
-        return timeSlotRepository.readAll()
-    }
-
-    fun addToTimeslot(timeslot: TimeSlot, task: Task) {
-        timeSlotRepository.update(timeslot.copy(tasks = timeslot.tasks.plus(task)))
-    }
-
     fun doesTaskExistInTimeSlots(task: Task, timeSlots: List<TimeSlot>): Boolean {
         for (timeSlot in timeSlots) {
             if (timeSlot.tasks.contains(task)) {
@@ -74,9 +79,9 @@ class CreateTaskViewModel @Inject constructor(
         return false
     }
 
-    fun unscheduleTask(task: Task){
-        timeSlotRepository.unschedule(task)
-    }
+//    suspend fun unscheduleTask(task: Task){
+//        timeSlotRepository.unschedule(task)
+//    }
 
     fun removeTaskFromTimeSlot(timeSlot: TimeSlot, task: Task) {
         viewModelScope.launch {
@@ -165,6 +170,10 @@ class CreateTaskViewModel @Inject constructor(
             }
             return task
         }
+    }
+
+    fun editTimeslot(timeslot: TimeSlot) {
+        _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
     }
 
 }

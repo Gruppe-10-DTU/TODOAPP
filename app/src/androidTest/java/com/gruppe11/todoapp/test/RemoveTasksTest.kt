@@ -18,7 +18,7 @@ class RemoveTasksTest {
 
     @Given("A task already exists, and I want to remove it")
     fun aTaskAlreadyExistsAndIWantToRemoveIt() = runTest {
-        task = Task(0,"Hej", Priority.MEDIUM,LocalDateTime.now(),false,listOf())
+        task = Task(0, "Hej", Priority.MEDIUM, LocalDateTime.now(), false, listOf(), null)
         viewModel.addTask(
             task = task,
             listOf()

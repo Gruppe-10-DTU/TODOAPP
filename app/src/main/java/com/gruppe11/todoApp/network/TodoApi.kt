@@ -15,6 +15,10 @@ object TodoApi {
         retrofit.create(ITaskApiService::class.java)
     }
 
+    val timeslotService: ITimeslotApiService by lazy {
+        retrofit.create(ITimeslotApiService::class.java)
+    }
+
     val subtaskService: ISubtaskApiService by lazy {
         retrofit.create(ISubtaskApiService::class.java)
     }

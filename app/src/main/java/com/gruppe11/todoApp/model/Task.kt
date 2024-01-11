@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 
 @Serializable
-data class Task (
+data class Task(
     val id: Int,
     val title: String,
     val priority: Priority,
@@ -14,5 +14,7 @@ data class Task (
     val deadline: LocalDateTime,
 
     val isCompleted: Boolean,
-    val subtasks: List<SubTask>
+    val subtasks: List<SubTask>,
+
+    val timeslot: TimeSlot? = null
 )

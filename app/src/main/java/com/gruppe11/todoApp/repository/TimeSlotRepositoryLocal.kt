@@ -1,17 +1,16 @@
 package com.gruppe11.todoApp.repository
 
-import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
-class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
+class TimeSlotRepositoryLocal @Inject constructor() : ITimeSlotRepository {
 
     private val timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
     private var id = 1
-    override fun create(timeSlot: TimeSlot): TimeSlot {
+    override suspend fun create(timeSlot: TimeSlot): TimeSlot {
         timeslots.update {list ->
             list.plus(timeSlot.copy(id = id++))
 
@@ -19,11 +18,16 @@ class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
         return timeSlot
     }
 
-    override fun readAll(): Flow<List<TimeSlot>> {
+    override suspend fun readAll(): Flow<List<TimeSlot>> {
         return timeslots
     }
 
-    override fun update(timeSlot: TimeSlot): TimeSlot? {
+    override suspend fun find(id: Int): TimeSlot? {
+        val timeslot = timeslots.value.find { it.id == id }
+        return timeslot
+
+    }
+    override suspend fun update(timeSlot: TimeSlot): TimeSlot? {
         val tmp = timeslots.value.filter { it.id == timeSlot.id }
         if (tmp.isNotEmpty()) {
             timeslots.update { list ->
@@ -36,17 +40,17 @@ class TimeSlotRepositoryImpl @Inject constructor() : ITimeSlotRepository {
         return null
     }
 
-    override fun delete(timeSlot: TimeSlot) {
+    override suspend fun delete(timeSlot: TimeSlot) {
         timeslots.update {list ->
             list.filterNot { it == timeSlot }
         }
     }
 
-    override fun unschedule(task: Task){
-        timeslots.update { list ->
-            list.onEach { timeslot ->
-                timeslot.tasks.apply { filterNot { it.id == task.id } }
-            }
-        }
-    }
+//    override fun unschedule(task: Task){
+//        timeslots.update { list ->
+//            list.onEach { timeslot ->
+//                timeslot.tasks.apply { filterNot { it.id == task.id } }
+//            }
+//        }
+//    }
 }
