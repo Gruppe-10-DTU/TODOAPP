@@ -83,6 +83,7 @@ fun TimeSlotSettings(
         modifier = Modifier.fillMaxWidth()
         ) {Alignment.CenterVertically
         Arrangement.Center
+        Spacer(modifier = Modifier.weight(0.05f))
         Icon(imageVector = Icons.Default.Schedule, contentDescription = null)
         Spacer(modifier = Modifier.weight(0.25f))
         Text(text = "Manage time slots", fontSize = 25.sp, modifier = Modifier.weight(1f))
@@ -110,6 +111,7 @@ fun ProfileSlotSettings(
         modifier = Modifier.fillMaxWidth()
     ) {Alignment.CenterVertically
         Arrangement.SpaceBetween
+        Spacer(modifier = Modifier.weight(0.05f))
         Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
         Spacer(modifier = Modifier.weight(0.25f))
         Text(text = "Manage Profile", fontSize = 25.sp, modifier = Modifier.weight(1f))
