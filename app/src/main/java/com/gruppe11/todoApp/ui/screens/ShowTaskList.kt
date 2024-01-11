@@ -175,7 +175,6 @@ fun GenerateLazyRowForDays(
                                         .fillMaxWidth(),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             },
                             enabled = true,
@@ -183,7 +182,7 @@ fun GenerateLazyRowForDays(
                                 .width(65.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = MaterialTheme.colorScheme.background,
-                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onPrimary,
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.background
                             ),
@@ -208,7 +207,6 @@ fun GenerateLazyColumnForTasks(
     filteredTasks: List<Task>,
     editTask: (Int) -> Unit
 ) {
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -262,7 +260,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
                 },
-                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background)
             )
                     Text(
                         buildAnnotatedString (
@@ -375,7 +373,7 @@ fun ShowTaskList (
                                 }
                             },
                             colors = ButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onBackground,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
                                 containerColor = MaterialTheme.colorScheme.background,
                                 disabledContainerColor = MaterialTheme.colorScheme.background,
                                 disabledContentColor = MaterialTheme.colorScheme.tertiary)
@@ -579,7 +577,7 @@ fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,
             onCheckedChange = {
                 changeSubtaskCompletion(task, subtask)
             },
-            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background)
         )
     }
 }
