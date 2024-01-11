@@ -213,15 +213,25 @@ fun GenerateLazyColumnForTasks(
             .fillMaxSize()
             .padding(horizontal = 5.dp)
     ) {
-        LazyColumn(modifier = Modifier
-            .align(Alignment.TopCenter)
-            .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            items(filteredTasks) { task ->
-                key(task.id) {
-                    TaskItem(task = task, viewModel = viewModel, editTask)
+        when (filteredTasks.isEmpty()) {
+            true -> {
+                Text(
+                    text = "No tasks to display",
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else -> {
+                LazyColumn(modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    items(filteredTasks) { task ->
+                        key(task.id) {
+                            TaskItem(task = task, viewModel = viewModel, editTask)
+                        }
+                    }
                 }
             }
         }
