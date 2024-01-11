@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -91,5 +92,11 @@ class ScheduleViewModel @Inject constructor(
 
     suspend fun toggleTaskCompletion(task: Task) {
         taskRepository.update(task)
+    }
+
+    fun changeSelectedDay(date: LocalDate) {
+        _uiState.update {
+            it.copy(selectedDay = date)
+        }
     }
 }

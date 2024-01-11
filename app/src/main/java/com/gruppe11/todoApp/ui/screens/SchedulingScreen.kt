@@ -65,6 +65,7 @@ fun SchedulingScreen(
         topBar = {
             DateSideScroller(
                 currentDate = uiState.value.currentDay,
+                onDateChange = { viewModel.changeSelectedDay(it) },
                 dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
             ) {
                 CoroutineScope(Dispatchers.Main).launch {
@@ -92,7 +93,7 @@ fun SchedulingScreen(
                     }
                 }
             }
-            items(timeslots.value) { slot ->
+            items(timeslots.value.sortedBy { it.start }) { slot ->
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = minSlotHeight
@@ -125,7 +126,7 @@ fun SchedulingScreen(
         }
     }
     LaunchedEffect(key1 = timeslots.value) {
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             // TODO REMOVE BEFORE SHIPPING
             if (timeslots.value.isEmpty()) {
                 viewModel.generateTestingTimeSlots()
