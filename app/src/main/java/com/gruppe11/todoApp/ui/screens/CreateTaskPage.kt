@@ -211,7 +211,11 @@ fun CreateTaskContent(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
                     ),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.primary
+                    ),
                 )
                 HorizDividerWithSpacer(10.dp)
                 Text(
@@ -308,7 +312,8 @@ fun CreateTaskContent(
                         Text(
                             text = currentTask.value.deadline.format(
                                 DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                            ), fontSize = 20.sp
+                            ),
+                            fontSize = 20.sp,
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -317,7 +322,7 @@ fun CreateTaskContent(
                             imageVector = Icons.Outlined.CalendarMonth,
                             contentDescription = "Pick a date",
                             modifier = Modifier.scale(1.3f),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     })
                 }
@@ -344,7 +349,12 @@ fun CreateTaskContent(
                                 )
                             }
                         },
-                        thumbContent = switchIcon
+                        thumbContent = switchIcon,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.background,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.background,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
                 val taskExistsInTimeSlots =
@@ -360,7 +370,7 @@ fun CreateTaskContent(
                     }
                 }
                 if (scheduleChecked) {
-                    Row {
+                    Row{
 //                        Text(text = "Select Timeslot:")
                         TextButton(
                             onClick = { timeSlotVisible = !timeSlotVisible },
@@ -368,12 +378,12 @@ fun CreateTaskContent(
                                 containerColor = MaterialTheme.colorScheme.background
                             ),
                             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
                                 text = (if (selectedTimeSlot.name != "") selectedTimeSlot.name else "Select Timeslot"),
                                 modifier = Modifier
-                                    .width(100.dp)
+                                    .fillMaxWidth(0.9f)
                                     .height(20.dp),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -384,10 +394,14 @@ fun CreateTaskContent(
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                        DropdownMenu(expanded = timeSlotVisible,
+                        DropdownMenu(
+                            modifier = Modifier.fillMaxWidth(0.9f),
+                            expanded = timeSlotVisible,
                             onDismissRequest = { timeSlotVisible = false }) {
                             timeSlots.value.forEach { timeSlot ->
-                                DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
+                                DropdownMenuItem(
+                                    text = { Text(text = timeSlot.name) },
+                                    onClick = {
                                     selectedTimeSlot = timeSlot
                                     timeSlotVisible = !timeSlotVisible
                                 })
@@ -395,6 +409,7 @@ fun CreateTaskContent(
                         }
                     }
                     if (selectedTimeSlot.name != "") {
+                        Spacer(modifier = Modifier.height(5.dp))
                         Text(
                             text = "Period: ${
                                 selectedTimeSlot.start.format(
