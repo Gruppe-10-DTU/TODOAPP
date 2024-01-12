@@ -125,14 +125,6 @@ fun SchedulingScreen(
             scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
         }
     }
-    LaunchedEffect(key1 = timeslots.value) {
-        CoroutineScope(Dispatchers.IO).launch {
-            // TODO REMOVE BEFORE SHIPPING
-            if (timeslots.value.isEmpty()) {
-                viewModel.generateTestingTimeSlots()
-            }
-        }
-    }
 }
 
 @Composable
