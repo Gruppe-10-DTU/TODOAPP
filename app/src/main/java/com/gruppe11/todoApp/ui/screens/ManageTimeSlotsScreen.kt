@@ -30,8 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -43,6 +45,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.TimeSlot
+import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.elements.TimePickerDialog
 import com.gruppe11.todoApp.viewModel.ScheduleViewModel
 import java.time.LocalTime
@@ -60,7 +63,7 @@ fun ManageTimeSlotsScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxHeight()
-            .noRippleClickable { focusManager?.clearFocus() },
+            .noRippleClickable { focusManager.clearFocus() },
         topBar = {
             TopAppBar(
                 title = {
@@ -99,9 +102,9 @@ fun ManageTimeSlotsScreen(
                     onClick = { viewModel.createTimeSlot(
                         TimeSlot(
                             id = 0,
-                            name = "new time slot",
-                            start = LocalTime.of(LocalTime.now().hour, 0),
-                            end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0),
+                            name = "New timeslot",
+                            start = LocalTime.of(LocalTime.now().hour, 0,0),
+                            end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0,0),
                             emptyList()
                         )
                     ) },
@@ -130,6 +133,8 @@ fun EditableTimeSlot(
     val changeStart = remember{ mutableStateOf(false) }
     val changeEnd = remember{ mutableStateOf(false) }
     val deleteModalVisible = remember { mutableStateOf(false) }
+    var timeslotName by remember { mutableStateOf(timeSlot.name) }
+    var showConfirm by remember { mutableStateOf(false) }
 
     Row(modifier = Modifier.padding(15.dp,5.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -144,11 +149,28 @@ fun EditableTimeSlot(
         Column(modifier = Modifier.padding(5.dp,0.dp)) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                maxLines = 1,
-                value = timeSlot.name,
-                onValueChange = { onChanges(timeSlot.copy(name = it)) },
+                singleLine = true,
+                value = timeslotName,
+                onValueChange = { timeslotName = it
+                                showConfirm = true},
                 label = { Text(text = "Name")}
             )
+            if (showConfirm) {
+                Row {
+                    SwitchableButton(
+                        text = "Cancel", onClick = {
+                            timeslotName = timeSlot.name
+                            showConfirm = false
+                        }, isFilled = false, pickedColor = MaterialTheme.colorScheme.tertiary
+                    )
+                    SwitchableButton(
+                        text = "Confirm", onClick = {
+                            onChanges(timeSlot.copy(name = timeslotName))
+                            showConfirm = false
+                        }, isFilled = true, pickedColor = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,8 +210,7 @@ fun EditableTimeSlot(
                     TimePickerDialog(
                         initialTime = timeSlot.start,
                         dismiss = { changeStart.value = false },
-                        confirm = {hours, minutes ->
-                            val newTime = LocalTime.of(hours, minutes)
+                        confirm = {newTime ->
                             onChanges(timeSlot.copy(start = newTime))
                         }
                     )
@@ -198,8 +219,7 @@ fun EditableTimeSlot(
                     TimePickerDialog(
                         initialTime = timeSlot.end,
                         dismiss = { changeEnd.value = false },
-                        confirm = {hours, minutes ->
-                            val newTime = LocalTime.of(hours, minutes)
+                        confirm = {newTime ->
                             onChanges(timeSlot.copy(end = newTime))
                         }
                     )
