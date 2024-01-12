@@ -24,9 +24,8 @@ class ScheduleViewModel @Inject constructor(
     private val taskRepository: ITaskRepository
     ): ViewModel() {
 
-    private val _timeSlots = MutableStateFlow<List<TimeSlot>>(emptyList())
 
-    val timeSlots = _timeSlots.asStateFlow()
+    val timeSlots = timeSlotRepository.timeSlots
     private val _uiState = MutableStateFlow(ScheduleScreenState())
     val uiState = _uiState.asStateFlow()
     val dates = getCalendarFlow()
@@ -34,11 +33,8 @@ class ScheduleViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             timeSlotRepository.readAll().collect { timeslots ->
-                if (timeslots.isEmpty()){
+                if (timeslots.isEmpty()) {
                     generateTestingTimeSlots()
-                }
-                _timeSlots.update {
-                    timeslots
                 }
             }
         }
@@ -64,18 +60,12 @@ class ScheduleViewModel @Inject constructor(
     fun createTimeSlot(timeSlot: TimeSlot){
         viewModelScope.launch {
             timeSlotRepository.create(timeSlot)
-            timeSlotRepository.readAll().collect { newList ->
-                _timeSlots.update { newList }
-            }
         }
     }
 
     fun updateTimeSlot(timeSlot: TimeSlot) {
         viewModelScope.launch {
             timeSlotRepository.update(timeSlot)
-            timeSlotRepository.readAll().collect { newList ->
-                _timeSlots.update { newList }
-            }
         }
     }
     // TODO Remove before shipping
@@ -99,18 +89,13 @@ class ScheduleViewModel @Inject constructor(
     fun deleteTimeSlot(timeSlot: TimeSlot) {
         viewModelScope.launch {
             timeSlotRepository.delete(timeSlot)
-            timeSlotRepository.readAll().collect { newList ->
-                _timeSlots.update { newList }
-            }
         }
     }
 
     fun toggleTaskCompletion(task: Task) {
         viewModelScope.launch {
             taskRepository.update(task)
-            timeSlotRepository.readAll().collect { newList ->
-                _timeSlots.update { newList }
-            }
+            timeSlotRepository.readAll()
         }
     }
 
