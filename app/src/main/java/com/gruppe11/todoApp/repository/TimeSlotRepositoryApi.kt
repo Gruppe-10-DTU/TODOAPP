@@ -28,7 +28,7 @@ class TimeSlotRepositoryApi @Inject constructor(): ITimeSlotRepository {
 
     override suspend fun readAll(): Flow<List<TimeSlot>> {
         val newList = TodoApi.timeslotService.readAll()
-        _timeslots.update { newList }
+        _timeslots.update { newList.sortedBy { it.start } }
         return timeSlots
     }
 
