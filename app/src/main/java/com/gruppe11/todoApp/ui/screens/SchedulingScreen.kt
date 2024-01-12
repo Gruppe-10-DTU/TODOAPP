@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -89,7 +90,7 @@ fun SchedulingScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "You haven't created any timeslots.", fontSize = 20.sp)
+                        Text(text = "No timeslots found. Goto: Settings -> Manage time slots -> Create new timeslot", color = Color.LightGray,fontStyle = FontStyle.Italic,fontSize = 18.sp)
                     }
                 }
             }
@@ -184,7 +185,7 @@ fun ScheduleTask(
                 shape = RoundedCornerShape(10.dp)
             ),
         colors = CardColors(
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             containerColor = completionColor,
             disabledContainerColor = Color.Black,
             disabledContentColor = Color.Black)
@@ -196,10 +197,10 @@ fun ScheduleTask(
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.Start
             ) {
-                Text(text = task.title.uppercase(), fontSize = 19.sp)
+                Text(text = task.title.uppercase(),color = MaterialTheme.colorScheme.onPrimary,fontSize = 19.sp)
                 Column(modifier = Modifier.padding(10.dp, 1.dp)) {
                     task.subtasks.forEach {
-                        Text(text = it.title, fontSize = 14.sp)
+                        Text(text = it.title,color = MaterialTheme.colorScheme.onPrimary,fontSize = 14.sp)
                     }
                 // TODO add more relevant info such as priority etc.
                 }

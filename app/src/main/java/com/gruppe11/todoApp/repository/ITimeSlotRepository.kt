@@ -15,4 +15,5 @@ interface ITimeSlotRepository {
     suspend fun update(timeSlot: TimeSlot): TimeSlot?
     suspend fun delete(timeSlot: TimeSlot)
 
+
 }

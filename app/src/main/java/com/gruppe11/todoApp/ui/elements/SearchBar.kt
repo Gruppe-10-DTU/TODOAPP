@@ -1,9 +1,7 @@
 package com.gruppe11.todoApp.ui.elements
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -18,6 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
@@ -39,8 +41,8 @@ fun SearchBar(
         ) {
             Icon(
                 Icons.Default.Clear,
-                contentDescription = "",
-                tint = Color.Black
+                contentDescription = "Searchbar Loop Icon",
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
@@ -48,14 +50,19 @@ fun SearchBar(
     TextField(
         value = searchText,
         onValueChange = viewModel::onSearchTextChange,
-        label = { Text("Search") },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary) },
+        placeholder = { Text(text = buildAnnotatedString {
+            withStyle(
+                style = SpanStyle(color = Color.LightGray, fontStyle = FontStyle.Italic)
+            ) { append("Search...") } },
+        );},
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         trailingIcon = if (searchText.isNotBlank()) trailingIconView else null,
         singleLine = true,
         modifier = Modifier
             .width(250.dp)
             .verticalScroll(rememberScrollState())
-            .border(width = 1.5.dp, color = MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)),
+            //.border(width = 1.5.dp, color = MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+        ,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
