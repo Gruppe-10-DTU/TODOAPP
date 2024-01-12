@@ -84,11 +84,10 @@ fun CreateTaskContent(
     var showDatePicker by remember {
         mutableStateOf(false)
     }
-
+    var hasTimeslot = false
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
-    var selectedTimeSlot by remember { mutableStateOf(TimeSlot(0, "", LocalTime.now(), LocalTime.now(), emptyList())) }
     var timeSlotVisible by remember { mutableStateOf(false) }
     val timeSlots = viewModel.Timeslots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
@@ -136,7 +135,7 @@ fun CreateTaskContent(
                 text = "Cancel",
                 onClick = { returnPage() },
                 isFilled = false,
-                pickedColor = MaterialTheme.colorScheme.primary,
+                pickedColor = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -333,19 +332,13 @@ fun CreateTaskContent(
                         )
                     )
                 }
-                val taskExistsInTimeSlots =
-                    viewModel.doesTaskExistInTimeSlots(currentTask.value, timeSlots.value)
-                var taskTimeSlot: TimeSlot? = null
-                if (taskId != null) {
-                    if (taskId > 0 && taskExistsInTimeSlots) {
-                        scheduleChecked = true
-                        taskTimeSlot = timeSlots.value.find { it.tasks.contains(currentTask.value) }
-                        if (taskTimeSlot != null) {
-//                            selectedTimeSlot = taskTimeSlot
-                        }
-                    }
+
+                if(viewModel.getScheduleState()){
+                    scheduleChecked = true
                 }
-                if (scheduleChecked) {
+
+                var slotText = currentTask.value.timeslot?.name ?: "Select Timeslot"
+                if (scheduleChecked && currentTask.value.timeslot != null) {
                     Row{
 //                        Text(text = "Select Timeslot:")
                         TextButton(
@@ -357,7 +350,7 @@ fun CreateTaskContent(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = (currentTask.value.timeslot?.name ?: "Select Timeslot"),
+                                text = (slotText),
                                 modifier = Modifier
                                     .fillMaxWidth(0.9f)
                                     .height(20.dp),
@@ -375,22 +368,22 @@ fun CreateTaskContent(
                         modifier = Modifier.fillMaxWidth(0.9f),
                         expanded = timeSlotVisible,
                         onDismissRequest = { timeSlotVisible = false }) {
-                        timeSlots.value.forEach { timeSlot ->
+                        timeSlots.value.sortedBy { it.name }.forEach { timeSlot ->
                             DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
                                 viewModel.editTimeslot(timeSlot)
                                 timeSlotVisible = !timeSlotVisible
                             })
                         }
                     }
-                    if (selectedTimeSlot.name != "") {
+                    if ( currentTask.value.timeslot != null &&  currentTask.value.timeslot?.name != "Select Timeslot") {
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
                             text = "Period: ${
-                                selectedTimeSlot.start.format(
+                                currentTask.value.timeslot?.start?.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             } to ${
-                                selectedTimeSlot.end.format(
+                                currentTask.value.timeslot?.end?.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             }",
@@ -398,6 +391,11 @@ fun CreateTaskContent(
                         )
 
                     }
+                } else {
+                    viewModel.editTimeslot(TimeSlot(-1,"Select Timeslot", LocalTime.now(), LocalTime.now(),
+                        emptyList()
+                    ))
+                    viewModel.openWithSchedule(false)
                 }
                 if (showDatePicker) {
                     DatePickerDialogFunction(System.currentTimeMillis(),
