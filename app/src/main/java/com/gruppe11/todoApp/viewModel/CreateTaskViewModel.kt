@@ -57,13 +57,13 @@ class CreateTaskViewModel @Inject constructor(
 
 
     fun removeSubtask(task: Task, subTask: SubTask) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             subtaskRepository.delete(task, subTask)
         }
     }
 
     fun getTask(taskId: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val task = taskRepository.read(taskId)
                 if (task != null) {
@@ -78,7 +78,7 @@ class CreateTaskViewModel @Inject constructor(
     // No exception handling for this function
     // as it is handled in the function that calls it
     private fun addSubtasks(task: Task, subtasks: List<SubTask>) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val existingSubtasks = subtaskRepository.readAll(task)
             val newSubtasks = subtasks.filterNot { existingSubtasks.contains(it) }
             for (subtask in newSubtasks) {
