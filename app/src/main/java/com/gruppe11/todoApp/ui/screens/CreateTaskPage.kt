@@ -351,7 +351,7 @@ fun CreateTaskContent(
                 }
 
                 var slotText = currentTask.value.timeslot?.name ?: "Select Timeslot"
-                if (scheduleChecked && currentTask.value.timeslot != null) {
+                if (scheduleChecked) {
                     Row{
 //                        Text(text = "Select Timeslot:")
                         TextButton(
