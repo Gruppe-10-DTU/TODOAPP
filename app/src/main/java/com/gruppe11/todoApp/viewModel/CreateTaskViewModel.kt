@@ -220,7 +220,7 @@ class CreateTaskViewModel @Inject constructor(
     }
 
 
-    fun editTimeslot(timeslot: TimeSlot) {
+    fun editTimeslot(timeslot: TimeSlot?) {
         _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
     }
 

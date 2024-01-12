@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
-import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
@@ -66,7 +65,6 @@ import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
@@ -353,7 +351,7 @@ fun CreateTaskContent(
                 }
 
                 var slotText = currentTask.value.timeslot?.name ?: "Select Timeslot"
-                if (scheduleChecked && currentTask.value.timeslot != null) {
+                if (scheduleChecked) {
                     Row{
 //                        Text(text = "Select Timeslot:")
                         TextButton(
@@ -390,7 +388,7 @@ fun CreateTaskContent(
                             }
                         }
                     }
-                    if ( currentTask.value.timeslot != null &&  currentTask.value.timeslot?.name != "Select Timeslot") {
+                    if ( currentTask.value.timeslot != null ) {
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
                             text = "Period: ${
@@ -407,9 +405,7 @@ fun CreateTaskContent(
 
                     }
                 } else {
-                    viewModel.editTimeslot(TimeSlot(-1,"Select Timeslot", LocalTime.now(), LocalTime.now(),
-                        emptyList()
-                    ))
+                    viewModel.editTimeslot(null)
                     viewModel.openWithSchedule(false)
                 }
                 if (showDatePicker) {
