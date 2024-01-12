@@ -378,16 +378,16 @@ fun CreateTaskContent(
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                    }
-                    DropdownMenu(
-                        modifier = Modifier.fillMaxWidth(0.9f),
-                        expanded = timeSlotVisible,
-                        onDismissRequest = { timeSlotVisible = false }) {
-                        timeSlots.value.sortedBy { it.name }.forEach { timeSlot ->
-                            DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
-                                viewModel.editTimeslot(timeSlot)
-                                timeSlotVisible = !timeSlotVisible
-                            })
+                        DropdownMenu(
+                            modifier = Modifier.fillMaxWidth(0.9f),
+                            expanded = timeSlotVisible,
+                            onDismissRequest = { timeSlotVisible = false }) {
+                            timeSlots.value.sortedBy { it.name }.forEach { timeSlot ->
+                                DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
+                                    viewModel.editTimeslot(timeSlot)
+                                    timeSlotVisible = !timeSlotVisible
+                                })
+                            }
                         }
                     }
                     if ( currentTask.value.timeslot != null &&  currentTask.value.timeslot?.name != "Select Timeslot") {
