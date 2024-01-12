@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Tune
@@ -657,11 +658,13 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 onClick = {
                     visible = !visible
                 }) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown,
-                    contentDescription = "See subtasks",
-                    modifier = Modifier.size(24.dp)
-                )
+                if (task.subtasks.isNotEmpty()) {
+                    Icon(
+                        imageVector = (if (visible) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown),
+                        contentDescription = "See subtasks",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
         AnimatedVisibility(visible) {
