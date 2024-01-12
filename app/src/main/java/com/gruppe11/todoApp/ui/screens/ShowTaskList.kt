@@ -2,10 +2,10 @@ package com.gruppe11.todoApp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -213,15 +213,25 @@ fun GenerateLazyColumnForTasks(
             .fillMaxSize()
             .padding(horizontal = 5.dp)
     ) {
-        LazyColumn(modifier = Modifier
-            .align(Alignment.TopCenter)
-            .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            items(filteredTasks) { task ->
-                key(task.id) {
-                    TaskItem(task = task, viewModel = viewModel, editTask)
+        when (filteredTasks.isEmpty()) {
+            true -> {
+                Text(
+                    text = "No tasks to display",
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else -> {
+                LazyColumn(modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    items(filteredTasks) { task ->
+                        key(task.id) {
+                            TaskItem(task = task, viewModel = viewModel, editTask)
+                        }
+                    }
                 }
             }
         }
@@ -501,8 +511,8 @@ fun ShowTaskList (
                         Column {
                             AnimatedVisibility(
                                 visible = filterTagsVisible,
-                                enter = slideInVertically(),
-                                exit = slideOutVertically()
+                                enter = expandVertically(),
+                                exit = shrinkVertically()
                             ) {
                                 FilterSection(taskViewModel = viewModel, state = screenState)
                             }
