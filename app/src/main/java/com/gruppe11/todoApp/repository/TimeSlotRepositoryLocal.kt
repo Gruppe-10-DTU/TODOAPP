@@ -3,15 +3,19 @@ package com.gruppe11.todoApp.repository
 import com.gruppe11.todoApp.model.TimeSlot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 class TimeSlotRepositoryLocal @Inject constructor() : ITimeSlotRepository {
 
-    private val timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
+    override val timeSlots: StateFlow<List<TimeSlot>>
+        get() = _timeslots.asStateFlow()
+    private val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
     private var id = 1
     override suspend fun create(timeSlot: TimeSlot): TimeSlot {
-        timeslots.update {list ->
+        _timeslots.update { list ->
             list.plus(timeSlot.copy(id = id++))
 
         }
@@ -19,18 +23,18 @@ class TimeSlotRepositoryLocal @Inject constructor() : ITimeSlotRepository {
     }
 
     override suspend fun readAll(): Flow<List<TimeSlot>> {
-        return timeslots
+        return _timeslots
     }
 
     override suspend fun find(id: Int): TimeSlot? {
-        val timeslot = timeslots.value.find { it.id == id }
+        val timeslot = _timeslots.value.find { it.id == id }
         return timeslot
 
     }
     override suspend fun update(timeSlot: TimeSlot): TimeSlot? {
-        val tmp = timeslots.value.filter { it.id == timeSlot.id }
+        val tmp = _timeslots.value.filter { it.id == timeSlot.id }
         if (tmp.isNotEmpty()) {
-            timeslots.update { list ->
+            _timeslots.update { list ->
                 list.toMutableList().apply {
                     this[list.indexOfFirst { it.id == timeSlot.id }]  = timeSlot
                 }.sortedBy { it.start }
@@ -41,7 +45,7 @@ class TimeSlotRepositoryLocal @Inject constructor() : ITimeSlotRepository {
     }
 
     override suspend fun delete(timeSlot: TimeSlot) {
-        timeslots.update {list ->
+        _timeslots.update { list ->
             list.filterNot { it == timeSlot }
         }
     }
