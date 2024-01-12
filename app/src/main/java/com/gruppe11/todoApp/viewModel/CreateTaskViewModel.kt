@@ -1,6 +1,7 @@
 package com.gruppe11.todoApp.viewModel
 
 import android.util.Log
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
@@ -10,6 +11,7 @@ import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
+import com.gruppe11.todoApp.ui.screenStates.CreateTaskScreenState
 import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,6 +29,15 @@ class CreateTaskViewModel @Inject constructor(
     private val subtaskRepository: ISubtaskRepository,
     private val timeSlotRepository: ITimeSlotRepository
 ) : ViewModel() {
+    private val _UIState = MutableStateFlow(
+        CreateTaskScreenState(
+            openWithSchedule = false
+        )
+    )
+
+    val UIState = _UIState.asStateFlow()
+
+
     private val _editingTask = MutableStateFlow<Task>(
         Task(
             -1, "", Priority.MEDIUM, LocalDateTime.now(), false,
@@ -35,6 +47,7 @@ class CreateTaskViewModel @Inject constructor(
     )
 
     val editingTask = _editingTask.asStateFlow()
+    val timeSlotsWithTasks = MutableStateFlow<List<TimeSlot>>(emptyList())
 
     private val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
 
@@ -45,7 +58,7 @@ class CreateTaskViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            timeSlotRepository.readAll().collect{ timeslots ->
+            timeSlotRepository.readAll().collect { timeslots ->
                 _timeslots.value = timeslots
             }
         }
@@ -68,6 +81,9 @@ class CreateTaskViewModel @Inject constructor(
                 val task = taskRepository.read(taskId)
                 if (task != null) {
                     _editingTask.emit(task)
+                    if (task.timeslot != null) {
+                        openWithSchedule(true)
+                    }
                 }
             } catch (e: Exception) {
                 Log.d("getTask", e.toString())
@@ -90,6 +106,53 @@ class CreateTaskViewModel @Inject constructor(
 
     fun addToTimeslot(timeslot: TimeSlot, task: Task) {
         _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
+        fun doesTaskExistInTimeSlots(task: Task, timeSlots: List<TimeSlot>): Boolean {
+            for (timeSlot in timeSlots) {
+                if (timeSlot.tasks.contains(task)) {
+                    return true
+                }
+            }
+            return false
+        }
+    }
+
+//    suspend fun unscheduleTask(task: Task){
+//        timeSlotRepository.unschedule(task)
+//    }
+
+    fun removeTaskFromTimeSlot(timeSlot: TimeSlot, task: Task) {
+        viewModelScope.launch {
+            // Remove the task from the time slot
+            timeSlot.tasks.toMutableStateList().remove(task)
+        }
+    }
+
+    fun moveTaskToNewTimeslot(timeslot: TimeSlot, task: Task) {
+        viewModelScope.launch {
+            timeSlotsWithTasks.value.forEach { timeSlot ->
+                timeSlot.tasks.minus(task)
+            }
+            timeslot.tasks.plus(task)
+        }
+    }
+
+    fun getTimeSlot(task: Task): TimeSlot {
+        var timeSlot = TimeSlot(-1, "", LocalTime.now(), LocalTime.now(), emptyList())
+        timeSlotsWithTasks.value.forEach { ts ->
+            if (ts.tasks.contains(task)) {
+                timeSlot = ts
+            }
+        }
+        return timeSlot
+    }
+
+    fun doesTaskExistInTimeSlot(task: Task): Boolean {
+        var exists = false
+
+        timeSlotsWithTasks.value.forEach { timeSlot ->
+            exists = timeSlot.tasks.contains(task)
+        }
+        return exists
     }
 
     fun editTitle(title: String) {
@@ -156,8 +219,17 @@ class CreateTaskViewModel @Inject constructor(
         return task
     }
 
+
     fun editTimeslot(timeslot: TimeSlot) {
         _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
+    }
+
+    fun openWithSchedule(bool: Boolean) {
+        _UIState.update { it.copy(openWithSchedule = bool) }
+    }
+
+    fun getScheduleState(): Boolean {
+        return _UIState.value.openWithSchedule
     }
 
 }

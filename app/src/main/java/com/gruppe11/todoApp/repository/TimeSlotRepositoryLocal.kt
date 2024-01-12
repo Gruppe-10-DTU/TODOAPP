@@ -49,4 +49,12 @@ class TimeSlotRepositoryLocal @Inject constructor() : ITimeSlotRepository {
             list.filterNot { it == timeSlot }
         }
     }
+
+//    override fun unschedule(task: Task){
+//        timeslots.update { list ->
+//            list.onEach { timeslot ->
+//                timeslot.tasks.apply { filterNot { it.id == task.id } }
+//            }
+//        }
+//    }
 }
