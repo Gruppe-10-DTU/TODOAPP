@@ -9,7 +9,6 @@ import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.ui.screenStates.ScheduleScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,9 +32,14 @@ class ScheduleViewModel @Inject constructor(
     val dates = getCalendarFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.Unconfined) {
-            timeSlotRepository.readAll().collect{ timeslots ->
-                _timeSlots.value = timeslots
+        viewModelScope.launch {
+            timeSlotRepository.readAll().collect { timeslots ->
+                if (timeslots.isEmpty()){
+                    generateTestingTimeSlots()
+                }
+                _timeSlots.update {
+                    timeslots
+                }
             }
         }
     }
@@ -47,6 +51,7 @@ class ScheduleViewModel @Inject constructor(
         }
         return dates
     }
+
     private fun loadDates(): List<LocalDate> {
         var currentDate = LocalDate.now().minusDays(7)
         var dateList = emptyList<LocalDate>()
@@ -59,15 +64,22 @@ class ScheduleViewModel @Inject constructor(
     fun createTimeSlot(timeSlot: TimeSlot){
         viewModelScope.launch {
             timeSlotRepository.create(timeSlot)
+            timeSlotRepository.readAll().collect { newList ->
+                _timeSlots.update { newList }
+            }
         }
     }
+
     fun updateTimeSlot(timeSlot: TimeSlot) {
         viewModelScope.launch {
             timeSlotRepository.update(timeSlot)
+            timeSlotRepository.readAll().collect { newList ->
+                _timeSlots.update { newList }
+            }
         }
     }
     // TODO Remove before shipping
-    fun generateTestingTimeSlots() {
+    private fun generateTestingTimeSlots() {
         var time = LocalDate.now().atStartOfDay().toLocalTime().plusHours(6L)
 
         repeat(3) {
@@ -87,11 +99,19 @@ class ScheduleViewModel @Inject constructor(
     fun deleteTimeSlot(timeSlot: TimeSlot) {
         viewModelScope.launch {
             timeSlotRepository.delete(timeSlot)
+            timeSlotRepository.readAll().collect { newList ->
+                _timeSlots.update { newList }
+            }
         }
     }
 
-    suspend fun toggleTaskCompletion(task: Task) {
-        taskRepository.update(task)
+    fun toggleTaskCompletion(task: Task) {
+        viewModelScope.launch {
+            taskRepository.update(task)
+            timeSlotRepository.readAll().collect { newList ->
+                _timeSlots.update { newList }
+            }
+        }
     }
 
     fun changeSelectedDay(date: LocalDate) {
