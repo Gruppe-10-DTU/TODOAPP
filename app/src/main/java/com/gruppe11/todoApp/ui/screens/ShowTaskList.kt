@@ -5,8 +5,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -285,14 +284,14 @@ fun ShowTaskList (
                                         Box(modifier= Modifier
                                             .wrapContentHeight()
                                             .fillMaxWidth()
-                                            .background(MaterialTheme.colorScheme.background)
-                                            , contentAlignment = Alignment.Center
+                                            .background(MaterialTheme.colorScheme.background),
+                                            contentAlignment = Alignment.Center
                                         ) {
                                             Column {
                                                 AnimatedVisibility(
                                                     visible = filterTagsVisible,
-                                                    enter = slideInVertically(),
-                                                    exit = slideOutVertically()
+                                                    enter = expandVertically(),
+                                                    exit = shrinkVertically()
                                                 ) {
                                                     FilterSection(
                                                         taskViewModel = viewModel,
