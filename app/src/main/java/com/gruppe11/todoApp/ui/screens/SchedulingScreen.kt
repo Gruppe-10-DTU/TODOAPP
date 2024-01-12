@@ -108,10 +108,7 @@ fun SchedulingScreen(
                                     task = task,
                                     height = minTaskHeight,
                                     width = minTaskWidth,
-                                    toggleCompletion = {
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            viewModel.toggleTaskCompletion(it)}
-                                        }
+                                    toggleCompletion = {viewModel.toggleTaskCompletion(it)}
                                 )
                             }
                     }
@@ -123,14 +120,6 @@ fun SchedulingScreen(
     LaunchedEffect(key1 = LocalDateTime.now().hour) {
         if (uiState.value.selectedDay == LocalDate.now()) {
             scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
-        }
-    }
-    LaunchedEffect(key1 = timeslots.value) {
-        CoroutineScope(Dispatchers.IO).launch {
-            // TODO REMOVE BEFORE SHIPPING
-            if (timeslots.value.isEmpty()) {
-                viewModel.generateTestingTimeSlots()
-            }
         }
     }
 }
