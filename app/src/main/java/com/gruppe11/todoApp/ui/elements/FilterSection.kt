@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,13 +15,13 @@ import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterSection(
     taskViewModel: TaskViewModel,
     state: TasksScreenState
 ) {
-    Column() {
+    Column {
         FlowRow {
             FilterChip(
                 onClick = {

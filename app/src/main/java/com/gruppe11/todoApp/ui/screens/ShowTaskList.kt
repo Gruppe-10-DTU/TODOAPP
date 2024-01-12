@@ -2,6 +2,7 @@ package com.gruppe11.todoApp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -100,7 +101,7 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.elements.LoadingIndicator
 import com.gruppe11.todoApp.ui.elements.SearchBar
-import com.gruppe11.todoApp.ui.screenStates.LoadingState
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -119,6 +120,7 @@ fun ShowTaskList (
     viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
+    val loadingState by viewModel.loadingState.collectAsStateWithLifecycle()
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
@@ -328,8 +330,8 @@ fun ShowTaskList (
                                         }
                                     }
                                 }
-                                when (screenState.loadingState) {
-                                    LoadingState.ERROR -> {
+                                when (loadingState) {
+                                    ExecutionState.ERROR -> {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -351,11 +353,10 @@ fun ShowTaskList (
                                             }
                                         }
                                     }
-
-                                    LoadingState.LOADING -> {
+                                    ExecutionState.RUNNING -> {
                                         LoadingIndicator()
                                     }
-                                    LoadingState.SUCCESS -> {
+                                    ExecutionState.SUCCESS -> {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -553,15 +554,25 @@ fun GenerateLazyColumnForTasks(
             .fillMaxSize()
             .padding(horizontal = 5.dp)
     ) {
-        LazyColumn(modifier = Modifier
-            .align(Alignment.TopCenter)
-            .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            items(filteredTasks) { task ->
-                key(task.id) {
-                    TaskItem(task = task, viewModel = viewModel, editTask)
+        when (filteredTasks.isEmpty()) {
+            true -> {
+                Text(
+                    text = "No tasks to display",
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else -> {
+                LazyColumn(modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    items(filteredTasks) { task ->
+                        key(task.id) {
+                            TaskItem(task = task, viewModel = viewModel, editTask)
+                        }
+                    }
                 }
             }
         }

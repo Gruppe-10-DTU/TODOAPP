@@ -38,6 +38,7 @@ import java.time.format.DateTimeFormatter
 fun DateSideScroller(
     currentDate: LocalDate,
     dates: State<List<LocalDate>>,
+    onDateChange: (LocalDate) -> Unit,
     onTitleClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -106,6 +107,7 @@ fun DateSideScroller(
                         onClick = {
                             selectedDate = day
                             selectedIndex = dates.value.indexOf(day)
+                            onDateChange(day)
                         },
                         label = {
                             Column(

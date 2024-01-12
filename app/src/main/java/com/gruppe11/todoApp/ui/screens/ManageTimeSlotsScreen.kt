@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -55,9 +56,12 @@ fun ManageTimeSlotsScreen(
     returnPage: () -> Unit
 ) {
     val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
+    val focusManager = LocalFocusManager.current
 
     Scaffold(
-        modifier = Modifier.fillMaxHeight(),
+        modifier = Modifier
+            .fillMaxHeight()
+            .noRippleClickable { focusManager?.clearFocus() },
         topBar = {
             TopAppBar(
                 title = {

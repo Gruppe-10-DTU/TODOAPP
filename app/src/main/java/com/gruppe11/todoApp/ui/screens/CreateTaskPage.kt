@@ -55,15 +55,18 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
+import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
 import com.gruppe11.todoApp.ui.elements.SwitchableButton
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
@@ -82,7 +85,7 @@ fun CreateTaskContent(
     var showDatePicker by remember {
         mutableStateOf(false)
     }
-
+    var hasTimeslot = false
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
@@ -131,7 +134,7 @@ fun CreateTaskContent(
             //Cancel button
             SwitchableButton(
                 text = "Cancel",
-                onClick = { returnPage() },
+                onClick = returnPage,
                 isFilled = false,
                 pickedColor = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier
@@ -146,15 +149,29 @@ fun CreateTaskContent(
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (currentTask.value.title.isNotEmpty()) {
-                            var message = ""
+                            var message: String
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
-
-                            scope.launch {
-                                snackbarHostState.showSnackbar(message = message)
+                            if (viewModel.submitState.value == ExecutionState.SUCCESS &&
+                                task != null) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message = message)
+                                }
+                                returnPage()
+                            } else if (viewModel.submitState.value == ExecutionState.ERROR &&
+                                task != null
+                            ) {
+                                message = "Error: Task was saved but subtasks failed to save"
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
+                            } else if (viewModel.submitState.value == ExecutionState.ERROR) {
+                                message = "Error: Could not save task"
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
                             }
-                            returnPage()
                         } else {
                             dismissSnackbar(snackbarHostState, scope)
                             scope.launch {
@@ -189,7 +206,11 @@ fun CreateTaskContent(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
                     ),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.primary
+                    ),
                 )
                 HorizDividerWithSpacer(10.dp)
                 Text(
@@ -286,7 +307,8 @@ fun CreateTaskContent(
                         Text(
                             text = currentTask.value.deadline.format(
                                 DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                            ), fontSize = 20.sp
+                            ),
+                            fontSize = 20.sp,
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -317,12 +339,22 @@ fun CreateTaskContent(
                         onCheckedChange = {
                             scheduleChecked = it
                         },
-                        thumbContent = switchIcon
+                        thumbContent = switchIcon,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.background,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.background,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
 
-                if (scheduleChecked) {
-                    Row {
+                if(viewModel.getScheduleState()){
+                    scheduleChecked = true
+                }
+
+                var slotText = currentTask.value.timeslot?.name ?: "Select Timeslot"
+                if (scheduleChecked && currentTask.value.timeslot != null) {
+                    Row{
 //                        Text(text = "Select Timeslot:")
                         TextButton(
                             onClick = { timeSlotVisible = !timeSlotVisible },
@@ -330,12 +362,12 @@ fun CreateTaskContent(
                                 containerColor = MaterialTheme.colorScheme.background
                             ),
                             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = (currentTask.value.timeslot?.name ?: "Select Timeslot"),
+                                text = (slotText),
                                 modifier = Modifier
-                                    .width(100.dp)
+                                    .fillMaxWidth(0.9f)
                                     .height(20.dp),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -346,24 +378,27 @@ fun CreateTaskContent(
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                    }
-                    DropdownMenu(expanded = timeSlotVisible,
-                        onDismissRequest = { timeSlotVisible = false }) {
-                        timeSlots.value.forEach { timeSlot ->
-                            DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
-                                viewModel.editTimeslot(timeSlot)
-                                timeSlotVisible = !timeSlotVisible
-                            })
+                        DropdownMenu(
+                            modifier = Modifier.fillMaxWidth(0.9f),
+                            expanded = timeSlotVisible,
+                            onDismissRequest = { timeSlotVisible = false }) {
+                            timeSlots.value.sortedBy { it.name }.forEach { timeSlot ->
+                                DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
+                                    viewModel.editTimeslot(timeSlot)
+                                    timeSlotVisible = !timeSlotVisible
+                                })
+                            }
                         }
                     }
-                    currentTask.value.timeslot?.let {
+                    if ( currentTask.value.timeslot != null &&  currentTask.value.timeslot?.name != "Select Timeslot") {
+                        Spacer(modifier = Modifier.height(5.dp))
                         Text(
                             text = "Period: ${
-                                currentTask.value.timeslot!!.start.format(
+                                currentTask.value.timeslot?.start?.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             } to ${
-                                currentTask.value.timeslot!!.end.format(
+                                currentTask.value.timeslot?.end?.format(
                                     DateTimeFormatter.ofPattern("HH:mm")
                                 )
                             }",
@@ -371,6 +406,11 @@ fun CreateTaskContent(
                         )
 
                     }
+                } else {
+                    viewModel.editTimeslot(TimeSlot(-1,"Select Timeslot", LocalTime.now(), LocalTime.now(),
+                        emptyList()
+                    ))
+                    viewModel.openWithSchedule(false)
                 }
                 if (showDatePicker) {
                     DatePickerDialogFunction(System.currentTimeMillis(),
