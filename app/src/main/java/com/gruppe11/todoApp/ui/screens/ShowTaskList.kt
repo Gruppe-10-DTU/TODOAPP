@@ -5,17 +5,20 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -71,15 +74,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -102,6 +112,338 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowTaskList (
+    viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
+    onFloatingButtonClick: () -> Unit,
+    onEditTask: (Int) -> Unit) {
+    val loadingState by viewModel.loadingState.collectAsStateWithLifecycle()
+    val screenState by viewModel.UIState.collectAsStateWithLifecycle()
+    var filterTagsVisible by remember { mutableStateOf(false) }
+    var sortingVisible by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
+    val focusManager = LocalFocusManager.current
+    val tasks by viewModel.TaskState.collectAsStateWithLifecycle(initialValue = emptyList())
+    val showMonthPicker = remember{ mutableStateOf(false) }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                modifier = Modifier.height(40.dp),
+                colors = topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
+                title = {
+                    Box(modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val formatBigDate =
+                            DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
+                        TextButton(
+                            onClick = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    viewModel.changeDate(LocalDateTime.now())
+                                    listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
+                                }
+                            },
+                            colors = ButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = MaterialTheme.colorScheme.background,
+                                disabledContainerColor = MaterialTheme.colorScheme.background,
+                                disabledContentColor = MaterialTheme.colorScheme.tertiary)
+                        ) {
+                            Text(
+                                text = screenState.selectedDate.format(formatBigDate).toString(),
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+                },
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                shape = CircleShape,
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                onClick = onFloatingButtonClick) {
+                Icon(Icons.Filled.Add, "Add new Task")
+            }
+        },
+        content = {
+            Surface(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding())
+            ) {
+                Column(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .noRippleClickable { focusManager?.clearFocus() },
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .background(MaterialTheme.colorScheme.secondary),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        GenerateLazyRowForDays(
+                            viewModel = viewModel,
+                            listState = listState,
+                            selectedDate = screenState.selectedDate,
+                            onSelectedDate = viewModel::changeDate
+                        )
+                    }
+                    Scaffold(content = {
+                        Surface(
+                            modifier = Modifier.padding(
+                                top = it.calculateTopPadding(),
+                                bottom = it.calculateBottomPadding()
+                            )
+                        ) {
+                            CollapsingLayout(collapsingTop = {
+                                Box(
+                                    modifier = Modifier
+                                        .wrapContentHeight()
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.background),
+                                    contentAlignment = Alignment.TopEnd
+                                ) {
+                                    Column {
+                                        Row {
+                                            SearchBar(screenState)
+                                            IconButton(onClick = {
+                                                sortingVisible = !sortingVisible
+                                            }) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.SortByAlpha,
+                                                    contentDescription = "Open sorting",
+                                                    modifier = Modifier
+                                                        .size(44.dp)
+                                                        .padding(4.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimary
+                                                )
+                                                if (sortingVisible) {
+                                                    DropdownMenu(
+                                                        expanded = sortingVisible,
+                                                        onDismissRequest = {
+                                                            sortingVisible = false
+                                                        },
+                                                        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+                                                    ) {
+                                                        sortingList.forEach { optionLabel ->
+                                                            DropdownMenuItem(
+                                                                text = { Text(text = optionLabel) },
+                                                                onClick = {
+                                                                    viewModel.selectSortingOption(
+                                                                        optionLabel
+                                                                    )
+                                                                    sortingVisible = false
+                                                                },
+                                                                trailingIcon = {
+                                                                    Icon(
+                                                                        imageVector = if (optionLabel == "Priority Descending" || optionLabel == "Z-A") Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
+                                                                        contentDescription = "Trailing icon",
+                                                                        modifier = Modifier
+                                                                            .size(30.dp)
+                                                                            .padding(4.dp)
+                                                                    )
+                                                                }
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            IconButton(onClick = {
+                                                filterTagsVisible = !filterTagsVisible
+                                            }) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Tune,
+                                                    contentDescription = "Open filter selection",
+                                                    modifier = Modifier
+                                                        .size(44.dp)
+                                                        .padding(4.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimary
+                                                )
+                                            }
+                                            IconButton(onClick = {
+                                                showMonthPicker.value = true
+                                            }) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.DateRange,
+                                                    contentDescription = "Open YearMonth Picker",
+                                                    modifier = Modifier
+                                                        .size(44.dp)
+                                                        .padding(4.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimary
+                                                )
+                                            }
+                                        }
+                                        HorizontalDivider(modifier = Modifier.padding(2.dp))
+                                        Box(modifier= Modifier
+                                            .wrapContentHeight()
+                                            .fillMaxWidth()
+                                            .background(MaterialTheme.colorScheme.background)
+                                            , contentAlignment = Alignment.Center
+                                        ) {
+                                            Column {
+                                                AnimatedVisibility(
+                                                    visible = filterTagsVisible,
+                                                    enter = slideInVertically(),
+                                                    exit = slideOutVertically()
+                                                ) {
+                                                    FilterSection(
+                                                        taskViewModel = viewModel,
+                                                        state = screenState
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }, bodyContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .wrapContentHeight()
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.background),
+                                    contentAlignment = Alignment.TopCenter
+                                ) {
+                                    Column {
+                                        AnimatedVisibility(
+                                            visible = showMonthPicker.value,
+                                            enter = fadeIn(),
+                                            exit = fadeOut()
+                                        ) {
+                                            if (showMonthPicker.value) {
+                                                ElevatedCard {
+                                                    DatePickerDialogFunction(
+                                                        taskDateTimeMillis = System.currentTimeMillis(),
+                                                        onDateSelected = viewModel::changeDate,
+                                                        onDismiss = {
+                                                            showMonthPicker.value = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                when (loadingState) {
+                                    ExecutionState.ERROR -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(MaterialTheme.colorScheme.background),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column {
+                                                Text(stringResource(id = R.string.error_task_loading))
+                                                IconButton(
+                                                    onClick = viewModel::loadTaskList,
+                                                    modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.Sync,
+                                                        contentDescription = "Retry loading tasks",
+                                                        modifier = Modifier.size(32.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    ExecutionState.RUNNING -> {
+                                        LoadingIndicator()
+                                    }
+                                    ExecutionState.SUCCESS -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(MaterialTheme.colorScheme.background),
+                                            contentAlignment = Alignment.TopCenter
+                                        ) {
+                                            GenerateLazyColumnForTasks(
+                                                viewModel = viewModel,
+                                                filteredTasks = tasks,
+                                                editTask = onEditTask
+                                            )
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+            }
+            LaunchedEffect(true) {
+                listState.scrollToItem(28)
+            }
+        },
+    )
+}
+
+//Yoinked from: https://github.com/droidyayu/CollapsingLayout.git
+//Original Author: Ayushi Gupta
+@Composable
+internal fun CollapsingLayout(
+    collapsingTop: @Composable BoxScope.() -> Unit,
+    bodyContent: @Composable BoxScope.() -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var collapsingTopHeight by remember { mutableStateOf(0f) }
+    var offset by remember { mutableStateOf(0f) }
+    fun calculateOffset(delta: Float): Offset {
+        val oldOffset = offset
+        val newOffset = (oldOffset + delta).coerceIn(-collapsingTopHeight, 0f)
+        offset = newOffset
+        return Offset(0f, newOffset - oldOffset)
+    }
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
+                when {
+                    available.y >= 0 -> Offset.Zero
+                    offset == -collapsingTopHeight -> Offset.Zero
+                    else -> calculateOffset(available.y)
+                }
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset =
+                when {
+                    available.y <= 0 -> Offset.Zero
+                    offset == 0f -> Offset.Zero
+                    else -> calculateOffset(available.y)
+                }
+        }
+    }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(nestedScrollConnection),
+    ) {
+        Box(
+            modifier = Modifier
+                .onSizeChanged { size ->
+                    collapsingTopHeight = size.height.toFloat()
+                }
+                .offset { IntOffset(x = 0, y = offset.roundToInt()) },
+            content = collapsingTop,
+        )
+        Box(
+            modifier = Modifier.offset {
+                IntOffset(
+                    x = 0,
+                    y = (collapsingTopHeight + offset).roundToInt()
+                )
+            },
+            content = bodyContent,
+        )
+    }
+}
 
 @Composable
 fun LinearDeterminateIndicator(progress: Float) {
@@ -149,7 +491,7 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd. MMM")
+                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd/MM")
                 items(daysMap.keys.toList()) { day ->
                     Column(
                         verticalArrangement = Arrangement.SpaceEvenly,
@@ -173,9 +515,9 @@ fun GenerateLazyRowForDays(
                                     text = day.format(formatFilterDate),
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
-                                        .padding(0.dp)
                                         .fillMaxWidth(),
-                                    fontSize = 9.8.sp
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             },
                             enabled = true,
@@ -183,7 +525,7 @@ fun GenerateLazyRowForDays(
                                 .width(65.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = MaterialTheme.colorScheme.background,
-                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onPrimary,
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.background
                             ),
@@ -208,7 +550,6 @@ fun GenerateLazyColumnForTasks(
     filteredTasks: List<Task>,
     editTask: (Int) -> Unit
 ) {
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -272,43 +613,41 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
                 },
-                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background)
             )
-                    Text(
-                        buildAnnotatedString (
-                        ) {
-                            val nrOfCharactersInSearch : Int = viewModel.UIState.value.searchText.length
-                            var startOfText = 0
-                            var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText)
-                            var endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
-                            var moreInstances = true
+            Text(
+                buildAnnotatedString (
+                ) {
+                    val nrOfCharactersInSearch : Int = viewModel.UIState.value.searchText.length
+                    var startOfText = 0
+                    var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText)
+                    var endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
+                    var moreInstances = true
 
-                            while (moreInstances) {
+                    while (moreInstances) {
 
-                                append(task.title.substring(startOfText,startOfSearch))
+                        append(task.title.substring(startOfText,startOfSearch))
 
-                                withStyle(style = SpanStyle(
-                                    background = MaterialTheme.colorScheme.secondary)) {
-                                    append(task.title.substring(startOfSearch,endOfSearchPlus1))
-                                }
+                        withStyle(style = SpanStyle(
+                            background = MaterialTheme.colorScheme.secondary)) {
+                            append(task.title.substring(startOfSearch,endOfSearchPlus1))
+                        }
 
-                                startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1)
+                        startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1)
 
-                                if (startOfSearch > 0) {
-                                    startOfText = endOfSearchPlus1
-                                    endOfSearchPlus1 = startOfSearch + nrOfCharactersInSearch
-                                } else {
-                                    moreInstances = false
-                                }
+                        if (startOfSearch > 0) {
+                            startOfText = endOfSearchPlus1
+                            endOfSearchPlus1 = startOfSearch + nrOfCharactersInSearch
+                        } else {
+                            moreInstances = false
+                        }
 
-                            }
+                    }
 
-                            append(task.title.substring(endOfSearchPlus1))
-                        },
-                        modifier = Modifier.align(alignment = Alignment.CenterVertically)
-                    )
-
-
+                    append(task.title.substring(endOfSearchPlus1))
+                },
+                modifier = Modifier.align(alignment = Alignment.CenterVertically)
+            )
             Spacer(Modifier.weight(1f))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
@@ -353,240 +692,6 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ShowTaskList (
-    viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
-    onFloatingButtonClick: () -> Unit,
-    onEditTask: (Int) -> Unit) {
-
-    val loadingState by viewModel.loadingState.collectAsStateWithLifecycle()
-    val screenState by viewModel.UIState.collectAsStateWithLifecycle()
-    var filterTagsVisible by remember { mutableStateOf(false) }
-    var sortingVisible by remember { mutableStateOf(false) }
-    val listState = rememberLazyListState()
-    val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
-    val focusManager = LocalFocusManager.current
-
-    val tasks by viewModel.TaskState.collectAsStateWithLifecycle(initialValue = emptyList())
-    val showMonthPicker = remember{ mutableStateOf(false) }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.height(40.dp),
-                colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
-                title = {
-                    Box(modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val formatBigDate =
-                            DateTimeFormatter.ofPattern("E d. MMMM", Locale.getDefault())
-                        TextButton(
-                            onClick = {
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    viewModel.changeDate(LocalDateTime.now())
-                                    listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
-                                }
-                            },
-                            colors = ButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onBackground,
-                                containerColor = MaterialTheme.colorScheme.background,
-                                disabledContainerColor = MaterialTheme.colorScheme.background,
-                                disabledContentColor = MaterialTheme.colorScheme.tertiary)
-                        ) {
-                            Text(
-                                text = screenState.selectedDate.format(formatBigDate).toString(),
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                shape = CircleShape,
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                onClick = onFloatingButtonClick) {
-                Icon(Icons.Filled.Add, "Add new Task")
-            }
-        },
-        content = {
-            Surface(modifier = Modifier.padding(top = it.calculateTopPadding(),bottom=it.calculateBottomPadding())) {
-                Column(
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .noRippleClickable { focusManager?.clearFocus() },
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .background(MaterialTheme.colorScheme.secondary),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        GenerateLazyRowForDays(
-                            viewModel = viewModel,
-                            listState = listState,
-                            selectedDate = screenState.selectedDate,
-                            onSelectedDate = viewModel::changeDate
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background),
-                        contentAlignment = Alignment.TopEnd
-                    ) {
-                        Column (
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(5.dp),
-                        ) {
-                            SearchBar(screenState)
-                            }
-                        Column {
-                            Row{
-                                IconButton(onClick = { sortingVisible = !sortingVisible }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.SortByAlpha,
-                                        contentDescription = "Open sorting",
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .padding(4.dp)
-                                    )
-                                }
-                                if (sortingVisible) {
-                                    DropdownMenu(
-                                        expanded = sortingVisible,
-                                        onDismissRequest = { sortingVisible = false },
-                                        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
-                                    ) {
-                                        sortingList.forEach { optionLabel ->
-                                            DropdownMenuItem(
-                                                text = { Text(text = optionLabel )},
-                                                onClick = { viewModel.selectSortingOption(optionLabel)
-                                                    sortingVisible = false},
-                                                trailingIcon = {
-                                                    Icon(
-                                                        imageVector = if(optionLabel == "Priority Descending" || optionLabel == "Z-A" ) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
-                                                        contentDescription = "Trailing icon",
-                                                        modifier = Modifier
-                                                            .size(30.dp)
-                                                            .padding(4.dp)
-                                                    )
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                                IconButton(onClick = { filterTagsVisible = !filterTagsVisible }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Tune,
-                                        contentDescription = "Open filter selection",
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .padding(4.dp)
-                                    )
-                                }
-                                IconButton(onClick = { showMonthPicker.value = true }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.DateRange,
-                                        contentDescription = "Open YearMonth Picker",
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .padding(4.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    Box (
-                        modifier = Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Column {
-                            AnimatedVisibility(
-                                visible = filterTagsVisible,
-                                enter = expandVertically(),
-                                exit = shrinkVertically()
-                            ) {
-                                FilterSection(taskViewModel = viewModel, state = screenState)
-                            }
-                            AnimatedVisibility(
-                                visible = showMonthPicker.value,
-                                enter = fadeIn(),
-                                exit = fadeOut()
-                            ) {
-                                if(showMonthPicker.value) {
-                                    ElevatedCard {
-                                        DatePickerDialogFunction(
-                                            taskDateTimeMillis = System.currentTimeMillis(),
-                                            onDateSelected = viewModel::changeDate,
-                                            onDismiss = { showMonthPicker.value = false }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    when (loadingState) {
-                        ExecutionState.ERROR -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.background),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column {
-                                    Text(stringResource(id = R.string.error_task_loading))
-                                    IconButton(
-                                        onClick = viewModel::loadTaskList,
-                                        modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Sync,
-                                            contentDescription = "Retry loading tasks",
-                                            modifier = Modifier.size(32.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        ExecutionState.RUNNING -> {
-                            LoadingIndicator()
-                        }
-                        ExecutionState.SUCCESS -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.background),
-                                contentAlignment = Alignment.TopCenter
-                            ) {
-                                GenerateLazyColumnForTasks(
-                                    viewModel = viewModel,
-                                    filteredTasks = tasks,
-                                    editTask = onEditTask
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            LaunchedEffect(true) {
-                listState.scrollToItem(28)
-            }
-        },
-    )
-}
-
 @Composable
 fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,task: Task, subtask : SubTask) {
     Row(modifier = Modifier
@@ -602,7 +707,7 @@ fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,
             onCheckedChange = {
                 changeSubtaskCompletion(task, subtask)
             },
-            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary)
+            colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background)
         )
     }
 }
