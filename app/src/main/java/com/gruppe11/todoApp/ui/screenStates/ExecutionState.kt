@@ -1,7 +1,7 @@
 package com.gruppe11.todoApp.ui.screenStates
 
-enum class LoadingState {
+enum class ExecutionState {
     ERROR,
-    LOADING,
+    RUNNING,
     SUCCESS
 }
