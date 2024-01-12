@@ -54,15 +54,18 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.SubTask
+import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.HorizDividerWithSpacer
 import com.gruppe11.todoApp.ui.elements.PriorityFC
 import com.gruppe11.todoApp.ui.elements.SwitchableButton
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.CreateTaskViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
@@ -130,7 +133,7 @@ fun CreateTaskContent(
             //Cancel button
             SwitchableButton(
                 text = "Cancel",
-                onClick = { returnPage() },
+                onClick = returnPage,
                 isFilled = false,
                 pickedColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -149,11 +152,25 @@ fun CreateTaskContent(
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
-
-                            scope.launch {
-                                snackbarHostState.showSnackbar(message = message)
+                            if (viewModel.submitState.value == ExecutionState.SUCCESS &&
+                                task != null) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message = message)
+                                }
+                                returnPage()
+                            } else if (viewModel.submitState.value == ExecutionState.ERROR &&
+                                task != null
+                            ) {
+                                message = "Error: Task was saved but subtasks failed to save"
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
+                            } else if (viewModel.submitState.value == ExecutionState.ERROR) {
+                                message = "Error: Could not save task"
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
                             }
-                            returnPage()
                         } else {
                             dismissSnackbar(snackbarHostState, scope)
                             scope.launch {
