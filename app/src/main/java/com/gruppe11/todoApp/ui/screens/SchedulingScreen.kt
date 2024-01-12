@@ -108,10 +108,7 @@ fun SchedulingScreen(
                                     task = task,
                                     height = minTaskHeight,
                                     width = minTaskWidth,
-                                    toggleCompletion = {
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            viewModel.toggleTaskCompletion(it)}
-                                        }
+                                    toggleCompletion = {viewModel.toggleTaskCompletion(it)}
                                 )
                             }
                     }
