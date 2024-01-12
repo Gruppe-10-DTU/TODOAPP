@@ -88,6 +88,9 @@ class ScheduleViewModel @Inject constructor(
 
     fun deleteTimeSlot(timeSlot: TimeSlot) {
         viewModelScope.launch {
+            timeSlot.tasks.forEach{
+                taskRepository.update(it.copy(timeslot = null))
+            }
             timeSlotRepository.delete(timeSlot)
         }
     }
