@@ -81,7 +81,11 @@ fun TimePickerDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(onClick = { dismiss() }) {
-                    Text(text = "Cancel", fontSize = 18.sp)
+                    Text(
+                        text = "Cancel",
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
                 }
                 TextButton(onClick = {
                     confirm(state.hour, state.minute)
