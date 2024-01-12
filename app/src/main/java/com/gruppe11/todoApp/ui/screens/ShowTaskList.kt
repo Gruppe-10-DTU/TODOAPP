@@ -357,6 +357,7 @@ fun ShowTaskList (
     onFloatingButtonClick: () -> Unit,
     onEditTask: (Int) -> Unit) {
 
+    val loadingState by viewModel.loadingState.collectAsStateWithLifecycle()
     val screenState by viewModel.UIState.collectAsStateWithLifecycle()
     var filterTagsVisible by remember { mutableStateOf(false) }
     var sortingVisible by remember { mutableStateOf(false) }
@@ -533,7 +534,7 @@ fun ShowTaskList (
                             }
                         }
                     }
-                    when (screenState.executionState) {
+                    when (loadingState) {
                         ExecutionState.ERROR -> {
                             Box(
                                 modifier = Modifier

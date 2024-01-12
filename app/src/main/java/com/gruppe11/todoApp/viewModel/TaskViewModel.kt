@@ -42,10 +42,13 @@ class TaskViewModel @Inject constructor (
             incompleteFilter = false,
             priorities = mutableSetOf(),
             sortedOption = "Priority Descending",
-            searchText = "",
-            executionState = ExecutionState.RUNNING
+            searchText = ""
         )
     )
+
+    private val _loadingState = MutableStateFlow(ExecutionState.RUNNING)
+
+    val loadingState = _loadingState.asStateFlow()
 
     val UIState = _UIState.asStateFlow()
 
@@ -84,16 +87,16 @@ class TaskViewModel @Inject constructor (
     }
 
     fun loadTaskList() {
-        _UIState.update { it.copy(executionState = ExecutionState.RUNNING) }
+        _loadingState.value = ExecutionState.RUNNING
         viewModelScope.launch(viewModelScope.coroutineContext) {
             try {
                 val flow = taskRepository.readAll()
-                _UIState.update { it.copy(executionState = ExecutionState.SUCCESS) }
+                _loadingState.value = ExecutionState.SUCCESS
                 flow.collect{
                     tasks -> _TaskState.value = tasks
                 }
             } catch (e: Exception) {
-                _UIState.update { it.copy(executionState = ExecutionState.ERROR) }
+                _loadingState.value = ExecutionState.ERROR
             }
         }
     }
