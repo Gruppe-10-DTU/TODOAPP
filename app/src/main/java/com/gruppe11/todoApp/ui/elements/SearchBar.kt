@@ -1,8 +1,6 @@
 package com.gruppe11.todoApp.ui.elements
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,7 +49,7 @@ fun SearchBar(
         value = searchText,
         onValueChange = viewModel::onSearchTextChange,
         label = { Text("Search") },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary) },
         trailingIcon = if (searchText.isNotBlank()) trailingIconView else null,
         singleLine = true,
         modifier = Modifier

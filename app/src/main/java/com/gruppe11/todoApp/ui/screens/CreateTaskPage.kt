@@ -13,6 +13,7 @@ import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.BottomAppBar
@@ -84,7 +85,7 @@ fun CreateTaskContent(
     var showDatePicker by remember {
         mutableStateOf(false)
     }
-
+    var hasTimeslot = false
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var scheduleChecked by remember { mutableStateOf(false) }
@@ -135,7 +136,7 @@ fun CreateTaskContent(
                 text = "Cancel",
                 onClick = returnPage,
                 isFilled = false,
-                pickedColor = MaterialTheme.colorScheme.primary,
+                pickedColor = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -148,7 +149,7 @@ fun CreateTaskContent(
                 onClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (currentTask.value.title.isNotEmpty()) {
-                            var message = ""
+                            var message: String
                             if (taskId != null) message = "Task updated" else message =
                                 "Task created"
                             val task = viewModel.submitTask()
@@ -180,7 +181,7 @@ fun CreateTaskContent(
                     }
                 },
                 isFilled = true,
-                pickedColor = MaterialTheme.colorScheme.tertiary,
+                pickedColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -196,7 +197,8 @@ fun CreateTaskContent(
             item {
                 Spacer(modifier = Modifier.height(60.dp))
                 // Main task Input
-                OutlinedTextField(value = currentTask.value.title,
+                OutlinedTextField(
+                    value = currentTask.value.title,
                     onValueChange = { viewModel.editTitle(it) },
                     label = { Text("Task name") },
                     textStyle = MaterialTheme.typography.bodyMedium,
@@ -204,7 +206,11 @@ fun CreateTaskContent(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
                     ),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.primary
+                    ),
                 )
                 HorizDividerWithSpacer(10.dp)
                 Text(
@@ -239,7 +245,8 @@ fun CreateTaskContent(
                 }
 
                 if (showSubTaskDialog) {
-                    OutlinedTextField(value = subtaskName,
+                    OutlinedTextField(
+                        value = subtaskName,
                         onValueChange = { subtaskName = it },
                         label = { Text("Subtask name") },
                         textStyle = MaterialTheme.typography.bodySmall,
@@ -256,14 +263,14 @@ fun CreateTaskContent(
                         SwitchableButton(
                             text = "Cancel", onClick = {
                                 showSubTaskDialog = false
-                            }, isFilled = false, pickedColor = MaterialTheme.colorScheme.primary
+                            }, isFilled = false, pickedColor = MaterialTheme.colorScheme.tertiary
                         )
                         SwitchableButton(
                             text = "Confirm", onClick = {
                                 viewModel.addSubtask(subtaskName)
                                 subtaskName = ""
                                 showSubTaskDialog = false
-                            }, isFilled = true, pickedColor = MaterialTheme.colorScheme.tertiary
+                            }, isFilled = true, pickedColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -300,7 +307,8 @@ fun CreateTaskContent(
                         Text(
                             text = currentTask.value.deadline.format(
                                 DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                            ), fontSize = 20.sp
+                            ),
+                            fontSize = 20.sp,
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -331,12 +339,22 @@ fun CreateTaskContent(
                         onCheckedChange = {
                             scheduleChecked = it
                         },
-                        thumbContent = switchIcon
+                        thumbContent = switchIcon,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.background,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.background,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
 
-                if (scheduleChecked) {
-                    Row {
+                if(viewModel.getScheduleState()){
+                    scheduleChecked = true
+                }
+
+                var slotText = currentTask.value.timeslot?.name ?: "Select Timeslot"
+                if (scheduleChecked && currentTask.value.timeslot != null) {
+                    Row{
 //                        Text(text = "Select Timeslot:")
                         TextButton(
                             onClick = { timeSlotVisible = !timeSlotVisible },
@@ -344,26 +362,55 @@ fun CreateTaskContent(
                                 containerColor = MaterialTheme.colorScheme.background
                             ),
                             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = (currentTask.value.timeslot?.name ?: "Select Timeslot"),
+                                text = (slotText),
                                 modifier = Modifier
-                                    .width(100.dp)
+                                    .fillMaxWidth(0.9f)
                                     .height(20.dp),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowDown,
+                                contentDescription = "See timeslots",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        DropdownMenu(
+                            modifier = Modifier.fillMaxWidth(0.9f),
+                            expanded = timeSlotVisible,
+                            onDismissRequest = { timeSlotVisible = false }) {
+                            timeSlots.value.sortedBy { it.name }.forEach { timeSlot ->
+                                DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
+                                    viewModel.editTimeslot(timeSlot)
+                                    timeSlotVisible = !timeSlotVisible
+                                })
+                            }
                         }
                     }
-                    DropdownMenu(expanded = timeSlotVisible,
-                        onDismissRequest = { timeSlotVisible = false }) {
-                        timeSlots.value.forEach { timeSlot ->
-                            DropdownMenuItem(text = { Text(text = timeSlot.name) }, onClick = {
-                                viewModel.editTimeslot(timeSlot)
-                                timeSlotVisible = !timeSlotVisible
-                            })
-                        }
+                    if ( currentTask.value.timeslot != null &&  currentTask.value.timeslot?.name != "Select Timeslot") {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Text(
+                            text = "Period: ${
+                                currentTask.value.timeslot?.start?.format(
+                                    DateTimeFormatter.ofPattern("HH:mm")
+                                )
+                            } to ${
+                                currentTask.value.timeslot?.end?.format(
+                                    DateTimeFormatter.ofPattern("HH:mm")
+                                )
+                            }",
+                            fontWeight = FontWeight.Bold
+                        )
+
                     }
+                } else {
+                    viewModel.editTimeslot(TimeSlot(-1,"Select Timeslot", LocalTime.now(), LocalTime.now(),
+                        emptyList()
+                    ))
+                    viewModel.openWithSchedule(false)
                 }
                 if (showDatePicker) {
                     DatePickerDialogFunction(System.currentTimeMillis(),
@@ -421,7 +468,7 @@ fun subtaskItem(
                 imageVector = Icons.Outlined.RemoveCircleOutline,
                 contentDescription = "Delete Subtask",
                 modifier = Modifier.scale(1.3f),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.tertiary
             )
         }
 //                        Text(text = subtask.title)
@@ -440,13 +487,13 @@ fun subtaskItem(
                 text = "Cancel", onClick = {
                     subtaskName = subtask.title
                     showConfirm = false
-                }, isFilled = false, pickedColor = MaterialTheme.colorScheme.primary
+                }, isFilled = false, pickedColor = MaterialTheme.colorScheme.tertiary
             )
             SwitchableButton(
                 text = "Confirm", onClick = {
                     editSubTask(index, subtaskName, subtask)
                     showConfirm = false
-                }, isFilled = true, pickedColor = MaterialTheme.colorScheme.tertiary
+                }, isFilled = true, pickedColor = MaterialTheme.colorScheme.primary
             )
         }
     }

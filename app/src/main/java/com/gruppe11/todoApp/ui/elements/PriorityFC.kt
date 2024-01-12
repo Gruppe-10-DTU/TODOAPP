@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.ui.elements
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,10 +35,11 @@ fun PriorityFC(
             label = { Text("Low") },
             colors = FilterChipDefaults.filterChipColors(
                 containerColor = MaterialTheme.colorScheme.background,
-                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                labelColor = MaterialTheme.colorScheme.primary,
                 selectedLabelColor = MaterialTheme.colorScheme.background,
                 selectedContainerColor = MaterialTheme.colorScheme.primary
             ),
+            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
             enabled = true
         )
         FilterChip(
@@ -46,10 +48,11 @@ fun PriorityFC(
             label = { Text("Medium") },
             colors = FilterChipDefaults.filterChipColors(
                 containerColor = MaterialTheme.colorScheme.background,
-                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                labelColor = MaterialTheme.colorScheme.primary,
                 selectedLabelColor = MaterialTheme.colorScheme.background,
                 selectedContainerColor = MaterialTheme.colorScheme.primary
             ),
+            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
             enabled = true
         )
         FilterChip(
@@ -58,10 +61,11 @@ fun PriorityFC(
             label = { Text("High") },
             colors = FilterChipDefaults.filterChipColors(
                 containerColor = MaterialTheme.colorScheme.background,
-                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                labelColor = MaterialTheme.colorScheme.primary,
                 selectedLabelColor = MaterialTheme.colorScheme.background,
                 selectedContainerColor = MaterialTheme.colorScheme.primary
             ),
+            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
             enabled = true
         )
         Spacer(modifier = Modifier.width(20.dp))
