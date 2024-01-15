@@ -1,14 +1,17 @@
 package com.gruppe11.todoApp.viewModel
 
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.repository.ITaskRepository
 import com.gruppe11.todoApp.repository.ITimeSlotRepository
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.screenStates.ScheduleScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,12 +33,30 @@ class ScheduleViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
     val dates = getCalendarFlow()
 
+    private val _loadingState = MutableStateFlow(ExecutionState.RUNNING)
+    val loadingState = _loadingState.asStateFlow()
+
+    private val _submitState = MutableStateFlow(ExecutionState.RUNNING)
+    val submitState = _submitState.asStateFlow()
+
     init {
-        viewModelScope.launch {
-            timeSlotRepository.readAll().collect { timeslots ->
-                if (timeslots.isEmpty()) {
-                    generateTestingTimeSlots()
+        loadTimeslots()
+    }
+
+    fun loadTimeslots() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _loadingState.value = ExecutionState.RUNNING
+            try {
+                val flow = timeSlotRepository.readAll()
+                _loadingState.value = ExecutionState.SUCCESS
+                flow.collect { timeslots ->
+                    if (timeslots.isEmpty()) {
+                        generateTestingTimeSlots()
+                    }
                 }
+            } catch (e: Exception) {
+                _loadingState.value = ExecutionState.ERROR
+                Log.d("loadTimeslots", e.toString())
             }
         }
     }

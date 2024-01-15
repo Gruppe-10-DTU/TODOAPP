@@ -86,6 +86,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -99,6 +100,7 @@ import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.ui.elements.DatePickerDialogFunction
 import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
+import com.gruppe11.todoApp.ui.elements.LoadingErrorIndicator
 import com.gruppe11.todoApp.ui.elements.LoadingIndicator
 import com.gruppe11.todoApp.ui.elements.SearchBar
 import com.gruppe11.todoApp.ui.screenStates.ExecutionState
@@ -332,26 +334,10 @@ fun ShowTaskList (
                                 }
                                 when (loadingState) {
                                     ExecutionState.ERROR -> {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(MaterialTheme.colorScheme.background),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Column {
-                                                Text(stringResource(id = R.string.error_task_loading))
-                                                IconButton(
-                                                    onClick = viewModel::loadTaskList,
-                                                    modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Sync,
-                                                        contentDescription = "Retry loading tasks",
-                                                        modifier = Modifier.size(32.dp)
-                                                    )
-                                                }
-                                            }
-                                        }
+                                        LoadingErrorIndicator(
+                                            labelText = stringResource(R.string.error_task_loading),
+                                            onRetry = viewModel::loadTaskList
+                                        )
                                     }
                                     ExecutionState.RUNNING -> {
                                         LoadingIndicator()

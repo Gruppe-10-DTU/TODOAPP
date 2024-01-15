@@ -27,6 +27,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -46,8 +48,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gruppe11.todoApp.model.TimeSlot
+import com.gruppe11.todoApp.ui.elements.LoadingErrorIndicator
+import com.gruppe11.todoApp.ui.elements.LoadingIndicator
 import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.elements.TimePickerDialog
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.viewModel.ScheduleViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -60,8 +65,12 @@ fun ManageTimeSlotsScreen(
 ) {
     val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
+    val submitState = viewModel.submitState.collectAsStateWithLifecycle()
 
-    Scaffold(
+    Scaffold(snackbarHost = {
+        SnackbarHost( hostState = snackbarHostState) },
         modifier = Modifier
             .fillMaxHeight()
             .noRippleClickable { focusManager.clearFocus() },
@@ -83,42 +92,55 @@ fun ManageTimeSlotsScreen(
                 },
             )
         }) {padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(items = timeSlots.value, itemContent = {slot ->
-                EditableTimeSlot(
-                    timeSlot = slot,
-                    onChanges = { viewModel.updateTimeSlot(it) },
-                    onDelete = { viewModel.deleteTimeSlot(it) },
+        when (loadingState.value) {
+            ExecutionState.RUNNING -> {
+                LoadingIndicator()
+            }
+            ExecutionState.ERROR -> {
+                LoadingErrorIndicator(
+                    labelText = "Error: Could not load timeslots",
+                    onRetry = viewModel::loadTimeslots
                 )
-                HorizontalDivider(thickness = 1.dp)
-            })
-            item {
-                TextButton(
+            }
+            ExecutionState.SUCCESS -> {
+                LazyColumn(
                     modifier = Modifier
-                        .padding(vertical = 10.dp),
-                    onClick = { viewModel.createTimeSlot(
-                        TimeSlot(
-                            id = 0,
-                            name = "New timeslot",
-                            start = LocalTime.of(LocalTime.now().hour, 0,0),
-                            end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0,0),
-                            emptyList()
-                        )
-                    ) },
-                    colors = ButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        disabledContainerColor = Color.Transparent,
-                        disabledContentColor = Color.Transparent
-                    )
+                        .padding(padding)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                    Text(text = "Create new timeslot", fontSize = 20.sp)
+                    items(items = timeSlots.value, itemContent = {slot ->
+                        EditableTimeSlot(
+                            timeSlot = slot,
+                            onChanges = { viewModel.updateTimeSlot(it) },
+                            onDelete = { viewModel.deleteTimeSlot(it) },
+                        )
+                        HorizontalDivider(thickness = 1.dp)
+                    })
+                    item {
+                        TextButton(
+                            modifier = Modifier
+                                .padding(vertical = 10.dp),
+                            onClick = { viewModel.createTimeSlot(
+                                TimeSlot(
+                                    id = 0,
+                                    name = "New timeslot",
+                                    start = LocalTime.of(LocalTime.now().hour, 0,0),
+                                    end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0,0),
+                                    emptyList()
+                                )
+                            ) },
+                            colors = ButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                disabledContainerColor = Color.Transparent,
+                                disabledContentColor = Color.Transparent
+                            )
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                            Text(text = "Create new timeslot", fontSize = 20.sp)
+                        }
+                    }
                 }
             }
         }
