@@ -585,6 +585,7 @@ fun GenerateLazyColumnForTasks(
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
+    val showDeleteConf = remember{mutableStateOf(false)}
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
@@ -683,7 +684,13 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
         EditTaskDialog(task = task,
             editTask = editTask,
             deleteTask = {
-                showDialog.value = false
+                showDialog.value = true
+                showDeleteConf.value = true
+                if(showDeleteConf.value){
+                    /*
+                    AlertDialog(onDismissRequest = { showDeleteConf.value = false }, confirmButton = { viewModel.removeTask(task) })
+                    */
+                }
                 viewModel.removeTask(task)
             },
             dismissDialog = { showDialog.value = false }
