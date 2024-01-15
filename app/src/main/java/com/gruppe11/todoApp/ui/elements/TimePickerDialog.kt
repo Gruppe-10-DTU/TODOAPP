@@ -29,7 +29,7 @@ import java.time.LocalTime
 fun TimePickerDialog(
     initialTime: LocalTime,
     dismiss: () -> Unit,
-    confirm: (Int, Int) -> Unit,
+    confirm: (LocalTime) -> Unit,
 
 ) {
     val state = rememberTimePickerState(
@@ -88,7 +88,7 @@ fun TimePickerDialog(
                     )
                 }
                 TextButton(onClick = {
-                    confirm(state.hour, state.minute)
+                    confirm(LocalTime.of(state.hour, state.minute, 0))
                     dismiss()
                 }) {
                     Text(text = "Save", fontSize = 18.sp)
