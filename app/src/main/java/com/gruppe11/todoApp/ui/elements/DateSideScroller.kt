@@ -88,8 +88,8 @@ fun DateSideScroller(
                         modifier = Modifier
                             .padding(1.dp)
                             .size(width = 150.dp, height = 50.dp),
-                        selected = selectedDate == day,
-                        colors = SelectableChipColors(
+                            selected = selectedDate == day,
+                            colors = SelectableChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.background,
                             selectedLeadingIconColor = Color.Transparent,
@@ -105,9 +105,15 @@ fun DateSideScroller(
                             disabledTrailingIconColor = Color.Transparent
                         ),
                         onClick = {
-                            selectedDate = day
-                            selectedIndex = dates.value.indexOf(day)
-                            onDateChange(day)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                selectedDate = day
+                                selectedIndex = dates.value.indexOf(day)
+                                onDateChange(day)
+                                listState.scrollToItem(
+                                    index = selectedIndex - 1,
+                                    scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
+                                )
+                            }
                         },
                         label = {
                             Column(
