@@ -619,7 +619,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 ) {
                     val nrOfCharactersInSearch : Int = viewModel.UIState.value.searchText.length
                     var startOfText = 0
-                    var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText)
+                    var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText, ignoreCase = true)
                     var endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
                     var moreInstances = true
 
@@ -632,7 +632,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                             append(task.title.substring(startOfSearch,endOfSearchPlus1))
                         }
 
-                        startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1)
+                        startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1, ignoreCase = true)
 
                         if (startOfSearch > 0) {
                             startOfText = endOfSearchPlus1
