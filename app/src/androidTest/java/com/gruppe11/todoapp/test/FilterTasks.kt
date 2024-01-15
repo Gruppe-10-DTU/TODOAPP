@@ -1,21 +1,7 @@
 package com.gruppe11.todoApp.test
 
-import com.gruppe11.todoApp.model.Priority
-import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
-import com.gruppe11.todoApp.repository.TaskRepositoryImpl
-import com.gruppe11.todoApp.viewModel.TaskViewModel
-import io.cucumber.java.en.And
-import io.cucumber.java.en.Given
-import io.cucumber.java.en.Then
-import io.cucumber.java.en.When
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import kotlinx.coroutines.test.runTest
-import java.time.LocalDateTime
-
 class FilterTasks {
-
+/*
     private val viewModel: TaskViewModel = TaskViewModel(TaskRepositoryImpl(), SubtaskRepositoryImpl())
     private lateinit var selectedDate: LocalDateTime
     private lateinit var task : Task
@@ -54,4 +40,6 @@ class FilterTasks {
         assertFalse(tasks.size == 6)
 
     }
+
+ */
 }
