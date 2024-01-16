@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -185,7 +186,7 @@ fun ShowTaskList (
                 Column(
                     modifier = Modifier
                         .wrapContentSize()
-                        .noRippleClickable { focusManager?.clearFocus() },
+                        .noRippleClickable { focusManager.clearFocus() },
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -222,7 +223,9 @@ fun ShowTaskList (
                                 ) {
                                     Column {
                                         Row {
-                                            SearchBar(screenState)
+                                            Row(Modifier.weight(1f)) {
+                                                SearchBar(screenState)
+                                            }
                                             IconButton(onClick = {
                                                 sortingVisible = !sortingVisible
                                             }) {
@@ -519,7 +522,7 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd/MM")
+                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd/M")
                 items(daysMap.keys.toList()) { day ->
                     Column(
                         verticalArrangement = Arrangement.SpaceEvenly,
@@ -636,13 +639,15 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             .padding(1.dp)
             .fillMaxWidth()
             .clipToBounds()) {
-            Checkbox(modifier = Modifier.padding(10.dp),
+            Checkbox(
+                modifier = Modifier.padding(10.dp),
                 checked = task.isCompleted,
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background)
             )
+
             Text(
                 buildAnnotatedString (
                 ) {
@@ -674,13 +679,18 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
 
                     append(task.title.substring(endOfSearchPlus1))
                 },
-                modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterVertically)
+                    .weight(1f),
+                softWrap = true
             )
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.width(2.dp))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()}
+                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()},
+                style = MaterialTheme.typography.bodySmall
             )
+
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
