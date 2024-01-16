@@ -69,12 +69,13 @@ fun SchedulingScreen(
             DateSideScroller(
                 currentDate = uiState.value.currentDay,
                 onDateChange = { viewModel.changeSelectedDay(it) },
-                dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
-            ) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
+                dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList()),
+                onTitleClick = {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
+                    }
                 }
-            }
+            )
         }
     ) { padding ->
         LazyColumn(
