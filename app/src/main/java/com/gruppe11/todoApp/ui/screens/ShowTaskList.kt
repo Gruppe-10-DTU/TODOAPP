@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -618,6 +619,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background)
             )
+
             Text(
                 buildAnnotatedString (
                 ) {
@@ -656,8 +658,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             Spacer(Modifier.width(2.dp))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()}
+                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()},
+                style = MaterialTheme.typography.bodySmall
             )
+
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
