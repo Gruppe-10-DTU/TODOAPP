@@ -158,8 +158,13 @@ fun ManageTimeSlotsScreen(
                                 disabledContentColor = Color.Transparent
                             )
                         ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                            Text(text = "Create new timeslot", fontSize = 20.sp)
+                            Icon(imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.background)
+                            Text(text = "Create new timeslot",
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colorScheme.background
+                            )
                         }
                     }
                 }
