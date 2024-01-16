@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 
 private val retrofit = Retrofit.Builder()
     .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
-    .baseUrl("http://167.172.171.246:8080") // DigitalOcean IP: 167.172.171.246
+    .baseUrl("https://167.172.171.246:8080") // DigitalOcean IP: 167.172.171.246
     .build()
 
 object TodoApi {
