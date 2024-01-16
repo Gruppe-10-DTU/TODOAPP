@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,9 @@ import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.elements.TimePickerDialog
 import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.viewModel.ScheduleViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -65,9 +69,9 @@ fun ManageTimeSlotsScreen(
 ) {
     val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
-    val submitState = viewModel.submitState.collectAsStateWithLifecycle()
 
     Scaffold(snackbarHost = {
         SnackbarHost( hostState = snackbarHostState) },
@@ -121,15 +125,31 @@ fun ManageTimeSlotsScreen(
                         TextButton(
                             modifier = Modifier
                                 .padding(vertical = 10.dp),
-                            onClick = { viewModel.createTimeSlot(
-                                TimeSlot(
-                                    id = 0,
-                                    name = "New timeslot",
-                                    start = LocalTime.of(LocalTime.now().hour, 0,0),
-                                    end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0,0),
-                                    emptyList()
-                                )
-                            ) },
+                            onClick = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val createdTimeslot = viewModel.createTimeSlot(
+                                        TimeSlot(
+                                            id = 0,
+                                            name = "New timeslot",
+                                            start = LocalTime.of(LocalTime.now().hour, 0, 0),
+                                            end = LocalTime.of(
+                                                LocalTime.now().plusHours(1).hour,
+                                                0,
+                                                0
+                                            ),
+                                            emptyList()
+                                        )
+                                    )
+                                    val message = if (createdTimeslot != null)
+                                        "New timeslot created"
+                                    else
+                                        "Error: Could not create new timeslot"
+
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(message)
+                                    }
+                                }
+                            },
                             colors = ButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onPrimary,
                                 containerColor = MaterialTheme.colorScheme.secondary,
