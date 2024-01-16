@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -214,7 +215,9 @@ fun ShowTaskList (
                                 ) {
                                     Column {
                                         Row {
-                                            SearchBar(screenState)
+                                            Row(Modifier.weight(1f)) {
+                                                SearchBar(screenState)
+                                            }
                                             IconButton(onClick = {
                                                 sortingVisible = !sortingVisible
                                             }) {
@@ -618,6 +621,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 },
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background)
             )
+
             Text(
                 buildAnnotatedString (
                 ) {
@@ -649,15 +653,18 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
 
                     append(task.title.substring(endOfSearchPlus1))
                 },
-                modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterVertically)
                     .weight(1f),
                 softWrap = true
             )
             Spacer(Modifier.width(2.dp))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()}
+                text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()},
+                style = MaterialTheme.typography.bodySmall
             )
+
             IconButton(modifier = Modifier
                 .align(Alignment.CenterVertically),
                 onClick = {
