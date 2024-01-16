@@ -2,6 +2,7 @@ package com.gruppe11.todoApp.ui.screens
 
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -21,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -60,7 +64,7 @@ fun SchedulingScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val columnScrollState = rememberLazyListState()
     val minSlotHeight = 200.dp
-    val minTaskHeight = 75.dp
+    val minTaskHeight = 60.dp
     val minTaskWidth = 75.dp
 
 
@@ -197,26 +201,34 @@ fun ScheduleTask(
 
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 5.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Column(
-                modifier = Modifier.padding(vertical = 5.dp, horizontal = 5.dp),
-                verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(text = task.title.uppercase(),color = MaterialTheme.colorScheme.onPrimary,fontSize = 19.sp)
-                Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 1.dp)) {
-                    task.subtasks.forEach {
-                        Text(text = it.title,color = MaterialTheme.colorScheme.onPrimary,fontSize = 14.sp)
-                    }
-                // TODO add more relevant info such as priority etc.
-                }
-
-            }
             Checkbox(
+                modifier = Modifier.size(35.dp),
                 checked = task.isCompleted,
                 onCheckedChange = { toggleCompletion(task.copy(isCompleted = !task.isCompleted)) }
             )
+            Column(
+                modifier = Modifier.padding(vertical = 5.dp, horizontal = 2.dp),
+                verticalArrangement = Arrangement.SpaceAround,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = task.title.uppercase(),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 19.sp,
+                    )
+                Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 1.dp)) {
+                    task.subtasks.forEach {
+                        Text(text = it.title,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 14.sp)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+
         }
     }
 }
