@@ -492,7 +492,7 @@ fun GenerateLazyRowForDays(
                 state = listState,
 
                 ) {
-                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd/MM")
+                val formatFilterDate = DateTimeFormatter.ofPattern("E\nd/M")
                 items(daysMap.keys.toList()) { day ->
                     Column(
                         verticalArrangement = Arrangement.SpaceEvenly,
