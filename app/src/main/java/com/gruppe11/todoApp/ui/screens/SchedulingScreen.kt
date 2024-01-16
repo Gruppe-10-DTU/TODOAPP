@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -188,6 +187,7 @@ fun ScheduleTask(
         modifier = Modifier
             .defaultMinSize(minWidth = width, minHeight = height)
             .padding(2.dp)
+            .clickable { toggleCompletion(task.copy(isCompleted = !task.isCompleted)) }
             .border(
                 width = 1.dp,
                 color = priorityColor,
