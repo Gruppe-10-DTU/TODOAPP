@@ -88,8 +88,8 @@ fun DateSideScroller(
                         modifier = Modifier
                             .padding(1.dp)
                             .size(width = 150.dp, height = 50.dp),
-                            selected = selectedDate == day,
-                            colors = SelectableChipColors(
+                        selected = selectedDate == day,
+                        colors = SelectableChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.background,
                             selectedLeadingIconColor = Color.Transparent,
