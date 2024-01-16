@@ -216,6 +216,7 @@ class CreateTaskViewModel @Inject constructor(
                 _submitState.value = ExecutionState.ERROR
             }
         }
+        timeSlotRepository.readAll()
         return task
     }
 

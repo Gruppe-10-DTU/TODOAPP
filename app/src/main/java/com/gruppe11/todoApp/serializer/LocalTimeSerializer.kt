@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 class LocalTimeSerializer: KSerializer<LocalTime> {
 
     override fun serialize(encoder: Encoder, value: LocalTime) {
-        encoder.encodeString(value.format(DateTimeFormatter.ISO_LOCAL_TIME))
+        encoder.encodeString(value.format(DateTimeFormatter.ofPattern("HH:mm:ss")))
     }
 
     override fun deserialize(decoder: Decoder): LocalTime {

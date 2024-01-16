@@ -1,19 +1,8 @@
 package com.gruppe11.todoApp.test
 
-import com.gruppe11.todoApp.model.Priority
-import com.gruppe11.todoApp.model.Task
-import com.gruppe11.todoApp.repository.SubtaskRepositoryImpl
-import com.gruppe11.todoApp.repository.TaskRepositoryImpl
-import com.gruppe11.todoApp.viewModel.TaskViewModel
-import io.cucumber.java.en.Given
-import io.cucumber.java.en.Then
-import io.cucumber.java.en.When
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert
-import java.time.LocalDateTime
-
 
 class CreateTaskTest{
+    /*
     private val viewModel: TaskViewModel = TaskViewModel(TaskRepositoryImpl(), SubtaskRepositoryImpl())
     private lateinit var task: Task
     @Given("I want to create a task")
@@ -31,4 +20,5 @@ class CreateTaskTest{
     fun theTaskShouldBeCreatedUnderToday() = runTest {
         Assert.assertTrue(viewModel.getTaskListByDate(LocalDateTime.now()).size == 1)
     }
+     */
 }

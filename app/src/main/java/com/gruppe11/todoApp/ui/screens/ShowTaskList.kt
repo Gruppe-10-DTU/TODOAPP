@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -101,6 +102,7 @@ import com.gruppe11.todoApp.ui.elements.EditTaskDialog
 import com.gruppe11.todoApp.ui.elements.FilterSection
 import com.gruppe11.todoApp.ui.elements.LoadingIndicator
 import com.gruppe11.todoApp.ui.elements.SearchBar
+import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.theme.TODOAPPTheme
 import com.gruppe11.todoApp.viewModel.TaskViewModel
@@ -585,6 +587,7 @@ fun GenerateLazyColumnForTasks(
 fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
     val showDialog = remember { mutableStateOf(false) }
     var visible by remember { mutableStateOf(false) }
+    val showDeleteConf = remember{mutableStateOf(false)}
     val longPressHandler = Modifier.pointerInput(Unit) {
         detectTapGestures(
             onLongPress = {
@@ -619,7 +622,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                 ) {
                     val nrOfCharactersInSearch : Int = viewModel.UIState.value.searchText.length
                     var startOfText = 0
-                    var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText)
+                    var startOfSearch : Int = task.title.indexOf(viewModel.UIState.value.searchText, ignoreCase = true)
                     var endOfSearchPlus1 : Int = startOfSearch + nrOfCharactersInSearch
                     var moreInstances = true
 
@@ -632,7 +635,7 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                             append(task.title.substring(startOfSearch,endOfSearchPlus1))
                         }
 
-                        startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1)
+                        startOfSearch = task.title.indexOf(viewModel.UIState.value.searchText, endOfSearchPlus1, ignoreCase = true)
 
                         if (startOfSearch > 0) {
                             startOfText = endOfSearchPlus1
@@ -684,9 +687,36 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             editTask = editTask,
             deleteTask = {
                 showDialog.value = false
-                viewModel.removeTask(task)
+                showDeleteConf.value = true
             },
             dismissDialog = { showDialog.value = false }
+        )
+    }
+    if(showDeleteConf.value){
+        AlertDialog(
+            title = { Text(style = MaterialTheme.typography.bodyMedium,text  = "Are you sure you want to remove this task?") },
+            dismissButton = { SwitchableButton(
+                text = "Cancel",
+                onClick = {
+                    showDeleteConf.value = false
+                    showDialog.value = true
+                          },
+                isFilled = false,
+                pickedColor = MaterialTheme.colorScheme.primary
+            )},
+            onDismissRequest = {
+                showDeleteConf.value = false
+                showDialog.value = true
+                               },
+            confirmButton = {
+                SwitchableButton(
+                text = "Confirm",
+                onClick = {
+                    viewModel.removeTask(task)
+                    showDeleteConf.value = false},
+                isFilled = true,
+                pickedColor = MaterialTheme.colorScheme.tertiary
+            )}
         )
     }
 }
