@@ -215,7 +215,9 @@ fun ShowTaskList (
                                 ) {
                                     Column {
                                         Row {
-                                            SearchBar(screenState)
+                                            Row(Modifier.weight(1f)) {
+                                                SearchBar(screenState)
+                                            }
                                             IconButton(onClick = {
                                                 sortingVisible = !sortingVisible
                                             }) {
@@ -651,7 +653,8 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
 
                     append(task.title.substring(endOfSearchPlus1))
                 },
-                modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterVertically)
                     .weight(1f),
                 softWrap = true
             )
