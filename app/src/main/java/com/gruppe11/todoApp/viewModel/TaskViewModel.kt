@@ -87,16 +87,16 @@ class TaskViewModel @Inject constructor (
     }
 
     fun loadTaskList() {
-        _loadingState.value = ExecutionState.RUNNING
+        _loadingState.update { ExecutionState.RUNNING }
         viewModelScope.launch(viewModelScope.coroutineContext) {
             try {
                 val flow = taskRepository.readAll()
-                _loadingState.value = ExecutionState.SUCCESS
+                _loadingState.update { ExecutionState.SUCCESS }
                 flow.collect{
                     tasks -> _TaskState.value = tasks
                 }
             } catch (e: Exception) {
-                _loadingState.value = ExecutionState.ERROR
+                _loadingState.update { ExecutionState.ERROR }
             }
         }
     }
@@ -107,10 +107,13 @@ class TaskViewModel @Inject constructor (
         }
     }
 
-    fun updateTasks() {
+    fun refreshTasks() {
         viewModelScope.launch(Dispatchers.IO) {
+            _loadingState.update { ExecutionState.RUNNING }
+            println("Refreshing!!!!")
             try {
                 taskRepository.refresh()
+                _loadingState.update { ExecutionState.SUCCESS }
             } catch (exception: Exception) {
                 _loadingState.update { ExecutionState.ERROR }
             }

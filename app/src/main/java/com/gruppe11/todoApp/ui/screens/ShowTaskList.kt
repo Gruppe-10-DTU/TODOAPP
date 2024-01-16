@@ -30,6 +30,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -40,6 +41,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
@@ -68,6 +70,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,6 +84,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -116,7 +120,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ShowTaskList (
     viewModel : TaskViewModel = hiltViewModel<TaskViewModel>(),
@@ -131,6 +135,7 @@ fun ShowTaskList (
     val focusManager = LocalFocusManager.current
     val tasks by viewModel.TaskState.collectAsStateWithLifecycle(initialValue = emptyList())
     val showMonthPicker = remember{ mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -204,7 +209,10 @@ fun ShowTaskList (
                                 bottom = it.calculateBottomPadding()
                             )
                         ) {
-                            CollapsingLayout(collapsingTop = {
+                            CollapsingLayout(
+                                refresh = viewModel::refreshTasks,
+                                state = loadingState,
+                                collapsingTop = {
                                 Box(
                                     modifier = Modifier
                                         .wrapContentHeight()
@@ -391,10 +399,13 @@ fun ShowTaskList (
 internal fun CollapsingLayout(
     collapsingTop: @Composable BoxScope.() -> Unit,
     bodyContent: @Composable BoxScope.() -> Unit,
+    refresh: () -> Unit,
+    state: ExecutionState,
     modifier: Modifier = Modifier,
 ) {
     var collapsingTopHeight by remember { mutableStateOf(0f) }
     var offset by remember { mutableStateOf(0f) }
+
     fun calculateOffset(delta: Float): Offset {
         val oldOffset = offset
         val newOffset = (oldOffset + delta).coerceIn(-collapsingTopHeight, 0f)
@@ -403,22 +414,37 @@ internal fun CollapsingLayout(
     }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
-                when {
-                    available.y >= 0 -> Offset.Zero
-                    offset == -collapsingTopHeight -> Offset.Zero
-                    else -> calculateOffset(available.y)
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset
+                 {
+                    if (available.y >= 0) {
+                        if (available.y > 50 && state == ExecutionState.SUCCESS && offset == 0f) {
+                            refresh()
+                        }
+                        return Offset.Zero
+                    }
+                    else if(offset == -collapsingTopHeight) {
+                        return Offset.Zero
+                    }
+                    else {
+                        return calculateOffset(available.y)
+                    }
                 }
             override fun onPostScroll(
                 consumed: Offset,
                 available: Offset,
                 source: NestedScrollSource,
-            ): Offset =
-                when {
-                    available.y <= 0 -> Offset.Zero
-                    offset == 0f -> Offset.Zero
-                    else -> calculateOffset(available.y)
+            ): Offset {
+                if (available.y <= 0) {
+                    return Offset.Zero
                 }
+                else if(offset == 0f) {
+                    return Offset.Zero
+                }
+                else {
+                    return calculateOffset(available.y)
+                }
+            }
+
         }
     }
     Box(
@@ -545,6 +571,7 @@ fun GenerateLazyRowForDays(
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun GenerateLazyColumnForTasks(
     viewModel: TaskViewModel,
@@ -556,25 +583,23 @@ fun GenerateLazyColumnForTasks(
             .fillMaxSize()
             .padding(horizontal = 5.dp)
     ) {
-        when (filteredTasks.isEmpty()) {
-            true -> {
-                Text(
-                    text = "No tasks to display",
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-            else -> {
-                LazyColumn(modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    items(filteredTasks) { task ->
-                        key(task.id) {
-                            TaskItem(task = task, viewModel = viewModel, editTask)
-                        }
-                    }
+
+        if (filteredTasks.isEmpty()) {
+            Text(
+                text = "No tasks to display",
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+
+        LazyColumn(modifier = Modifier
+            .align(Alignment.TopCenter)
+            .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            items(filteredTasks) { task ->
+                key(task.id) {
+                    TaskItem(task = task, viewModel = viewModel, editTask)
                 }
             }
         }
@@ -741,6 +766,7 @@ fun ShowSubTask(changeSubtaskCompletion: (task: Task, subtask: SubTask) -> Unit,
         )
     }
 }
+
 @Preview
 @Composable
 fun ShowTaskListPreview() {
