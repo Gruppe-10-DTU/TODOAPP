@@ -1,9 +1,9 @@
 package com.gruppe11.todoApp.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,9 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.RemoveCircle
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -173,31 +174,35 @@ fun EditableTimeSlot(
     timeSlot: TimeSlot,
     onChanges: (TimeSlot) -> Unit,
     onDelete: (TimeSlot) -> Unit,
-){
-    val changeStart = remember{ mutableStateOf(false) }
-    val changeEnd = remember{ mutableStateOf(false) }
+) {
+    val changeStart = remember { mutableStateOf(false) }
+    val changeEnd = remember { mutableStateOf(false) }
     val deleteModalVisible = remember { mutableStateOf(false) }
     var timeslotName by remember { mutableStateOf(timeSlot.name) }
     var showConfirm by remember { mutableStateOf(false) }
 
-    Row(modifier = Modifier.padding(15.dp,5.dp),
+    Row(
+        modifier = Modifier.padding(15.dp, 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { deleteModalVisible.value = true } ) {
+        IconButton(onClick = { deleteModalVisible.value = true }) {
             Icon(
-                imageVector = Icons.Default.RemoveCircle,
+                imageVector = Icons.Outlined.RemoveCircleOutline,
                 contentDescription = null,
                 modifier = Modifier.scale(1.5F),
-                tint = MaterialTheme.colorScheme.tertiary)
+                tint = MaterialTheme.colorScheme.tertiary
+            )
         }
-        Column(modifier = Modifier.padding(5.dp,0.dp)) {
+        Column(modifier = Modifier.padding(5.dp, 0.dp)) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 value = timeslotName,
-                onValueChange = { timeslotName = it
-                                showConfirm = true},
-                label = { Text(text = "Name")}
+                onValueChange = {
+                    timeslotName = it
+                    showConfirm = true
+                },
+                label = { Text(text = "Name") }
             )
             if (showConfirm) {
                 Row {
@@ -219,7 +224,8 @@ fun EditableTimeSlot(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(0.dp, 5.dp),
-                horizontalArrangement = Arrangement.SpaceBetween) {
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 OutlinedButton(
                     onClick = { changeStart.value = true },
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -254,7 +260,7 @@ fun EditableTimeSlot(
                     TimePickerDialog(
                         initialTime = timeSlot.start,
                         dismiss = { changeStart.value = false },
-                        confirm = {newTime ->
+                        confirm = { newTime ->
                             onChanges(timeSlot.copy(start = newTime))
                         }
                     )
@@ -263,55 +269,44 @@ fun EditableTimeSlot(
                     TimePickerDialog(
                         initialTime = timeSlot.end,
                         dismiss = { changeEnd.value = false },
-                        confirm = {newTime ->
+                        confirm = { newTime ->
                             onChanges(timeSlot.copy(end = newTime))
                         }
                     )
                 }
-                if (deleteModalVisible.value){
+                if (deleteModalVisible.value) {
                     Dialog(onDismissRequest = { deleteModalVisible.value = false }) {
-                        ElevatedCard() {
+                        ElevatedCard(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.background
+                            )
+                        ) {
                             Column(modifier = Modifier.padding(15.dp)) {
                                 Text(text = "Are you sure you want to delete this timeslot?")
-                                Row(modifier = Modifier
-                                    .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.End) {
-                                        TextButton(colors = ButtonColors(
-                                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                                            containerColor = MaterialTheme.colorScheme.tertiary,
-                                            disabledContainerColor = Color.Transparent,
-                                            disabledContentColor = Color.Transparent
-                                        ),
-                                            border = BorderStroke(
-                                                2.dp,
-                                                MaterialTheme.colorScheme.tertiary
-                                            ),
-                                            onClick = {
-                                                onDelete(timeSlot)
-                                                deleteModalVisible.value = false
-                                            }) {
-                                            Text(
-                                                color = MaterialTheme.colorScheme.onPrimary,
-                                                text = "Delete",
-                                                fontSize = 18.sp
-                                            )
-                                        }
-                                        TextButton(colors = ButtonColors(
-                                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                                            containerColor = MaterialTheme.colorScheme.secondary,
-                                            disabledContainerColor = Color.Transparent,
-                                            disabledContentColor = Color.Transparent
-                                        ),
-                                            border = BorderStroke(
-                                                2.dp,
-                                                MaterialTheme.colorScheme.secondary
-                                            ),
-                                            onClick = { deleteModalVisible.value = false }) {
-                                            Text(text = "Cancel", fontSize = 18.sp)
-                                        }
-                                    }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    SwitchableButton(
+                                        text = "Cancel",
+                                        onClick = { deleteModalVisible.value = false },
+                                        isFilled = false,
+                                        pickedColor = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(5.dp))
+                                    SwitchableButton(
+                                        text = "Delete",
+                                        onClick = {
+                                            onDelete(timeSlot)
+                                            deleteModalVisible.value = false
+                                        },
+                                        isFilled = true,
+                                        pickedColor = MaterialTheme.colorScheme.tertiary
+                                    )
                                 }
                             }
+                        }
                     }
                 }
 

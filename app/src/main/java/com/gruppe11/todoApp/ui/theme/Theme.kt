@@ -2,7 +2,6 @@ package com.gruppe11.todoApp.ui.theme
 
 import android.app.Activity
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -17,9 +16,16 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Color(0xff6aa5b7),
+    onPrimary = Color(0xff000000),
+    primaryContainer = Color(0xfff1f5fb),
+    secondary = Color(0xffc1e5e7),
+    secondaryContainer = Color(0xff6aa5b7),
+    tertiary = Color(0xfff5838e),
+    background = Color(0xFFFFFBFE),
+    surface = ItemBackground,
+    onSurfaceVariant = Color(0xff49454f),
+    error = RedLight,
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -48,9 +54,10 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun TODOAPPTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+//    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

@@ -48,13 +48,14 @@ fun CalendarScreen(
     val uiState = calendarViewModel.uiState.collectAsStateWithLifecycle()
     val timeIntervals = calendarViewModel.time.collectAsStateWithLifecycle(initialValue = emptyList())
     val columnState = rememberScrollState()
+    val dates = calendarViewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Scaffold(
         topBar = {
             DateSideScroller(
                 currentDate = uiState.value.currentDay,
                 onDateChange = { calendarViewModel.changeSelectedDate(it) },
-                dates = calendarViewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList())
+                dates = dates
             ) {
                 CoroutineScope(Dispatchers.Main).launch {
                     columnState.scrollTo(

@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.gruppe11.todoApp.R
+import com.gruppe11.todoApp.ui.elements.SwitchableButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,9 +76,15 @@ fun ManageProfileScreen(
                 }
                 item {
                     Spacer(modifier = Modifier.height(20.dp))
-                    Button(onClick = { /*TODO*/ }) {
-                        Text(text = "Log out")
-                    }
+//                    Button(onClick = { /*TODO*/ }) {
+//                        Text(text = "Log out")
+//                    }
+                    SwitchableButton(
+                        text = "Log out",
+                        onClick = { /*TODO*/ },
+                        isFilled = true,
+                        pickedColor = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
     }
