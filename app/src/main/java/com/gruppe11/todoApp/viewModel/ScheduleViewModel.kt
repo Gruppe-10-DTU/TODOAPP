@@ -79,7 +79,7 @@ class ScheduleViewModel @Inject constructor(
         try {
             timeslot = timeSlotRepository.create(timeSlot)
         } catch (e: Exception) {
-            Log.d("timeslot", e.toString())
+            Log.d("createTimeSlot", e.toString())
         }
         return timeslot
     }
@@ -89,7 +89,7 @@ class ScheduleViewModel @Inject constructor(
             try {
                 timeSlotRepository.update(timeSlot)
             } catch (e: Exception) {
-                Log.d("timeslot", e.toString())
+                Log.d("updateTimeSlot", e.toString())
             }
         }
     }
@@ -102,7 +102,7 @@ class ScheduleViewModel @Inject constructor(
                 }
                 timeSlotRepository.delete(timeSlot)
             } catch (e: Exception) {
-                Log.d("timeslot", e.toString())
+                Log.d("deleteTimeSlot", e.toString())
             }
         }
     }
@@ -113,7 +113,7 @@ class ScheduleViewModel @Inject constructor(
                 taskRepository.update(task)
                 timeSlotRepository.readAll()
             } catch (e: Exception) {
-                Log.d("timeslot", e.toString())
+                Log.d("toggleTaskCompletion", e.toString())
             }
         }
     }

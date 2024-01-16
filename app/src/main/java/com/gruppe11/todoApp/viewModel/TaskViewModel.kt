@@ -97,6 +97,7 @@ class TaskViewModel @Inject constructor (
                 }
             } catch (e: Exception) {
                 _loadingState.value = ExecutionState.ERROR
+                Log.d("loadTasks", e.toString())
             }
         }
     }
