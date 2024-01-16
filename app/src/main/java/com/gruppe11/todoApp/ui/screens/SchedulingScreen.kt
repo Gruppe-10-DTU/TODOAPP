@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,8 +58,8 @@ import java.time.LocalTime
 fun SchedulingScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
 ) {
-    val timeslots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val timeslots by viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val columnScrollState = rememberLazyListState()
     val minSlotHeight = 200.dp
     val minTaskHeight = 60.dp
@@ -68,12 +69,12 @@ fun SchedulingScreen(
     Scaffold(
         topBar = {
             DateSideScroller(
-                currentDate = uiState.value.currentDay,
+                currentDate = uiState.currentDay,
                 onDateChange = { viewModel.changeSelectedDay(it) },
                 dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList()),
                 onTitleClick = {
                     CoroutineScope(Dispatchers.Main).launch {
-                        scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
+                        scrollToCurrentTime(state = columnScrollState, slots = timeslots)
                     }
                 }
             )
@@ -85,7 +86,7 @@ fun SchedulingScreen(
                 .fillMaxSize(),
             state = columnScrollState
         ) {
-            if (timeslots.value.isEmpty()) {
+            if (timeslots.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
@@ -102,14 +103,14 @@ fun SchedulingScreen(
                     }
                 }
             }
-            items(timeslots.value.sortedBy { it.start }) { slot ->
+            items(timeslots.sortedBy { it.start }, key = { it.id }) { slot ->
                 TimeSlot(
                     timeSlot = slot,
                     slotHeight = minSlotHeight
                 ) {
                     FlowRow(maxItemsInEachRow = 5) {
                         slot.tasks
-                            .filter { task -> task.deadline.toLocalDate() == uiState.value.selectedDay }
+                            .filter { task -> task.deadline.toLocalDate() == uiState.selectedDay }
                             .sortedBy { it.priority }//.sortedBy { !it.isCompleted }
                             .reversed()
                             .forEach { task ->
@@ -127,8 +128,8 @@ fun SchedulingScreen(
         }
     }
     LaunchedEffect(key1 = LocalDateTime.now().hour) {
-        if (uiState.value.selectedDay == LocalDate.now()) {
-            scrollToCurrentTime(state = columnScrollState, slots = timeslots.value)
+        if (uiState.selectedDay == LocalDate.now()) {
+            scrollToCurrentTime(state = columnScrollState, slots = timeslots)
         }
     }
 }
