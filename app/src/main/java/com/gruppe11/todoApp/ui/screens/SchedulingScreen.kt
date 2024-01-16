@@ -30,12 +30,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gruppe11.todoApp.R
 import com.gruppe11.todoApp.model.Priority
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.model.TimeSlot
@@ -90,7 +92,11 @@ fun SchedulingScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "No timeslots found. Goto: Settings -> Manage time slots -> Create new timeslot", color = Color.LightGray,fontStyle = FontStyle.Italic,fontSize = 18.sp)
+                        Text(
+                            text = stringResource(R.string.no_timeslots),
+                            color = Color.LightGray,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 18.sp)
                     }
                 }
             }
