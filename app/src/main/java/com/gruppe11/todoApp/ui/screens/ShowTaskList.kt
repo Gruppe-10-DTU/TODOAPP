@@ -716,7 +716,8 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                     showDeleteConf.value = false},
                 isFilled = true,
                 pickedColor = MaterialTheme.colorScheme.tertiary
-            )}
+            )},
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 }
