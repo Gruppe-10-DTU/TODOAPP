@@ -37,6 +37,7 @@ private val LightColorScheme = lightColorScheme(
 //    secondaryContainer = Color(0xff17384c),
     tertiary = Color(0xfff5838e),
     background = Color(0xFFFFFBFE),
+    onBackground = Color(0x406AA5B7),
     surface = ItemBackground,
     onSurfaceVariant = Color(0xff49454f),
     error = RedLight,
