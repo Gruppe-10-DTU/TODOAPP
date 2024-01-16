@@ -196,14 +196,16 @@ fun ScheduleTask(
             disabledContentColor = Color.Black)
 
     ) {
-        Row() {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+        ) {
             Column(
-                modifier = Modifier.padding(vertical = 10.dp, horizontal = 10.dp),
+                modifier = Modifier.padding(vertical = 5.dp, horizontal = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(text = task.title.uppercase(),color = MaterialTheme.colorScheme.onPrimary,fontSize = 19.sp)
-                Column(modifier = Modifier.padding(10.dp, 1.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 1.dp)) {
                     task.subtasks.forEach {
                         Text(text = it.title,color = MaterialTheme.colorScheme.onPrimary,fontSize = 14.sp)
                     }
@@ -226,7 +228,6 @@ suspend fun  scrollToCurrentTime(
     slots.forEach {
         if (LocalTime.now().isAfter(it.start)) {
             state.scrollToItem(slots.indexOf(it) + 1)
-
         }
     }
 }
