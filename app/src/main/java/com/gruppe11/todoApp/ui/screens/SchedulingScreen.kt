@@ -187,12 +187,12 @@ fun ScheduleTask(
         modifier = Modifier
             .defaultMinSize(minWidth = width, minHeight = height)
             .padding(2.dp)
-            .clickable { toggleCompletion(task.copy(isCompleted = !task.isCompleted)) }
-            .border(
-                width = 1.dp,
-                color = priorityColor,
-                shape = RoundedCornerShape(10.dp)
-            ),
+            .clickable { toggleCompletion(task.copy(isCompleted = !task.isCompleted)) },
+//            .border(
+//                width = 1.dp,
+//                color = priorityColor,
+//                shape = RoundedCornerShape(10.dp)
+//            ),
         colors = CardColors(
             contentColor = MaterialTheme.colorScheme.onPrimary,
             containerColor = completionColor,
