@@ -416,10 +416,11 @@ internal fun CollapsingLayout(
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset
                  {
-                    if (available.y >= 0) {
-                        if (available.y > 50 && state == ExecutionState.SUCCESS && offset == 0f) {
-                            refresh()
-                        }
+                     if(offset == 0f && available.y >= 50 && state == ExecutionState.RUNNING && source == NestedScrollSource.Drag) {
+                         refresh()
+                         return Offset.Zero
+                     }
+                    else if (available.y >= 0) {
                         return Offset.Zero
                     }
                     else if(offset == -collapsingTopHeight) {
