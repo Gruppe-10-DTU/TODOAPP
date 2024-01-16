@@ -59,7 +59,7 @@ fun DateSideScroller(
                 CoroutineScope(Dispatchers.Main).launch {
                     listState.scrollToItem(
                         index = selectedIndex - 1,
-                        scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
+                        scrollOffset = (100.dp).value.toInt()
                     )
                     onDateChange(selectedDate)
                     onTitleClick()
@@ -148,7 +148,7 @@ fun DateSideScroller(
                 selectedIndex = dates.value.indexOfFirst { it.isEqual(selectedDate) }
                 listState.scrollToItem(
                     index = selectedIndex - 1,
-                    scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
+                    scrollOffset = (100.dp).value.toInt()
                 )
             }
         }
