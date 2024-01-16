@@ -171,13 +171,11 @@ fun ScheduleTask(
     width: Dp,
     toggleCompletion: (Task) -> Unit
 ){
-    //TODO Change colors to match ColorScheme
     val priorityColor = when (task.priority) {
         Priority.HIGH -> Color.Red
         Priority.MEDIUM -> MaterialTheme.colorScheme.primary
         Priority.LOW -> Color.Green
     }
-    //TODO Change colors to match ColorScheme
     val completionColor = when (task.isCompleted) {
         false -> MaterialTheme.colorScheme.tertiaryContainer
         true -> MaterialTheme.colorScheme.primaryContainer
