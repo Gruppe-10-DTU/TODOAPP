@@ -1,7 +1,6 @@
 package com.gruppe11.todoApp.ui.screens
 
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
@@ -147,15 +145,16 @@ fun TimeSlot (
     ) {
         Column(
             modifier = Modifier
-                .defaultMinSize(minHeight = slotHeight, minWidth = 50.dp)
-                .padding(5.dp, 10.dp),
+                .weight(1f)
+                .padding(5.dp, 5.dp),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(5.dp))
             Text(
                 text = timeSlot.name,
-                fontSize = 18.sp
+                fontSize = 18.sp,
+                softWrap = true
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(text = timeSlot.start.toString())
@@ -163,7 +162,9 @@ fun TimeSlot (
             Text(text = timeSlot.end.toString())
             Spacer(Modifier.height(20.dp))
         }
-        content()
+        Column(Modifier.weight(3f)) {
+            content()
+        }
     }
 }
 
