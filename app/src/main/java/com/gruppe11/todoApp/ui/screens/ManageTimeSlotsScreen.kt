@@ -148,8 +148,6 @@ fun ManageTimeSlotsScreen(
                                         scope.launch {
                                             snackbarHostState.showSnackbar("Error: Could not create new timeslot")
                                         }
-                                    } else {
-
                                     }
                                 }
                             },
