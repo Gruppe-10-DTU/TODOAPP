@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
-class TimeSlotRepositoryApi @Inject constructor(): ITimeSlotRepository {
+class TimeSlotRepositoryImpl @Inject constructor(): ITimeSlotRepository {
 
     private val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
     override val timeSlots: StateFlow<List<TimeSlot>>

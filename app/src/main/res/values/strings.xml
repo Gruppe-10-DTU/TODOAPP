@@ -50,4 +50,5 @@
     <string name="incomplete">Incomplete</string>
 
     <string name="error_task_loading">Error: Could not load tasks</string>
+    <string name="error_timeslot_loading">"Error: Could not create new timeslot"</string>
 </resources>

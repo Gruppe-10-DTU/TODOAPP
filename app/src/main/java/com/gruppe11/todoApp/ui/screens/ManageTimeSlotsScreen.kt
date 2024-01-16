@@ -44,11 +44,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gruppe11.todoApp.R
 import com.gruppe11.todoApp.model.TimeSlot
 import com.gruppe11.todoApp.ui.elements.LoadingErrorIndicator
 import com.gruppe11.todoApp.ui.elements.LoadingIndicator
@@ -68,11 +70,11 @@ fun ManageTimeSlotsScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
     returnPage: () -> Unit
 ) {
-    val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots by viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
+    val loadingState by viewModel.loadingState.collectAsStateWithLifecycle()
 
     Scaffold(snackbarHost = {
         SnackbarHost( hostState = snackbarHostState) },
@@ -97,13 +99,13 @@ fun ManageTimeSlotsScreen(
                 },
             )
         }) {padding ->
-        when (loadingState.value) {
+        when (loadingState) {
             ExecutionState.RUNNING -> {
                 LoadingIndicator()
             }
             ExecutionState.ERROR -> {
                 LoadingErrorIndicator(
-                    labelText = "Error: Could not load timeslots",
+                    labelText = stringResource(id = R.string.error_timeslot_loading),
                     onRetry = viewModel::loadTimeslots
                 )
             }
@@ -114,7 +116,7 @@ fun ManageTimeSlotsScreen(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    items(items = timeSlots.value, itemContent = {slot ->
+                    items(key = { it.id }, items = timeSlots, itemContent = {slot ->
                         EditableTimeSlot(
                             timeSlot = slot,
                             onChanges = { viewModel.updateTimeSlot(it) },
@@ -141,13 +143,13 @@ fun ManageTimeSlotsScreen(
                                             emptyList()
                                         )
                                     )
-                                    val message = if (createdTimeslot != null)
-                                        "New timeslot created"
-                                    else
-                                        "Error: Could not create new timeslot"
 
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(message)
+                                    if (createdTimeslot == null) {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Error: Could not create new timeslot")
+                                        }
+                                    } else {
+
                                     }
                                 }
                             },
@@ -173,7 +175,6 @@ fun ManageTimeSlotsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditableTimeSlot(
     timeSlot: TimeSlot,

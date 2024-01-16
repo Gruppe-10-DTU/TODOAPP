@@ -28,7 +28,7 @@ class ScheduleViewModel @Inject constructor(
     ): ViewModel() {
 
     private val _timeSlots = MutableStateFlow<List<TimeSlot>>(emptyList())
-    val timeSlots = _timeSlots
+    val timeSlots = _timeSlots.asStateFlow()
 
     private val _uiState = MutableStateFlow(ScheduleScreenState())
     val uiState = _uiState.asStateFlow()
@@ -52,7 +52,7 @@ class ScheduleViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _loadingState.value = ExecutionState.ERROR
-                Log.d("loadTimeslots", e.toString())
+                Log.d("timeslot", e.toString())
             }
         }
     }
