@@ -61,6 +61,7 @@ fun DateSideScroller(
                         index = selectedIndex - 1,
                         scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
                     )
+                    onDateChange(selectedDate)
                     onTitleClick()
                 }
             },

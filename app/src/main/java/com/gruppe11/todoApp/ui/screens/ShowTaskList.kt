@@ -181,7 +181,7 @@ fun ShowTaskList (
                 Column(
                     modifier = Modifier
                         .wrapContentSize()
-                        .noRippleClickable { focusManager?.clearFocus() },
+                        .noRippleClickable { focusManager.clearFocus() },
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -611,7 +611,8 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
             .padding(1.dp)
             .fillMaxWidth()
             .clipToBounds()) {
-            Checkbox(modifier = Modifier.padding(10.dp),
+            Checkbox(
+                modifier = Modifier.padding(10.dp),
                 checked = task.isCompleted,
                 onCheckedChange ={
                     viewModel.changeTaskCompletion(task)
@@ -653,8 +654,10 @@ fun TaskItem(task: Task, viewModel: TaskViewModel, editTask: (Int) -> Unit){
                     append(task.title.substring(endOfSearchPlus1))
                 },
                 modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                    .weight(1f),
+                softWrap = true
             )
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.width(2.dp))
             Text(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
                 text = task.priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()},
