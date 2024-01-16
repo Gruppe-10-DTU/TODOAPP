@@ -10,4 +10,5 @@ interface ITaskRepository {
     suspend fun readAll(): Flow<List<Task>>
     suspend fun update(task: Task): Task
     suspend fun delete(task: Task)
+    suspend fun refresh()
 }

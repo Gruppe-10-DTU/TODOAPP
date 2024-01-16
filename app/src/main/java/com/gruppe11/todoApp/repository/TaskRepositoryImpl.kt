@@ -17,6 +17,10 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
         return newTask
     }
 
+    override suspend fun refresh() {
+        val tasksFromApi = TodoApi.taskService.readAll()
+        tasks.emit(tasksFromApi)
+    }
     override suspend fun read(id: Int): Task? {
         val task = TodoApi.taskService.read(id)
         if (task != null) {
@@ -33,7 +37,8 @@ class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
     }
 
     override suspend fun readAll(): Flow<List<Task>> {
-        tasks.value = TodoApi.taskService.readAll()
+        val tasksFromApi = TodoApi.taskService.readAll()
+        tasks.emit(tasksFromApi)
         return tasks
     }
 

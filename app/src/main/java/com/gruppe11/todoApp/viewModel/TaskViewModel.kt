@@ -107,6 +107,16 @@ class TaskViewModel @Inject constructor (
         }
     }
 
+    fun updateTasks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                taskRepository.refresh()
+            } catch (exception: Exception) {
+                _loadingState.update { ExecutionState.ERROR }
+            }
+        }
+    }
+
     fun removeTask(task: Task){
         viewModelScope.launch(Dispatchers.IO) {
             try {
