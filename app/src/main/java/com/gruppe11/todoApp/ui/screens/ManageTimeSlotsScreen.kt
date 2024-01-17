@@ -28,6 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -35,21 +37,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gruppe11.todoApp.R
 import com.gruppe11.todoApp.model.TimeSlot
+import com.gruppe11.todoApp.ui.elements.LoadingErrorIndicator
+import com.gruppe11.todoApp.ui.elements.LoadingIndicator
 import com.gruppe11.todoApp.ui.elements.SwitchableButton
 import com.gruppe11.todoApp.ui.elements.TimePickerDialog
+import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.viewModel.ScheduleViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -59,10 +70,14 @@ fun ManageTimeSlotsScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
     returnPage: () -> Unit
 ) {
-    val timeSlots = viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
+    val timeSlots by viewModel.timeSlots.collectAsStateWithLifecycle(initialValue = emptyList())
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val loadingState by viewModel.loadingState.collectAsStateWithLifecycle()
 
-    Scaffold(
+    Scaffold(snackbarHost = {
+        SnackbarHost( hostState = snackbarHostState) },
         modifier = Modifier
             .fillMaxHeight()
             .noRippleClickable { focusManager.clearFocus() },
@@ -83,57 +98,81 @@ fun ManageTimeSlotsScreen(
                     }
                 },
             )
-        }) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(items = timeSlots.value, itemContent = { slot ->
-                EditableTimeSlot(
-                    timeSlot = slot,
-                    onChanges = { viewModel.updateTimeSlot(it) },
-                    onDelete = { viewModel.deleteTimeSlot(it) },
+        }) {padding ->
+        when (loadingState) {
+            ExecutionState.RUNNING -> {
+                LoadingIndicator()
+            }
+            ExecutionState.ERROR -> {
+                LoadingErrorIndicator(
+                    labelText = stringResource(id = R.string.error_timeslot_loading),
+                    onRetry = viewModel::loadTimeslots
                 )
-                HorizontalDivider(thickness = 1.dp)
-            })
-            item {
-                TextButton(
+            }
+            ExecutionState.SUCCESS -> {
+                LazyColumn(
                     modifier = Modifier
-                        .padding(vertical = 10.dp),
-                    onClick = {
-                        viewModel.createTimeSlot(
-                            TimeSlot(
-                                id = 0,
-                                name = "New timeslot",
-                                start = LocalTime.of(LocalTime.now().hour, 0, 0),
-                                end = LocalTime.of(LocalTime.now().plusHours(1).hour, 0, 0),
-                                emptyList()
-                            )
-                        )
-                    },
-                    colors = ButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = Color.Transparent,
-                        disabledContentColor = Color.Transparent
-                    )
+                        .padding(padding)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.background)
-                    Text(text = "Create new timeslot",
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.background
-                    )
+                    items(key = { it.id }, items = timeSlots, itemContent = {slot ->
+                        EditableTimeSlot(
+                            timeSlot = slot,
+                            onChanges = { viewModel.updateTimeSlot(it) },
+                            onDelete = { viewModel.deleteTimeSlot(it) },
+                        )
+                        HorizontalDivider(thickness = 1.dp)
+                    })
+                    item {
+                        TextButton(
+                            modifier = Modifier
+                                .padding(vertical = 10.dp),
+                            onClick = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val createdTimeslot = viewModel.createTimeSlot(
+                                        TimeSlot(
+                                            id = 0,
+                                            name = "New timeslot",
+                                            start = LocalTime.of(LocalTime.now().hour, 0, 0),
+                                            end = LocalTime.of(
+                                                LocalTime.now().plusHours(1).hour,
+                                                0,
+                                                0
+                                            ),
+                                            emptyList()
+                                        )
+                                    )
+
+                                    if (createdTimeslot == null) {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Error: Could not create new timeslot")
+                                        }
+                                    }
+                                }
+                            },
+                            colors = ButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                disabledContainerColor = Color.Transparent,
+                                disabledContentColor = Color.Transparent
+                            )
+                        ) {
+                            Icon(imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.background)
+                            Text(text = "Create new timeslot",
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colorScheme.background
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditableTimeSlot(
     timeSlot: TimeSlot,

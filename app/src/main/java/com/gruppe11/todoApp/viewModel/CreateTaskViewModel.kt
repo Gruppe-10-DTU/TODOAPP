@@ -1,7 +1,6 @@
 package com.gruppe11.todoApp.viewModel
 
 import android.util.Log
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gruppe11.todoApp.model.Priority
@@ -17,10 +16,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,9 +34,6 @@ class CreateTaskViewModel @Inject constructor(
         )
     )
 
-    val UIState = _UIState.asStateFlow()
-
-
     private val _editingTask = MutableStateFlow<Task>(
         Task(
             -1, "", Priority.MEDIUM, LocalDateTime.now(), false,
@@ -47,10 +43,8 @@ class CreateTaskViewModel @Inject constructor(
     )
 
     val editingTask = _editingTask.asStateFlow()
-    val timeSlotsWithTasks = MutableStateFlow<List<TimeSlot>>(emptyList())
 
     private val _timeslots: MutableStateFlow<List<TimeSlot>> = MutableStateFlow(emptyList())
-
     val Timeslots = _timeslots.asStateFlow()
 
     private val _submitState = MutableStateFlow(ExecutionState.RUNNING)
@@ -58,20 +52,14 @@ class CreateTaskViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            timeSlotRepository.readAll().collect { timeslots ->
-                _timeslots.value = timeslots
+            try {
+                timeSlotRepository.readAll()
+                    .collect { timeslots ->
+                        _timeslots.value = timeslots
+                    }
+            } catch (e: Exception) {
+                Log.d("init", e.toString())
             }
-        }
-    }
-
-    suspend fun getSubtasks(currentTask: Task): List<SubTask> {
-        return subtaskRepository.readAll(currentTask)
-    }
-
-
-    fun removeSubtask(task: Task, subTask: SubTask) {
-        viewModelScope.launch(Dispatchers.IO) {
-            subtaskRepository.delete(task, subTask)
         }
     }
 
@@ -102,57 +90,6 @@ class CreateTaskViewModel @Inject constructor(
             }
             taskRepository.read(task.id)
         }
-    }
-
-    fun addToTimeslot(timeslot: TimeSlot, task: Task) {
-        _editingTask.update { task: Task -> task.copy(timeslot = timeslot) }
-        fun doesTaskExistInTimeSlots(task: Task, timeSlots: List<TimeSlot>): Boolean {
-            for (timeSlot in timeSlots) {
-                if (timeSlot.tasks.contains(task)) {
-                    return true
-                }
-            }
-            return false
-        }
-    }
-
-//    suspend fun unscheduleTask(task: Task){
-//        timeSlotRepository.unschedule(task)
-//    }
-
-    fun removeTaskFromTimeSlot(timeSlot: TimeSlot, task: Task) {
-        viewModelScope.launch {
-            // Remove the task from the time slot
-            timeSlot.tasks.toMutableStateList().remove(task)
-        }
-    }
-
-    fun moveTaskToNewTimeslot(timeslot: TimeSlot, task: Task) {
-        viewModelScope.launch {
-            timeSlotsWithTasks.value.forEach { timeSlot ->
-                timeSlot.tasks.minus(task)
-            }
-            timeslot.tasks.plus(task)
-        }
-    }
-
-    fun getTimeSlot(task: Task): TimeSlot {
-        var timeSlot = TimeSlot(-1, "", LocalTime.now(), LocalTime.now(), emptyList())
-        timeSlotsWithTasks.value.forEach { ts ->
-            if (ts.tasks.contains(task)) {
-                timeSlot = ts
-            }
-        }
-        return timeSlot
-    }
-
-    fun doesTaskExistInTimeSlot(task: Task): Boolean {
-        var exists = false
-
-        timeSlotsWithTasks.value.forEach { timeSlot ->
-            exists = timeSlot.tasks.contains(task)
-        }
-        return exists
     }
 
     fun editTitle(title: String) {
@@ -216,7 +153,9 @@ class CreateTaskViewModel @Inject constructor(
                 _submitState.value = ExecutionState.ERROR
             }
         }
-        timeSlotRepository.readAll()
+
+        timeSlotRepository.readAll().catch { e -> Log.d("submitTask", e.toString()) }
+
         return task
     }
 
