@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -131,6 +130,7 @@ fun ShowTaskList (
     val sortingList = listOf("Priority Descending","Priority Ascending", "A-Z", "Z-A")
     val focusManager = LocalFocusManager.current
     val tasks by viewModel.TaskState.collectAsStateWithLifecycle(initialValue = emptyList())
+    val dates by viewModel.DaysMap.collectAsStateWithLifecycle(initialValue = emptyMap())
     val showMonthPicker = remember{ mutableStateOf(false) }
     Scaffold(
         topBar = {
@@ -149,7 +149,11 @@ fun ShowTaskList (
                             onClick = {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     viewModel.changeDate(LocalDateTime.now())
-                                    listState.scrollToItem(LocalDateTime.now().dayOfMonth.plus(26))
+                                    listState.scrollToItem(
+                                        index = dates.keys.toList()
+                                            .indexOfFirst {e -> e.isEqual(LocalDate.now()) } - 2,
+                                        scrollOffset = -(40.dp).value.toInt()
+                                    )
                                 }
                             },
                             colors = ButtonColors(
@@ -382,7 +386,13 @@ fun ShowTaskList (
                 }
             }
             LaunchedEffect(true) {
-                listState.scrollToItem(28)
+                CoroutineScope(Dispatchers.Main).launch {
+                    listState.scrollToItem(
+                        index = dates.keys.toList()
+                            .indexOfFirst { e -> e.isEqual(LocalDate.now()) } - 2,
+                        scrollOffset = -(40.dp).value.toInt()
+                    )
+                }
             }
         },
     )
