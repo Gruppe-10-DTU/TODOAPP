@@ -464,7 +464,7 @@ fun subtaskItem(
                 imageVector = Icons.Outlined.RemoveCircleOutline,
                 contentDescription = "Delete Subtask",
                 modifier = Modifier.scale(1.3f),
-                tint = MaterialTheme.colorScheme.tertiary
+                tint = MaterialTheme.colorScheme.error
             )
         }
 //                        Text(text = subtask.title)
