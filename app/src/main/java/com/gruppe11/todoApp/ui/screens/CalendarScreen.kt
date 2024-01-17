@@ -54,6 +54,7 @@ fun CalendarScreen(
         topBar = {
             DateSideScroller(
                 currentDate = uiState.value.currentDay,
+                selectedDay = uiState.value.selectedDay,
                 onDateChange = { calendarViewModel.changeSelectedDate(it) },
                 dates = dates
             ) {

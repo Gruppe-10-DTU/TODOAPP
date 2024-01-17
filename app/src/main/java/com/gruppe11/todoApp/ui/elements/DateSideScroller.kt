@@ -37,12 +37,13 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun DateSideScroller(
     currentDate: LocalDate,
+    selectedDay: LocalDate,
     dates: State<List<LocalDate>>,
     onDateChange: (LocalDate) -> Unit,
     onTitleClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
-    var selectedDate by remember { mutableStateOf(currentDate) }
+    var selectedDate by remember { mutableStateOf(selectedDay) }
     var selectedIndex by remember {
         mutableStateOf(dates.value
             .indexOfFirst { it.dayOfMonth == currentDate.dayOfMonth && it.month == currentDate.month })

@@ -69,6 +69,7 @@ fun SchedulingScreen(
         topBar = {
             DateSideScroller(
                 currentDate = uiState.value.currentDay,
+                selectedDay = uiState.value.selectedDay,
                 onDateChange = { viewModel.changeSelectedDay(it) },
                 dates = viewModel.dates.collectAsStateWithLifecycle(initialValue = emptyList()),
                 onTitleClick = {
