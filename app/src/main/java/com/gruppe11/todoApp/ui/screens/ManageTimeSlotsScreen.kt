@@ -153,7 +153,7 @@ fun ManageTimeSlotsScreen(
                             },
                             colors = ButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                                containerColor = MaterialTheme.colorScheme.secondary,
+                                containerColor = MaterialTheme.colorScheme.primary,
                                 disabledContainerColor = Color.Transparent,
                                 disabledContentColor = Color.Transparent
                             )
