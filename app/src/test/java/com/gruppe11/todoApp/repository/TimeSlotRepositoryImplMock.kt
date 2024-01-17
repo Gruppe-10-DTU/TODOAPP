@@ -6,9 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
 
-class TimeSlotRepositoryLocal @Inject constructor() : ITimeSlotRepository {
+class TimeSlotRepositoryImplMock: ITimeSlotRepository {
 
     override val timeSlots: StateFlow<List<TimeSlot>>
         get() = _timeslots.asStateFlow()
@@ -49,12 +48,4 @@ class TimeSlotRepositoryLocal @Inject constructor() : ITimeSlotRepository {
             list.filterNot { it == timeSlot }
         }
     }
-
-//    override fun unschedule(task: Task){
-//        timeslots.update { list ->
-//            list.onEach { timeslot ->
-//                timeslot.tasks.apply { filterNot { it.id == task.id } }
-//            }
-//        }
-//    }
 }
