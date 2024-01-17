@@ -8,6 +8,7 @@ import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
 import com.gruppe11.todoApp.repository.ISubtaskRepository
 import com.gruppe11.todoApp.repository.ITaskRepository
+import com.gruppe11.todoApp.repository.ITimeSlotRepository
 import com.gruppe11.todoApp.ui.screenStates.ExecutionState
 import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,11 +31,11 @@ import javax.inject.Inject
 @HiltViewModel
 class TaskViewModel @Inject constructor (
     private val taskRepository : ITaskRepository,
-    private val subtaskRepository: ISubtaskRepository
+    private val subtaskRepository: ISubtaskRepository,
+    private val timeslotRepository: ITimeSlotRepository
 ) : ViewModel() {
 
     private var _TaskState = MutableStateFlow<List<Task>>(emptyList())
-
     private val _UIState = MutableStateFlow(
         TasksScreenState(
             selectedDate = LocalDateTime.now(),
@@ -114,6 +115,7 @@ class TaskViewModel @Inject constructor (
             } catch (e: Exception) {
                 Log.d("taskRepository", e.toString())
             }
+            timeslotRepository.readAll()
         }
     }
     @SuppressLint("NewApi")
@@ -138,6 +140,7 @@ class TaskViewModel @Inject constructor (
             } catch (e: Exception) {
                 Log.d("taskRepository", e.toString())
             }
+            timeslotRepository.readAll()
         }
     }
 

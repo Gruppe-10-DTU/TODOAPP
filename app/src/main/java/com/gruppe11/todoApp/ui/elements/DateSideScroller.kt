@@ -1,6 +1,5 @@
 package com.gruppe11.todoApp.ui.elements
 
-import android.content.res.Resources.getSystem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,7 +59,7 @@ fun DateSideScroller(
                 CoroutineScope(Dispatchers.Main).launch {
                     listState.scrollToItem(
                         index = selectedIndex - 1,
-                        scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
+                        scrollOffset = (100.dp).value.toInt()
                     )
                     onDateChange(selectedDate)
                     onTitleClick()
@@ -113,7 +112,7 @@ fun DateSideScroller(
                                 onDateChange(day)
                                 listState.scrollToItem(
                                     index = selectedIndex - 1,
-                                    scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
+                                    scrollOffset = (100.dp).value.toInt()
                                 )
                             }
                         },
@@ -149,7 +148,7 @@ fun DateSideScroller(
                 selectedIndex = dates.value.indexOfFirst { it.isEqual(selectedDate) }
                 listState.scrollToItem(
                     index = selectedIndex - 1,
-                    scrollOffset = (getSystem().displayMetrics.widthPixels * (0.05F)).toInt()
+                    scrollOffset = (100.dp).value.toInt()
                 )
             }
         }
