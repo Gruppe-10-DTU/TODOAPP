@@ -194,7 +194,7 @@ fun EditableTimeSlot(
                 imageVector = Icons.Outlined.RemoveCircleOutline,
                 contentDescription = null,
                 modifier = Modifier.scale(1.5F),
-                tint = MaterialTheme.colorScheme.tertiary
+                tint = MaterialTheme.colorScheme.error
             )
         }
         Column(modifier = Modifier.padding(5.dp, 0.dp)) {

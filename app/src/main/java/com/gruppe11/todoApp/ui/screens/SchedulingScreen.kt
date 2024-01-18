@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -210,6 +211,7 @@ fun ScheduleTask(
             Checkbox(
                 modifier = Modifier.size(35.dp),
                 checked = task.isCompleted,
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.tertiary,MaterialTheme.colorScheme.background),
                 onCheckedChange = { toggleCompletion(task.copy(isCompleted = !task.isCompleted)) }
             )
             Column(
