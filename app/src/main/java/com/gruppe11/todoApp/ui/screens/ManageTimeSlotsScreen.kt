@@ -1,5 +1,6 @@
 package com.gruppe11.todoApp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,13 +12,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,8 +25,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -206,7 +206,13 @@ fun EditableTimeSlot(
                     timeslotName = it
                     showConfirm = true
                 },
-                label = { Text(text = "Name") }
+                label = { Text(text = "Name") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.DarkGray,
+                    unfocusedLabelColor = Color.DarkGray,
+                    unfocusedTextColor = Color.Black,
+                    unfocusedTrailingIconColor = Color.DarkGray
+                )
             )
             if (showConfirm) {
                 Row {
@@ -230,36 +236,43 @@ fun EditableTimeSlot(
                     .padding(0.dp, 5.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OutlinedButton(
-                    onClick = { changeStart.value = true },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = Color.Transparent,
-                    ),
-                    shape = RoundedCornerShape(8.dp),
+                OutlinedTextField(
                     modifier = Modifier
                         .width(140.dp)
-                ) {
-                    Text(
-                        text = timeSlot.start.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        fontSize = 18.sp
+                        .clickable { changeStart.value = true },
+                    value = timeSlot.start.format(DateTimeFormatter.ofPattern("HH:mm")),
+                    enabled = false,
+                    onValueChange = { },
+                    label = { Text(text = "Start") },
+                    trailingIcon = {
+                        Icon(imageVector = Icons.Default.Schedule, contentDescription = null)
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledBorderColor = Color.DarkGray,
+                        disabledLabelColor = Color.DarkGray,
+                        disabledTextColor = Color.Black,
+                        disabledTrailingIconColor = Color.DarkGray
                     )
-                }
-                OutlinedButton(
-                    onClick = { changeEnd.value = true },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = Color.Transparent,
-                    ),
-                    shape = RoundedCornerShape(8.dp),
+                )
+                OutlinedTextField(
                     modifier = Modifier
-                        .width(140.dp)
-                ) {
-                    Text(
-                        text = timeSlot.end.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        fontSize = 18.sp
+                        .clickable { changeEnd.value = true }
+                        .width(140.dp),
+                    value = timeSlot.end.format(DateTimeFormatter.ofPattern("HH:mm")),
+                    enabled = false,
+                    onValueChange = { },
+                    label = { Text(text = "End") },
+                    trailingIcon = {
+                        Icon(imageVector = Icons.Default.Schedule, contentDescription = null)
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledBorderColor = Color.DarkGray,
+                        disabledLabelColor = Color.DarkGray,
+                        disabledTextColor = Color.Black,
+                        disabledTrailingIconColor = Color.DarkGray
                     )
-                }
+                )
+
                 if (changeStart.value) {
                     TimePickerDialog(
                         initialTime = timeSlot.start,
