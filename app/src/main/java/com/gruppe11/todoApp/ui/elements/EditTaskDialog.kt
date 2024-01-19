@@ -48,7 +48,7 @@ fun EditTaskDialog(
     ) {
         ElevatedCard(
             modifier = Modifier.width(150.dp),
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
         ) {
             Column(
@@ -67,7 +67,7 @@ fun EditTaskDialog(
                         dismissDialog()
                     },
                     colors = ButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.background,
                         contentColor = MaterialTheme.colorScheme.onBackground,
                         disabledContentColor = MaterialTheme.colorScheme.onBackground,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -89,7 +89,7 @@ fun EditTaskDialog(
                         dismissDialog()
                     },
                     colors = ButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.background,
                         contentColor = MaterialTheme.colorScheme.error,
                         disabledContentColor = MaterialTheme.colorScheme.error,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -114,5 +114,5 @@ fun EditTaskDialog(
 @Preview
 @Composable
 fun EditTaskDialogPreview(){
-    EditTaskDialog(Task(1, "Task: 1", Priority.HIGH, LocalDateTime.now(),false), {}, {}, {})
+    EditTaskDialog(Task(1, "Task: 1", Priority.HIGH, LocalDateTime.now(), false, emptyList(), null), {}, {}, {})
 }

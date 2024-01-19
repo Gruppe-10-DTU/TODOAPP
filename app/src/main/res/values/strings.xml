@@ -1,11 +1,12 @@
 <resources>
-    <string name="app_name">TODOApp</string>
+    <string name="app_name">11TODOApp</string>
     <string name="title_activity_create_task_page">CreateTaskPage</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
+    <string name="no_timeslots">No timeslots found. Goto: Settings -> Manage time slots -> Create new timeslot</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
@@ -47,4 +48,7 @@
     <!-- Filter -->
     <string name="complete">Complete</string>
     <string name="incomplete">Incomplete</string>
+
+    <string name="error_task_loading">Error: Could not load tasks</string>
+    <string name="error_timeslot_loading">"Error: Could not load timeslots"</string>
 </resources>

@@ -13,7 +13,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerDialogFunction(

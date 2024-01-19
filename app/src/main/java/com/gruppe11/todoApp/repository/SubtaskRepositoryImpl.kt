@@ -2,37 +2,24 @@ package com.gruppe11.todoApp.repository
 
 import com.gruppe11.todoApp.model.SubTask
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.network.TodoApi
 import javax.inject.Inject
 
 class SubtaskRepositoryImpl @Inject constructor() : ISubtaskRepository{
 
-    private var map: MutableMap<Int, MutableList<SubTask>> = HashMap()
-    override fun createSubtask(task: Task, subtask: SubTask): SubTask {
-        val list : MutableList<SubTask> = map[task.id] ?: ArrayList();
-        val newSubtask = subtask.copy(id = list.size+1)
-        list.add(newSubtask);
-        map[task.id] = list
-        return newSubtask;
+    override suspend fun createSubtask(task: Task, subtask: SubTask): SubTask {
+        return TodoApi.subtaskService.createSubtask(task.id, subtask)
     }
 
-    override fun readAll(task: Task): List<SubTask> {
-        return map[task.id] ?: ArrayList()
+    override suspend fun readAll(task: Task): List<SubTask> {
+        return TodoApi.subtaskService.readAll(task.id)
     }
 
-    override fun update(task: Task, subtask: SubTask): SubTask? {
-        val subtasks : MutableList<SubTask> = map[task.id] ?: return null;
-
-        val id = subtasks.indexOfFirst { e -> e.id == subtask.id }
-        subtasks[id] = subtask
-        map[task.id] = subtasks
-        return subtask
+    override suspend fun update(task: Task, subtask: SubTask): SubTask? {
+        return TodoApi.subtaskService.update(task.id, subtask.id, subtask)
     }
 
-    override fun delete(task: Task, subtask: SubTask) {
-        val subtasks : MutableList<SubTask> = map[task.id] ?: return
-
-        subtasks.removeIf{ e -> e.id == subtask.id }
-
+    override suspend fun delete(task: Task, subtask: SubTask) {
+        return TodoApi.subtaskService.delete(task.id, subtask.id)
     }
-
 }

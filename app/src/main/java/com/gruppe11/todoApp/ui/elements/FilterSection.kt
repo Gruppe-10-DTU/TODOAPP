@@ -1,11 +1,9 @@
 package com.gruppe11.todoApp.ui.elements
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,67 +11,57 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gruppe11.todoApp.R
+import com.gruppe11.todoApp.model.Priority
+import com.gruppe11.todoApp.ui.screenStates.TasksScreenState
 import com.gruppe11.todoApp.viewModel.TaskViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterSection(
-    taskViewModel: TaskViewModel
+    taskViewModel: TaskViewModel,
+    state: TasksScreenState
 ) {
-    FlowRow {
-        FilterChip(
-            onClick = {
-                taskViewModel.completeFilter.value = !taskViewModel.completeFilter.value
-                uncheckOnAllSelected(taskViewModel)
-            },
-            label = {
-                Text(stringResource(id = R.string.complete))
-            },
-            selected = taskViewModel.completeFilter.value,
-            modifier = Modifier
-                .padding(horizontal = 4.dp)
-        )
-
-        FilterChip(
-            onClick = {
-                taskViewModel.incompleteFilter.value = !taskViewModel.incompleteFilter.value
-                uncheckOnAllSelected(taskViewModel)
-            },
-            label = {
-                Text(stringResource(R.string.incomplete))
-            },
-            selected = taskViewModel.incompleteFilter.value,
-            modifier = Modifier
-                .padding(horizontal = 4.dp)
-        )
-
-        taskViewModel.tags.forEach { tag ->
+    Column {
+        FlowRow {
             FilterChip(
                 onClick = {
-                    tag.checked = !tag.checked
-                    uncheckOnAllSelected(taskViewModel)
+                    taskViewModel.changeFilter("complete")
                 },
                 label = {
-                    Text(tag.label)
+                    Text(stringResource(id = R.string.complete))
                 },
-                selected = tag.checked,
+                selected = state.completeFilter,
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+            )
+
+            FilterChip(
+                onClick = {
+                    taskViewModel.changeFilter("incomplete")
+                },
+                label = {
+                    Text(stringResource(R.string.incomplete))
+                },
+                selected = state.incompleteFilter,
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
             )
         }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-private fun uncheckOnAllSelected(taskViewModel: TaskViewModel) {
-    if (taskViewModel.tags.all { it.checked }) {
-        taskViewModel.tags.onEach { it.checked = false}
-    }
-
-    if (taskViewModel.completeFilter.value && taskViewModel.incompleteFilter.value) {
-        taskViewModel.completeFilter.value = false
-        taskViewModel.incompleteFilter.value = false
+        FlowRow {
+            Priority.entries.forEach { priority ->
+                FilterChip(
+                    onClick = {
+                        taskViewModel.addPriority(priority)
+                    },
+                    label = {
+                        Text(priority.name.lowercase().replaceFirstChar { x -> x.uppercaseChar()})
+                    },
+                    selected = state.priorities.contains(priority),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                )
+            }
+        }
     }
 }
 

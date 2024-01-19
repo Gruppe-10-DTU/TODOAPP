@@ -1,39 +1,57 @@
 package com.gruppe11.todoApp.repository
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.gruppe11.todoApp.model.Task
+import com.gruppe11.todoApp.network.TodoApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 class TaskRepositoryImpl @Inject constructor() : ITaskRepository  {
-    private var id = 1
-    private val tasks: MutableList<Task> = ArrayList();
 
-    override fun createTask(task: Task): Task {
-        val newTask = task.copy(id = id++)
-        tasks.add(newTask)
+    private val tasks: MutableStateFlow<List<Task>> = MutableStateFlow(emptyList())
+
+    override suspend fun createTask(task: Task): Task {
+        val newTask = TodoApi.taskService.createTask(task)
+        tasks.update { tasks -> tasks.toMutableList().apply { add(newTask) } }
         return newTask
     }
 
-    override fun read(id: Int): Task? {
-        return tasks.find { task: Task -> task.id == id }
-    }
-
-    override fun readAll(): List<Task> {
-        return tasks
-    }
-
-    override fun update(task: Task): Task {
-        val index = tasks.indexOfFirst { it.id == task.id }
-        if (index >= 0) {
-            tasks[index] = task
+    override suspend fun read(id: Int): Task? {
+        val task = TodoApi.taskService.read(id)
+        if (task != null) {
+            val index: Int = tasks.value.indexOfFirst { it.id == id }
+            if (index >= 0) {
+                tasks.update {
+                    tasks.value.toMutableList().apply { this[index] = task }
+                }
+            } else {
+                tasks.update { tasks -> tasks.toMutableList().apply { add(task) } }
+            }
         }
-
         return task
     }
 
-    override fun delete(task: Task) {
-        tasks.removeIf { e -> e.id == task.id }
+    override suspend fun readAll(): Flow<List<Task>> {
+        tasks.value = TodoApi.taskService.readAll()
+        return tasks
+    }
+
+    override suspend fun update(task: Task): Task {
+        val updatedTask = TodoApi.taskService.update(task.id, task)
+        val index: Int = tasks.value.indexOfFirst { it.id == task.id }
+        if (index >= 0) {
+            tasks.update{
+                tasks.value.toMutableList().apply { this[index] = updatedTask }
+            }
+        }
+        return updatedTask
+    }
+
+    override suspend fun delete(task: Task) {
+        TodoApi.taskService.delete(task.id)
+        tasks.update {
+            tasks.value.toMutableList().apply { remove(task) }
+        }
     }
 }

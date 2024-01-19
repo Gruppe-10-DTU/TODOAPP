@@ -5,6 +5,8 @@ import com.gruppe11.todoApp.model.Task
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +20,7 @@ class TaskRepositoryImplTest {
     }
 
     @Test
-    fun createTask() {
+    fun createTask() = runTest {
         //Arrange
         val task : Task = Task(5, "Test", Priority.HIGH,  LocalDateTime.now(),false)
 
@@ -28,6 +30,7 @@ class TaskRepositoryImplTest {
         //Assert
         assertNotEquals(task.id, taskCreated.id);
         assertEquals(1, taskCreated.id);
+        assertEquals(1, taskRepository.readAll().first().size)
     }
 
     @Test
@@ -58,7 +61,7 @@ class TaskRepositoryImplTest {
     }
 
     @Test
-    fun findAllTasks() {
+    fun findAllTasks() = runTest {
         //Arrange
         for (i in 1..5) {
             val task : Task = Task(i, "Test", Priority.HIGH,  LocalDateTime.now(),false)
@@ -66,18 +69,18 @@ class TaskRepositoryImplTest {
         }
 
         //Act
-        val tasks : List<Task>  = taskRepository.readAll();
+        val tasks : List<Task>  = taskRepository.readAll().first()
 
         //Assert
         assertEquals(5, tasks.size);
     }
 
     @Test
-    fun findAllTasksEmpty() {
+    fun findAllTasksEmpty() = runTest {
         //Arrange
 
         //Act
-        val tasks : List<Task>  = taskRepository.readAll();
+        val tasks : List<Task>  = taskRepository.readAll().first();
 
         //Assert
         assertTrue(tasks.isEmpty());
