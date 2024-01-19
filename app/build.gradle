@@ -29,6 +29,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        applicationVariants.all{
+                // this method is use to rename your all apk weather
+            variant ->
+                variant.outputs.each{
+                    output->
+                        def name = "11TODOApp.apk"
+                        output.outputFileName = name
+                }
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
